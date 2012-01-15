@@ -1,0 +1,24 @@
+#!/usr/bin/python
+
+import sys, os, re
+
+if (len(sys.argv) == 0):
+    print 'usage: %s: package.opk' % sys.argv[0]
+    sys.exit(1)
+
+for filename in sys.argv[1:]:
+    m = re.match('((.*/)*)(.*)', filename)
+    pkg = m.group(3)
+    m = re.match('(.*)((.opk)|(.deb)|(.ipk))', filename)
+    if m:
+        pkg = m.group(1)
+
+    os.system('rm -fr %s' % pkg)
+    os.mkdir(pkg)
+    os.mkdir(pkg + '/CONTROL')
+
+    os.system('cd %s; (ar x ../%s || tar zxf ../%s) >& /dev/null' % (pkg, filename, filename))
+
+    os.system('tar xzf %s/data.tar.gz -C %s' % (pkg, pkg))
+    os.system('tar xzf %s/control.tar.gz -C %s/CONTROL' % (pkg, pkg))
+    os.system('rm -f %s/control.tar.gz %s/data.tar.gz %s/debian-binary' % (pkg, pkg, pkg))

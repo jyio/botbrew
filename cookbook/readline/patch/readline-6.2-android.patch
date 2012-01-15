@@ -1,0 +1,11 @@
+--- complete.c
++++ complete.c
+@@ -2021,7 +2021,7 @@
+      const char *text;
+      int state;
+ {
+-#if defined (__WIN32__) || defined (__OPENNT)
++#if defined (__WIN32__) || defined (__OPENNT) || defined (ANDROID)
+   return (char *)NULL;
+ #else /* !__WIN32__ && !__OPENNT) */
+   static char *username = (char *)NULL;

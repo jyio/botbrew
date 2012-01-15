@@ -1,0 +1,50 @@
+#!/bin/sh
+
+set -e
+
+if [ $# -lt 1 ]; then
+	echo "usage: $0: package.opk filename ..."
+	exit 1
+fi
+
+if [ $# -eq 2 ]; then
+  opkgfilename=$1
+  filename=$2
+else
+  echo "usage: $0 opkgfilename filename"  
+  exit -1
+fi
+
+case $opkgfilename in
+http:*)
+    wget -N $opkgfilename
+    opkgfilename=`basename $opkgfilename`
+    echo eez http url $opkgfilename
+;;
+ftp:*)
+    wget -N $opkgfilename
+    opkgfilename=`basename $opkgfilename`
+    echo eez ftp url $opkgfilename
+;;
+esac
+
+
+tmpdir=/tmp/opkg-extract-$$
+mkdir $tmpdir
+
+pkgdir=$tmpdir/`basename $opkgfilename | sed 's/.*\///;s/.opk$//;s/.deb$//;s/.ipk$//'`
+
+mkdir -p $pkgdir/CONTROL
+
+cur_dir=$PWD
+cd $pkgdir; (ar x $cur_dir/$opkgfilename || tar zxf $cur_dir/$opkgfilename) >& /dev/null
+cd $cur_dir
+
+tar xzf $pkgdir/data.tar.gz -C $pkgdir
+tar xzf $pkgdir/control.tar.gz -C $pkgdir/CONTROL
+rm -f $pkgdir/control.tar.gz $pkgdir/data.tar.gz $pkgdir/debian-binary
+
+cp $pkgdir/$filename `basename $filename`
+ls -l `basename $filename`
+file `basename $filename`
+rm -fr $tmpdir

@@ -1,0 +1,17 @@
+Package: ruby-dev
+Version: 1.9.3.0-0
+Architecture: armeabi
+Section: ruby
+Priority: optional
+Source: http://www.ruby-lang.org/
+Description: |
+ Interpreter of object-oriented scripting language Ruby
+ Ruby is the interpreted scripting language for quick and easy object-oriented programming. It has many features to process text files and to do system management tasks (as in perl). It is simple, straight-forward, and extensible.
+ .
+ In the name of this package, `1.9.1' indicates the Ruby library compatibility version. This package currently provides the `1.9.3' branch of Ruby, which is compatible with the `1.9.1' branch.
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p $PACKAGE/system/lib
+    cp -r $BUILD/system/include $PACKAGE/system/
+    cp -r $BUILD/system/lib/lib*.a $PACKAGE/system/lib/

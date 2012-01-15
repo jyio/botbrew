@@ -1,0 +1,18 @@
+Package: vim-doc
+Version: 7.3-0
+Architecture: all
+Section: editors
+Priority: optional
+Source: http://www.vim.org/
+Description: |
+ Vi IMproved - enhanced vi editor
+ Vim is an almost compatible version of the UNIX editor Vi.
+ .
+ Many new features have been added: multi level undo, syntax highlighting, command line history, on-line help, filename completion, block operations, folding, Unicode support, etc.
+ .
+ This package contains a version of vim compiled with a rather standard set of features. This package does not provide a GUI version of Vim. See the other vim-* packages if you need more (or less).
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p $PACKAGE/system/share
+    cp -r $BUILD/system/share/man $PACKAGE/system/share/

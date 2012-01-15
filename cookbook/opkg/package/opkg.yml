@@ -1,0 +1,72 @@
+Package: opkg
+Version: 0.1.8-0
+Architecture: armeabi
+Section: admin
+Priority: required
+Source: http://code.google.com/p/opkg/
+Description: |
+ Open PacKaGe Management System
+ Opkg is a lightweight package management system. It is written in C and resembles apt/dpkg in operation. It is intended for use on embedded Linux devices and is used in this capacity in the OpenEmbedded and OpenWrt projects.
+ .
+ Opkg is maintained, stable, robust and conservative in its memory usage, despite its buggy ipkg ancestry. As best it can, opkg maintains backwards compatibility with ipkg and conforms to a subset of debian's policy manual regarding control files.
+Data:
+ /system/etc/opkg/opkg.conf.opkg-new: |
+    option	cache	/cache/opkg/archives
+    option	tmp_dir	/cache/opkg/tmp
+ /system/etc/opkg/arch.conf.opkg-new: |
+    arch	all		10
+    arch	any		20
+    arch	noarch	30
+    arch	armeabi	120
+ /system/etc/opkg/dest.conf.opkg-new: |
+    dest	root	/
+ /system/etc/opkg/src.conf.opkg-new: |
+    src/gz	botbrew http://botbrew.inportb.com/stable/main
+ /CONTROL/postinst: |
+    #!/system/bin/sh
+    
+    mkdir -p /system/etc/opkg /system/usr/lib/opkg /data/local/var/lib/opkg /cache/opkg/tmp /cache/opkg/archives
+    
+    if [ -f /system/etc/opkg/opkg.conf ]; then
+    	rm -f /system/etc/opkg/opkg.conf.opkg-new
+    else
+    	mv /system/etc/opkg/opkg.conf.opkg-new /system/etc/opkg/opkg.conf
+    fi
+    
+    if [ -f /system/etc/opkg/arch.conf ]; then
+    	rm -f /system/etc/opkg/arch.conf.opkg-new
+    else
+    	mv /system/etc/opkg/arch.conf.opkg-new /system/etc/opkg/arch.conf
+    fi
+    
+    DEVICE=`getprop ro.product.device | tr '[:upper:]' '[:lower:]'`
+    if ! grep -Fq "$DEVICE" /system/etc/opkg/arch.conf; then
+    	echo "arch	$DEVICE	100" >> /system/etc/opkg/arch.conf
+    fi
+    
+    ABI2=`getprop ro.product.cpu.abi2 | tr '[:upper:]' '[:lower:]'`
+    if ! grep -Fq "$ABI2" /system/etc/opkg/arch.conf; then
+    	echo "arch	$ABI2	120" >> /system/etc/opkg/arch.conf
+    fi
+    
+    ABI=`getprop ro.product.cpu.abi | tr '[:upper:]' '[:lower:]'`
+    if ! grep -Fq "$ABI" /system/etc/opkg/arch.conf; then
+    	echo "arch	$ABI	110" >> /system/etc/opkg/arch.conf
+    fi
+    
+    if [ -f /system/etc/opkg/dest.conf ]; then
+    	rm -f /system/etc/opkg/dest.conf.opkg-new
+    else
+    	mv /system/etc/opkg/dest.conf.opkg-new /system/etc/opkg/dest.conf
+    fi
+    
+    if [ -f /system/etc/opkg/src.conf ]; then
+    	rm -f /system/etc/opkg/src.conf.opkg-new
+    else
+    	mv /system/etc/opkg/src.conf.opkg-new /system/etc/opkg/src.conf
+    fi
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p $PACKAGE/system/share
+    cp -r $BUILD/system/bin $PACKAGE/system/
+    cp -r $BUILD/system/share/opkg $PACKAGE/system/share/

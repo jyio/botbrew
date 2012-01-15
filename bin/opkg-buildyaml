@@ -1,0 +1,83 @@
+#!/usr/bin/env python
+
+import sys, os, shutil, subprocess, tempfile, yaml
+
+build = os.path.abspath(sys.argv[1])
+if not os.path.isdir(build):
+	exit
+
+meta = yaml.safe_load(sys.stdin)
+try:
+	meta['Maintainer'] = os.environ['OPKG_MAINTAINER']
+except KeyError:
+	pass
+try:
+	data = meta.pop('Data')
+except KeyError:
+	data = {}
+
+package = tempfile.mkdtemp(prefix='tmp-opkg-')
+print 'staging package in',package
+
+for k,v in data.iteritems():
+	k = os.path.join(package,k.lstrip(os.sep))
+	try:
+		os.makedirs(os.path.dirname(k),0755)
+	except OSError:
+		pass
+	with open(k,'w+') as f:
+		f.write(v.encode('utf-8'))
+try:
+	os.chmod(os.path.join(package,'CONTROL','preinst'),0755)
+except OSError:
+	pass
+try:
+	os.chmod(os.path.join(package,'CONTROL','postinst'),0755)
+except OSError:
+	pass
+try:
+	os.chmod(os.path.join(package,'CONTROL','prerm'),0755)
+except OSError:
+	pass
+try:
+	os.chmod(os.path.join(package,'CONTROL','postrm'),0755)
+except OSError:
+	pass
+
+try:
+	os.makedirs(os.path.join(package,'CONTROL'),0755)
+except OSError:
+	pass
+with open(os.path.join(package,'CONTROL','control'),'w+') as f:
+	f.write(u'\n'.join(k+u': '+v.replace(u'\r',u'').rstrip('\n').replace(u'\n',u'\n ') for k,v in meta.iteritems()).encode('utf-8')+'\n')
+
+initfile = os.path.join(package,'CONTROL','init')
+if os.path.isfile(initfile):
+	os.chmod(initfile,0755)
+	code = subprocess.call((os.path.abspath(initfile),),env={
+		'PATH':		os.environ.get('PATH',''),
+		'BUILD':	build,
+		'PACKAGE':	package
+	})
+	if code != 0:
+		print >>sys.stderr,initfile,' failed'
+		exit(code)
+	try:
+		os.remove(initfile)
+	except OSError:
+		pass
+
+trunc = len(package)
+for dirname,dirnames,filenames in os.walk(package):
+	for filename in filenames:
+		print os.path.join(dirname,filename)[trunc:]
+
+code = subprocess.call(('opkg-build','-O','-oroot','-groot',package),env={
+	'PATH':		os.environ.get('PATH',''),
+	'BUILD':	build,
+	'PACKAGE':	package
+})
+if code != 0:
+	print >>sys.stderr,'opkg-build failed'
+	exit(code)
+shutil.rmtree(package,True)

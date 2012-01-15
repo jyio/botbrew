@@ -1,0 +1,206 @@
+--- eval_intern.h
++++ eval_intern.h
+@@ -216,8 +216,13 @@
+ void rb_trap_restore_mask(void);
+ 
+ #ifndef CharNext		/* defined as CharNext[AW] on Windows. */
++#ifdef ANDROID
++#include <wchar.h>
++#define CharNext(p) ((p) + mbrlen((p), RUBY_MBCHAR_MAXSIZE, (mbstate_t*)0))
++#else
+ #define CharNext(p) ((p) + mblen((p), RUBY_MBCHAR_MAXSIZE))
+ #endif
++#endif
+ 
+ #if defined DOSISH || defined __CYGWIN__
+ static inline void
+--- ext/etc/extconf.rb
++++ ext/etc/extconf.rb
+@@ -2,8 +2,8 @@
+ 
+ have_library("sun", "getpwnam")	# NIS (== YP) interface for IRIX 4
+ a = have_func("getlogin")
+-b = have_func("getpwent")
+-c = have_func("getgrent")
++#b = have_func("getpwent")
++#c = have_func("getgrent")
+ sysconfdir = RbConfig.expand(RbConfig::CONFIG["sysconfdir"].dup, "prefix"=>"", "DESTDIR"=>"")
+ $defs.push("-DSYSCONFDIR=#{Shellwords.escape(sysconfdir.dump)}")
+ if  a or b or c or sysconfdir
+--- ext/nkf/nkf-utf8/nkf.h
++++ ext/nkf/nkf-utf8/nkf.h
+@@ -164,6 +164,9 @@
+ # ifndef HAVE_LOCALE_H
+ #  define HAVE_LOCALE_H
+ # endif
++#elif defined(ANDROID)
++# undef HAVE_LOCALE_H
++# undef HAVE_LANGINFO_H
+ #else
+ # ifndef HAVE_LANGINFO_H
+ #  define HAVE_LANGINFO_H
+--- ext/openssl/extconf.rb
++++ ext/openssl/extconf.rb
+@@ -96,11 +96,11 @@
+ have_func("X509_CRL_set_version")
+ have_func("X509_CRL_sort")
+ have_func("X509_NAME_hash_old")
+-have_func("X509_STORE_get_ex_data")
+-have_func("X509_STORE_set_ex_data")
++#have_func("X509_STORE_get_ex_data")
++#have_func("X509_STORE_set_ex_data")
+ have_func("OBJ_NAME_do_all_sorted")
+ have_func("SSL_SESSION_get_id")
+-have_func("SSL_SESSION_cmp")
++#have_func("SSL_SESSION_cmp")
+ have_func("OPENSSL_cleanse")
+ have_func("SSLv2_method")
+ have_func("SSLv2_server_method")
+@@ -111,7 +111,7 @@
+ if have_header("openssl/engine.h")
+   have_func("ENGINE_add")
+   have_func("ENGINE_load_builtin_engines")
+-  have_func("ENGINE_load_openbsd_dev_crypto")
++#  have_func("ENGINE_load_openbsd_dev_crypto")
+   have_func("ENGINE_get_digest")
+   have_func("ENGINE_get_cipher")
+   have_func("ENGINE_cleanup")
+--- ext/pty/extconf.rb
++++ ext/pty/extconf.rb
+@@ -7,10 +7,7 @@
+   have_header("util.h") # OpenBSD openpty
+   have_header("pty.h")
+   have_library("util", "openpty")
+-  if have_func("posix_openpt") or
+-      have_func("openpty") or
+-      have_func("_getpty") or
+-      have_func("ptsname") or
++  if have_func("ptsname") or
+       have_func("ioctl")
+     create_makefile('pty')
+   end
+--- ext/socket/extconf.rb
++++ ext/socket/extconf.rb
+@@ -113,11 +113,11 @@
+ have_header("netinet/tcp.h") if /cygwin/ !~ RUBY_PLATFORM # for cygwin 1.1.5
+ have_header("netinet/udp.h")
+ 
+-if !have_macro("IPPROTO_IPV6", headers) && have_const("IPPROTO_IPV6", headers)
+-  IO.read(File.join(File.dirname(__FILE__), "mkconstants.rb")).sub(/\A.*^__END__$/m, '').split(/\r?\n/).grep(/\AIPPROTO_\w*/){$&}.each {|name|
+-    have_const(name, headers) unless $defs.include?("-DHAVE_CONST_#{name.upcase}")
+-  }
+-end
++#if !have_macro("IPPROTO_IPV6", headers) && have_const("IPPROTO_IPV6", headers)
++#  IO.read(File.join(File.dirname(__FILE__), "mkconstants.rb")).sub(/\A.*^__END__$/m, '').split(/\r?\n/).grep(/\AIPPROTO_\w*/){$&}.each {|name|
++#    have_const(name, headers) unless $defs.include?("-DHAVE_CONST_#{name.upcase}")
++#  }
++#end
+ 
+ if have_func("sendmsg") | have_func("recvmsg")
+   have_struct_member('struct msghdr', 'msg_control', ['sys/types.h', 'sys/socket.h'])
+@@ -435,7 +435,7 @@
+ have_header("resolv.h")
+ 
+ have_header("ifaddrs.h")
+-have_func("getifaddrs")
++#have_func("getifaddrs")
+ have_header("sys/ioctl.h")
+ have_header("sys/sockio.h")
+ have_header("net/if.h", headers)
+@@ -461,7 +461,7 @@
+ have_type("struct sockcred", headers)
+ have_type("struct cmsgcred", headers)
+ 
+-have_func("getpeereid")
++#have_func("getpeereid")
+ 
+ have_header("ucred.h", headers)
+ have_func("getpeerucred")
+@@ -473,7 +473,7 @@
+ have_type("struct ipv6_mreq", headers) # RFC 3493
+ 
+ # workaround for recent Windows SDK
+-$defs << "-DIPPROTO_IPV6=IPPROTO_IPV6" if $defs.include?("-DHAVE_CONST_IPPROTO_IPV6") && !have_macro("IPPROTO_IPV6")
++#$defs << "-DIPPROTO_IPV6=IPPROTO_IPV6" if $defs.include?("-DHAVE_CONST_IPPROTO_IPV6") && !have_macro("IPPROTO_IPV6")
+ 
+ $distcleanfiles << "constants.h" << "constdefs.*"
+ 
+--- include/ruby/intern.h
++++ include/ruby/intern.h
+@@ -37,6 +37,10 @@
+ #pragma GCC visibility push(default)
+ #endif
+ 
++#ifdef ANDROID
++# include <sys/select.h>
++#endif
++
+ /*
+  * Functions and variables that are used by more than one source file of
+  * the kernel.
+@@ -321,7 +325,7 @@
+ VALUE rb_eval_cmd(VALUE, VALUE, int);
+ int rb_obj_respond_to(VALUE, ID, int);
+ int rb_respond_to(VALUE, ID);
+-VALUE rb_f_notimplement(int argc, VALUE *argv, VALUE obj);
++VALUE rb_f_notimplement(int argc, VALUE *argv, ...);
+ void rb_interrupt(void);
+ VALUE rb_apply(VALUE, ID, VALUE);
+ void rb_backtrace(void);
+--- include/ruby/util.h
++++ include/ruby/util.h
+@@ -54,7 +54,7 @@
+ #define scan_hex(s,l,e) ((int)ruby_scan_hex((s),(l),(e)))
+ unsigned long ruby_scan_hex(const char *, size_t, size_t *);
+ 
+-#if defined(__CYGWIN32__) || defined(_WIN32)
++#if defined(__CYGWIN32__) || defined(_WIN32) || defined(ANDROID)
+ void ruby_add_suffix(VALUE str, const char *suffix);
+ #endif
+ 
+--- signal.c
++++ signal.c
+@@ -411,7 +411,9 @@
+ #define sighandler_t sh_t
+ #endif
+ 
++#ifndef ANDROID
+ typedef RETSIGTYPE (*sighandler_t)(int);
++#endif
+ #ifdef USE_SIGALTSTACK
+ typedef void ruby_sigaction_t(int, siginfo_t*, void*);
+ #define SIGINFO_ARG , siginfo_t *info, void *ctx
+--- thread_pthread.c
++++ thread_pthread.c
+@@ -24,6 +24,9 @@
+ #elif HAVE_SYS_FCNTL_H
+ #include <sys/fcntl.h>
+ #endif
++#ifdef ANDROID
++#include <asm/page.h>
++#endif
+ 
+ static void native_mutex_lock(pthread_mutex_t *lock);
+ static void native_mutex_unlock(pthread_mutex_t *lock);
+--- util.c
++++ util.c
+@@ -184,7 +184,7 @@
+ #   define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
+ #endif
+ 
+-#if defined(__CYGWIN32__) || defined(_WIN32)
++#if defined(__CYGWIN32__) || defined(_WIN32) || defined(ANDROID)
+ /*
+  *  Copyright (c) 1993, Intergraph Corporation
+  *
+--- vm_method.c
++++ vm_method.c
+@@ -61,7 +61,7 @@
+ }
+ 
+ VALUE
+-rb_f_notimplement(int argc, VALUE *argv, VALUE obj)
++rb_f_notimplement(int argc, VALUE *argv, ...)
+ {
+     rb_notimplement();
+ }

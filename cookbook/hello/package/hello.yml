@@ -1,0 +1,25 @@
+Package: hello
+Version: 0.0.1-0
+Architecture: all
+Section: devel
+Priority: optional
+Source: http://inportb.com/
+Description: |
+ Hello, Opkg World
+Data:
+ /CONTROL/preinst: |
+    #!/system/bin/sh
+    echo "preinst: preparing to install package"
+ /CONTROL/postinst: |
+    #!/system/bin/sh
+    echo "postinst: installed package"
+ /CONTROL/prerm: |
+    #!/system/bin/sh
+    echo "prerm: preparing to remove package"
+ /CONTROL/postrm: |
+    #!/system/bin/sh
+    echo "postrm: removed package"
+ /CONTROL/init: |
+    #!/bin/sh
+    cp -rf $BUILD/* $PACKAGE/
+    echo "init: prepared package $BUILD => $PACKAGE"

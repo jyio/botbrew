@@ -1,0 +1,28 @@
+--- libopkg/opkg_conf.c
++++ libopkg/opkg_conf.c
+@@ -25,6 +25,10 @@
+ #include <glob.h>
+ #include <unistd.h>
+ 
++#ifdef ANDROID
++#include <lockf.h>
++#endif
++
+ #include "opkg_conf.h"
+ #include "pkg_vec.h"
+ #include "pkg.h"
+--- libopkg/opkg_utils.c
++++ libopkg/opkg_utils.c
+@@ -16,7 +16,12 @@
+ */
+ 
+ #include <ctype.h>
++#ifndef ANDROID
+ #include <sys/statvfs.h>
++#else
++#include <sys/statfs.h>
++#define statvfs statfs
++#endif
+ 
+ #include "libbb/libbb.h"
+ 

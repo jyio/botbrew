@@ -1,0 +1,32 @@
+Package: openssl
+Version: 1.0.0f-0
+Architecture: armeabi
+Section: utils
+Priority: optional
+Source: http://www.openssl.org/
+Description: |
+ Secure Socket Layer (SSL) binary and related cryptographic tools
+ This package contains the openssl binary and related tools.
+ .
+ It is part of the OpenSSL implementation of SSL.
+ .
+ You need it to perform certain cryptographic actions like:
+  -  Creation of RSA, DH and DSA key parameters;
+  -  Creation of X.509 certificates, CSRs and CRLs;
+  -  Calculation of message digests;
+  -  Encryption and decryption with ciphers;
+  -  SSL/TLS client and server tests;
+  -  Handling of S/MIME signed or encrypted mail.
+Data:
+ /CONTROL/postinst: |
+    #!/system/bin/sh
+    
+    if [ -f /system/etc/ssl/openssl.cnf ]; then
+    	rm -f /system/etc/ssl/openssl.cnf.opkg-new
+    else
+    	mv /system/etc/ssl/openssl.cnf.opkg-new /system/etc/ssl/openssl.cnf
+    fi
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p $PACKAGE/system/lib
+    cp -r $BUILD/system/bin $BUILD/system/etc $PACKAGE/system/
