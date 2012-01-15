@@ -45,7 +45,7 @@ BotBrew knows how to make
 
 Create a new file `config.mk` to define a couple of Make variables
 
-- OPKG_MAINTAINER := your name and <email address> in RFC822 format
+- OPKG_MAINTAINER := your name and &lt;email address&gt; in RFC822 format
 - NDKPATH := absolute path to the NDK
 
 ## Usage
