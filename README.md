@@ -6,7 +6,7 @@ This project compiles various *nix tools and makes Opkg packages suitable for in
 
 If you just want to use prebuilt binaries, get a shell on your rooted Android device and run:
 
-  wget http://botbrew.inportb.com/opkg/install.sh -O- | su
+    wget http://botbrew.inportb.com/opkg/install.sh -O- | su
 
 Otherwise, keep reading to roll your own.
 
