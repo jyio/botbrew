@@ -45,7 +45,7 @@ $~/source/Makefile: | $~/${ARCHIVE} ${DIR_COOKBOOK}/readline/install ${DIR_COOKB
 	touch $$@
 
 $~/build/.d: $~/source/Makefile
-	${MAKE} -C $~/source all
+	${MAKE} -C $~/source
 	${MAKE} -C $~/source install DESTDIR=${TOP}/$~/build
 	rm -rf $${@D}/system/lib/pkgconfig
 	touch $$@
