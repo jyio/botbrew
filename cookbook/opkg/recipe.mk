@@ -39,11 +39,11 @@ $~/source/configure:
 
 $~/source/Makefile: $~/source/configure | ${DIR_COOKBOOK}/curl/install ${DIR_COOKBOOK}/openssl/install
 	cd $${@D}; CC="agcc.bash" CFLAGS="${CFLAGS} -I${TOP}/$~/compat" LD="agcc.bash" LDFLAGS="${LDFLAGS}" OBJDUMP="${OBJDUMP}" AR="${AR}" STRIP="${STRIP} --strip-unneeded" RANLIB="${RANLIB}" CURL_CFLAGS="-I${TOP_INSTALL}/system/include" CURL_LIBS="-L${TOP_INSTALL}/system/lib" ./configure --host=arm-eabi --with-opkglibdir=/system/usr/lib --with-opkgetcdir=/system/etc --disable-shared --enable-static --enable-openssl=yes --enable-gpg=no \
-		--prefix=${TOP}/$~/build/system \
-		--sbindir=${TOP}/$~/build/system/xbin \
-		--sharedstatedir=${TOP}/$~/build/data/local/com \
-		--localstatedir=${TOP}/$~/build/data/local/var \
-		--oldincludedir=${TOP}/$~/build/system/include
+		--prefix=/system \
+		--sbindir=/system/xbin \
+		--sharedstatedir=/data/local/com \
+		--localstatedir=/data/local/var \
+		--oldincludedir=/system/include
 	touch $$@
 
 $~/compat/libcompat.a:
@@ -53,7 +53,7 @@ $~/compat/libcompat.a:
 
 $~/build/.d: $~/source/Makefile $~/compat/libcompat.a
 	${MAKE} -C $~/source LIBS="-L${TOP}/$~/compat -lcompat -lcurl -lssl -lcrypto -lz"
-	${MAKE} -C $~/source install
+	${MAKE} -C $~/source install DESTDIR=${TOP}/$~/build
 	mkdir -p $${@D}/system
 	mv $${@D}/system/bin/opkg-cl $${@D}/system/bin/opkg
 	rm -rf $${@D}/system/lib/*.la $${@D}/system/lib/pkgconfig
