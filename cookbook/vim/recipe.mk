@@ -42,11 +42,11 @@ $~/source/src/auto/config.mk: | ${DIR_COOKBOOK}/ncurses/install
 		vim_cv_bcopy_handles_overlap=no \
 		vim_cv_memcpy_handles_overlap=no \
 		./configure --host=arm-eabi --with-tlib=ncurses --disable-gtktest \
-			--prefix=${TOP}/$~/build/system \
-			--sbindir=${TOP}/$~/build/system/xbin \
-			--sharedstatedir=${TOP}/$~/build/data/local/com \
-			--localstatedir=${TOP}/$~/build/data/local/var \
-			--oldincludedir=${TOP}/$~/build/system/include
+			--prefix=/system \
+			--sbindir=/system/xbin \
+			--sharedstatedir=/data/local/com \
+			--localstatedir=/data/local/var \
+			--oldincludedir=/system/include
 	cat $${@D}/config.h \
 		| sed -e 's/#define HAVE_SYSINFO 1//' \
 		| sed -e 's/#define HAVE_SYSINFO_MEM_UNIT 1//' \
@@ -56,7 +56,7 @@ $~/source/src/auto/config.mk: | ${DIR_COOKBOOK}/ncurses/install
 
 $~/build/.d: $~/source/src/auto/config.mk
 	${MAKE} -C $~/source
-	${MAKE} -C $~/source install
+	${MAKE} -C $~/source install DESTDIR=${TOP}/$~/build
 	touch $$@
 
 endef

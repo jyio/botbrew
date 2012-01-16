@@ -35,16 +35,16 @@ $~/source/configure:
 
 $~/source/Makefile: $~/source/configure | ${DIR_COOKBOOK}/openssl/install
 	cd $${@D}; CC="agcc.bash" CFLAGS="${CFLAGS}" LD="${LD}" LDFLAGS="${LDFLAGS}" STRIP="${STRIP} --strip-unneeded" ./configure --host=arm-eabi --enable-threaded-resolver --with-ssl --with-ca-path=/system/etc/ssl/certs \
-		--prefix=${TOP}/$~/build/system \
-		--sbindir=${TOP}/$~/build/system/xbin \
-		--sharedstatedir=${TOP}/$~/build/data/local/com \
-		--localstatedir=${TOP}/$~/build/data/local/var \
-		--oldincludedir=${TOP}/$~/build/system/include
+		--prefix=/system \
+		--sbindir=/system/xbin \
+		--sharedstatedir=/data/local/com \
+		--localstatedir=/data/local/var \
+		--oldincludedir=/system/include
 	touch $$@
 
 $~/build/.d: $~/source/Makefile
 	${MAKE} -C $~/source
-	${MAKE} -C $~/source install
+	${MAKE} -C $~/source install DESTDIR=${TOP}/$~/build
 #	agcc.bash -o $~/build/lib/libcurl.so.${VERSION} -shared -Wl,-soname,libcurl.so.${VERSION},--whole-archive,$~/source/lib/.libs/libcurl.a,--no-whole-archive
 	rm -rf $${@D}/system/lib/*.la $${@D}/system/lib/pkgconfig
 	touch $$@

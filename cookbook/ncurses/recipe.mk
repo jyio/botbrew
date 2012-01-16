@@ -39,20 +39,20 @@ $~/source/Makefile: | $~/${ARCHIVE}
 		mv $~/${NAME}-${VERSION} $${@D}; \
 	fi
 	cd $${@D}; CC="agcc.bash" CFLAGS="${CFLAGS}" CXX="agcc.bash" CXXFLAGS="${CFLAGS}" LD="agcc.bash" LDFLAGS="${LDFLAGS}" STRIP="${STRIP} --strip-unneeded" ./configure --host=arm-eabi --without-cxx-binding \
-		--prefix=${TOP}/$~/build/system \
-		--sbindir=${TOP}/$~/build/system/xbin \
-		--sharedstatedir=${TOP}/$~/build/data/local/com \
-		--localstatedir=${TOP}/$~/build/data/local/var \
-		--oldincludedir=${TOP}/$~/build/system/include \
-		--infodir=${TOP}/$~/build/system/share/info \
-		--mandir=${TOP}/$~/build/system/share/man
+		--prefix=/system \
+		--sbindir=/system/xbin \
+		--sharedstatedir=/data/local/com \
+		--localstatedir=/data/local/var \
+		--oldincludedir=/system/include \
+		--infodir=/system/share/info \
+		--mandir=/system/share/man
 	sed -e 's/#define HAVE_LOCALE_H 1//' $${@D}/include/ncurses_cfg.h > temp
 	mv temp $${@D}/include/ncurses_cfg.h
 	touch $$@
 
 $~/build/.d: $~/source/Makefile
 	${MAKE} -C $~/source
-	${MAKE} -C $~/source install
+	${MAKE} -C $~/source install DESTDIR=${TOP}/$~/build
 	touch $$@
 
 endef

@@ -37,16 +37,16 @@ $~/source/Makefile: | $~/${ARCHIVE} ${DIR_COOKBOOK}/ncurses/install
 		cd $${@D}; patch -p0 < ../patch/readline-6.2-android.patch; \
 	fi
 	cd $${@D}; CC="agcc.bash" CFLAGS="${CFLAGS}" LDFLAGS="${LDFLAGS} -lncurses" STRIP="${STRIP} --strip-unneeded" RANLIB="${RANLIB}" ./configure --host=arm-eabi \
-		--prefix=${TOP}/$~/build/system \
-		--sbindir=${TOP}/$~/build/system/xbin \
-		--sharedstatedir=${TOP}/$~/build/data/local/com \
-		--localstatedir=${TOP}/$~/build/data/local/var \
-		--oldincludedir=${TOP}/$~/build/system/include
+		--prefix=/system \
+		--sbindir=/system/xbin \
+		--sharedstatedir=/data/local/com \
+		--localstatedir=/data/local/var \
+		--oldincludedir=/system/include
 	touch $$@
 
 $~/build/.d: $~/source/Makefile
 	${MAKE} -C $~/source
-	${MAKE} -C $~/source install
+	${MAKE} -C $~/source install DESTDIR=${TOP}/$~/build
 	rm -f $${@D}/system/lib/*.old
 	touch $$@
 
