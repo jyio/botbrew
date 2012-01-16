@@ -39,6 +39,7 @@ BotBrew knows how to make
 - python
 - readline
 - ruby
+- sqlite3
 - vim
 
 ## Configuration
