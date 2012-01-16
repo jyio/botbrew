@@ -179,7 +179,7 @@ if [ $NEED_CPP -ne 0 ]; then
 	CMD="$CMD $INC $CPP"
 fi
 if [ $NEED_COMPILE -ne 0 ]; then
-	CMD="$CMD $CFLAGS $CFLAGS"
+	CMD="$CMD $CFLAGS"
 	if [ $WARN -ne 0 ]; then
 		CMD="$CMD $WFLAGS"
 	fi
