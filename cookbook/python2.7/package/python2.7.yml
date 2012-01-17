@@ -27,3 +27,4 @@ Data:
     cp -r $BUILD/system/bin $PACKAGE/system/
     cp -r $BUILD/system/include/python2.7/pyconfig.h $PACKAGE/system/include/python2.7/
     cp -r $BUILD/system/lib/python2.7 $BUILD/system/lib/lib*.so* $PACKAGE/system/lib/
+    rm -f $PACKAGE/system/bin/python
