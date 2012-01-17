@@ -76,7 +76,7 @@ $~/source/Makefile: | $~/${ARCHIVE} $~/source-host/Makefile ${DIR_COOKBOOK}/read
 			patch -p1 < ../patch/Python-2.7.2-android.patch; \
 			patch -p0 < ../patch/Python-2.7.2-regen.patch; \
 	fi
-	cd $${@D}; CC="agcc.bash ${__CFLAGS}" LD="agcc.bash ${__CFLAGS}" LDFLAGS="${__LDFLAGS}" AR="${AR}" RANLIB="${RANLIB}" ./configure arm-linux --host=arm-eabi --enable-shared \
+	cd $${@D}; CC="agcc.bash ${__CFLAGS}" LD="agcc.bash" LDFLAGS="${__LDFLAGS}" AR="${AR}" RANLIB="${RANLIB}" ./configure --build=i686 --host=arm-eabi --enable-shared --with-readline=${TOP_INSTALL}/system/lib INSTSONAME=libpython2.7.so \
 		--prefix=/system \
 		--sbindir=/system/xbin \
 		--sharedstatedir=/data/local/com \
@@ -89,12 +89,19 @@ $~/source/Makefile: | $~/${ARCHIVE} $~/source-host/Makefile ${DIR_COOKBOOK}/read
 		| sed -e '/HAVE_DECL_ISFINITE/ c#undef HAVE_DECL_ISFINITE' \
 		> temp
 	mv temp $${@D}/pyconfig.h
+	cat $${@D}/setup.py \
+		| sed -e 's/\/usr\/include/\/system\/include/g' \
+		| sed -e 's/\/usr\/lib/\/system\/lib/g' \
+		| sed -e 's/\/usr\/local/\/system/g' \
+		> temp
+	mv temp $${@D}/setup.py
 	touch $$@
 
 $~/build/.d: $~/source/Makefile | $~/build-host/.d
-	ARCH="armeabi" NDKPLATFORM="${NDKPLATFORM}" ${MAKE} -C $~/source LDFLAGS="${__LDFLAGS} -ldl -lncurses -lreadline -lcrypto -lssl" HOSTPYTHON="${__HPYTHON}" HOSTPGEN="${__HPGEN}" CROSS_COMPILE_TARGET=yes INSTSONAME=libpython2.7.so libpython2.7.so
-	ARCH="armeabi" NDKPLATFORM="${NDKPLATFORM}" ${MAKE} -C $~/source LDFLAGS="${__LDFLAGS} -ldl -lpython2.7" HOSTPYTHON="${__HPYTHON}" HOSTPGEN="${__HPGEN}" CROSS_COMPILE_TARGET=yes INSTSONAME=libpython2.7.so
+	ARCH="armeabi" NDKPLATFORM="${NDKPLATFORM}" ${MAKE} -C $~/source LDFLAGS="${__LDFLAGS} -ldl -lncurses -lhistory -lcrypto -lssl" HOSTPYTHON="${__HPYTHON}" HOSTPGEN="${__HPGEN}" CROSS_COMPILE_TARGET=yes libpython2.7.so
+	ARCH="armeabi" NDKPLATFORM="${NDKPLATFORM}" ${MAKE} -C $~/source LDFLAGS="${__LDFLAGS} -ldl -lpython2.7" HOSTPYTHON="${__HPYTHON}" HOSTPGEN="${__HPGEN}" CROSS_COMPILE_TARGET=yes
 	ARCH="armeabi" NDKPLATFORM="${NDKPLATFORM}" ${MAKE} -C $~/source install HOSTPYTHON="${__HPYTHON}" CROSS_COMPILE_TARGET=yes DESTDIR=${TOP}/$~/build
+	rm -rf $${@D}/system/lib/pkgconfig
 	touch $$@
 
 endef
