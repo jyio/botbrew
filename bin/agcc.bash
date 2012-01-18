@@ -69,25 +69,26 @@ TOOLCHAIN=$AGCC_NDK/toolchains/$AGCC_CXC-$AGCC_GCC
 PREBUILT=$TOOLCHAIN/prebuilt/linux-x86
 LDSCRIPTS=$PREBUILT/$AGCC_CXC/lib/ldscripts
 
-INC="-I$PLATFORM/usr/include"
-
-CPP="-D__ARM_ARCH_5__ -D__ARM_ARCH_5T__ -D__ARM_ARCH_5E__ -D__ARM_ARCH_5TE__ -DANDROID -DSK_RELEASE -DNDEBUG -UDEBUG"
-
-WFLAGS="-Wall -Wno-unused -Wno-multichar -Wstrict-aliasing=2"
-
-CFLAGS="-march=armv5te -mtune=xscale -msoft-float -mthumb-interwork -fpic -fno-exceptions -ffunction-sections -funwind-tables -fmessage-length=0"
-
-OFLAGS="-O2 -finline-functions -finline-limit=300 -fno-inline-functions-called-once -fgcse-after-reload -frerun-cse-after-loop -frename-registers -fomit-frame-pointer -fstrict-aliasing -funswitch-loops"
-
-LDFLAGS="-Bdynamic -Wl,-T,$LDSCRIPTS/armelf_linux_eabi.x -Wl,-dynamic-linker,/system/bin/linker -Wl,--gc-sections -Wl,-z,nocopyreloc -Wl,--no-undefined -Wl,-rpath-link=$PLATFORM -L$PLATFORM/usr/lib -nostdlib $PLATFORM/usr/lib/crtend_android.o $PLATFORM/usr/lib/crtbegin_dynamic.o -lc $PREBUILT/lib/gcc/$AGCC_CXC/$AGCC_GCC/libgcc.a -lm -ldl"
-
-SHFLAGS="-nostdlib -Wl,-T,$LDSCRIPTS/armelf_linux_eabi.xsc -Wl,--gc-sections -Wl,-shared,-Bsymbolic -Wl,-rpath-link=$PLATFORM -L$PLATFORM/usr/lib -Wl,--no-whole-archive -lc -lm -Wl,--no-undefined $PREBUILT/lib/gcc/$AGCC_CXC/$AGCC_GCC/libgcc.a -Wl,--whole-archive"	# .a, .o input files go *after* here
-
 if [ "$CMD" == "g++" ]; then
-	:
+	STDLIB=( -lstdc++ -lc )
+	INC=( -I$PLATFORM/usr/include -I$AGCC_NDK/sources/cxx-stl/gnu-libstdc++/include -I$AGCC_NDK/sources/cxx-stl/gnu-libstdc++/libs/armeabi/include )
 else
-	CMD="gcc"
+	CMD=gcc
+	STDLIB=( -lc )
+	INC=( -I$PLATFORM/usr/include )
 fi
+
+CPP=( -D__ARM_ARCH_5__ -D__ARM_ARCH_5T__ -D__ARM_ARCH_5E__ -D__ARM_ARCH_5TE__ -DANDROID -DSK_RELEASE -DNDEBUG -UDEBUG )
+
+WFLAGS=( -Wall -Wno-unused -Wno-multichar -Wstrict-aliasing=2 )
+
+CFLAGS=( -march=armv5te -mtune=xscale -msoft-float -mthumb-interwork -fpic -fno-exceptions -ffunction-sections -funwind-tables -fmessage-length=0 )
+
+OFLAGS=( -O2 -finline-functions -finline-limit=300 -fno-inline-functions-called-once -fgcse-after-reload -frerun-cse-after-loop -frename-registers -fomit-frame-pointer -fstrict-aliasing -funswitch-loops )
+
+LDFLAGS=( -Bdynamic -Wl,-T,$LDSCRIPTS/armelf_linux_eabi.x -Wl,-dynamic-linker,/system/bin/linker -Wl,--gc-sections -Wl,-z,nocopyreloc -Wl,--no-undefined -Wl,-rpath-link=$PLATFORM -L$PLATFORM/usr/lib -nostdlib $PLATFORM/usr/lib/crtend_android.o $PLATFORM/usr/lib/crtbegin_dynamic.o "${STDLIB[@]}" $PREBUILT/lib/gcc/$AGCC_CXC/$AGCC_GCC/libgcc.a -lm -ldl )
+
+SHFLAGS=( -nostdlib -Wl,-T,$LDSCRIPTS/armelf_linux_eabi.xsc -Wl,--gc-sections -Wl,-shared,-Bsymbolic -Wl,-rpath-link=$PLATFORM -L$PLATFORM/usr/lib -Wl,--no-whole-archive "${STDLIB[@]}" -lm -Wl,--no-undefined $PREBUILT/lib/gcc/$AGCC_CXC/$AGCC_GCC/libgcc.a -Wl,--whole-archive )	# .a, .o input files go *after* here
 
 # Now implement a quick parser for a gcc-like command line
 
@@ -95,7 +96,7 @@ MODE=DEFAULT
 OUT=
 WARN=0
 OPT=0
-ARGS=
+ARGS=( )
 SRC=0
 
 while true; do
@@ -135,7 +136,7 @@ while true; do
 						SRC=1
 					fi
 					shopt -u nocasematch
-					ARGS="$ARGS $1"
+					ARGS[${#ARGS[@]}]="$1"
 				fi
 			fi
 			;;
@@ -176,35 +177,36 @@ fi
 
 # Assemble the command
 
-CMD="${PREBUILT}/bin/${AGCC_CXC}-${CMD}"
+CMD=( "${PREBUILT}/bin/${AGCC_CXC}-${CMD}" )
 if [ "$MODE" != DEFAULT ]; then
-	CMD="$CMD $MODE"
+	CMD[${#CMD[@]}]="$MODE"
 fi
 if [ "$OUT" != "" ]; then
-	CMD="$CMD -o $OUT"
+	CMD[${#CMD[@]}]="-o"
+	CMD[${#CMD[@]}]="$OUT"
 fi
 if [ $NEED_CPP -ne 0 ]; then
-	CMD="$CMD $INC $CPP"
+	CMD=( "${CMD[@]}" "${INC[@]}" "${CPP[@]}" )
 fi
 if [ $NEED_COMPILE -ne 0 ]; then
-	CMD="$CMD $CFLAGS"
+	CMD=( "${CMD[@]}" "${CFLAGS[@]}" )
 	if [ $WARN -ne 0 ]; then
-		CMD="$CMD $WFLAGS"
+		CMD=( "${CMD[@]}" "${WFLAGS[@]}" )
 	fi
 	if [ $OPT -ne 0 ]; then
-		CMD="$CMD $OFLAGS"
+		CMD=( "${CMD[@]}" "${OFLAGS[@]}" )
 	fi
 fi
 if [ $NEED_SHLINK -ne 0 ]; then
-	CMD="$CMD $SHFLAGS"
+	CMD=( "${CMD[@]}" "${SHFLAGS[@]}" )
 fi
-CMD="$CMD $ARGS"
+CMD=( "${CMD[@]}" "${ARGS[@]}" )
 if [ $NEED_LINK -ne 0 ]; then
-	CMD="$CMD $LDFLAGS"
+	CMD=( "${CMD[@]}" "${LDFLAGS[@]}" )
 fi
 
 if [ "$AGCC_ECHO" != "" ]; then
-	echo " <= $CMD"
+	echo " <= ${CMD[@]}"
 fi
 
-exec $CMD
+exec "${CMD[@]}"
