@@ -69,14 +69,11 @@ TOOLCHAIN=$AGCC_NDK/toolchains/$AGCC_CXC-$AGCC_GCC
 PREBUILT=$TOOLCHAIN/prebuilt/linux-x86
 LDSCRIPTS=$PREBUILT/$AGCC_CXC/lib/ldscripts
 
-if [ "$CMD" == "g++" ]; then
-	STDLIB=( -lstdc++ -lc )
-	INC=( -I$PLATFORM/usr/include -I$AGCC_NDK/sources/cxx-stl/gnu-libstdc++/include -I$AGCC_NDK/sources/cxx-stl/gnu-libstdc++/libs/armeabi/include )
-else
+if [ "$CMD" != "g++" ]; then
 	CMD=gcc
-	STDLIB=( -lc )
-	INC=( -I$PLATFORM/usr/include )
 fi
+
+INC=( -I$PLATFORM/usr/include -I$AGCC_NDK/sources/cxx-stl/stlport/stlport )
 
 CPP=( -D__ARM_ARCH_5__ -D__ARM_ARCH_5T__ -D__ARM_ARCH_5E__ -D__ARM_ARCH_5TE__ -DANDROID -DSK_RELEASE -DNDEBUG -UDEBUG )
 
@@ -86,9 +83,22 @@ CFLAGS=( -march=armv5te -mtune=xscale -msoft-float -mthumb-interwork -fpic -fno-
 
 OFLAGS=( -O2 -finline-functions -finline-limit=300 -fno-inline-functions-called-once -fgcse-after-reload -frerun-cse-after-loop -frename-registers -fomit-frame-pointer -fstrict-aliasing -funswitch-loops )
 
-LDFLAGS=( -Bdynamic -Wl,-T,$LDSCRIPTS/armelf_linux_eabi.x -Wl,-dynamic-linker,/system/bin/linker -Wl,--gc-sections -Wl,-z,nocopyreloc -Wl,--no-undefined -Wl,-rpath-link=$PLATFORM -L$PLATFORM/usr/lib -nostdlib $PLATFORM/usr/lib/crtend_android.o $PLATFORM/usr/lib/crtbegin_dynamic.o "${STDLIB[@]}" $PREBUILT/lib/gcc/$AGCC_CXC/$AGCC_GCC/libgcc.a -lm -ldl )
+LNFLAGS=( -Wl,-rpath-link=$PLATFORM/usr/lib -L$PLATFORM/usr/lib -L$PREBUILT/lib/gcc/$AGCC_CXC/$AGCC_GCC )
 
-SHFLAGS=( -nostdlib -Wl,-T,$LDSCRIPTS/armelf_linux_eabi.xsc -Wl,--gc-sections -Wl,-shared,-Bsymbolic -Wl,-rpath-link=$PLATFORM -L$PLATFORM/usr/lib -Wl,--no-whole-archive "${STDLIB[@]}" -lm -Wl,--no-undefined $PREBUILT/lib/gcc/$AGCC_CXC/$AGCC_GCC/libgcc.a -Wl,--whole-archive )	# .a, .o input files go *after* here
+LDFLAGS=( "${LNFLAGS[@]}" -Bdynamic -Wl,-T,$LDSCRIPTS/armelf_linux_eabi.x -Wl,-dynamic-linker,/system/bin/linker -Wl,--gc-sections -Wl,-z,nocopyreloc -Wl,--no-undefined -nostdlib $PLATFORM/usr/lib/crtend_android.o $PLATFORM/usr/lib/crtbegin_dynamic.o -lc -lm -ldl -lgcc )
+
+SHFLAGS=( "${LNFLAGS[@]}" -nostdlib -Wl,-T,$LDSCRIPTS/armelf_linux_eabi.xsc -Wl,--gc-sections -Wl,-shared,-Bsymbolic -Wl,--no-undefined -Wl,--whole-archive )	# .a, .o input files go *after* here
+SHFLAGS_END=( -Wl,--no-whole-archive -lc -lm -lgcc )
+
+if [ "$CMD" = "g++" ]; then
+	LDFLAGS=( "${LDFLAGS[@]}" -Wl,-rpath-link=$AGCC_NDK/sources/cxx-stl/stlport/libs/armeabi -L$AGCC_NDK/sources/cxx-stl/stlport/libs/armeabi -lstlport_static -lgcc )
+	SHFLAGS_END=( "SHFLAGS_END" -Wl,-rpath-link=$AGCC_NDK/sources/cxx-stl/stlport/libs/armeabi -L$AGCC_NDK/sources/cxx-stl/stlport/libs/armeabi -lstlport_shared -lgcc )
+fi
+
+#if [ "$AGCC_CRYSTAX" != "" ]; then
+#	INC[${#INC[@]}]="-I$AGCC_NDK/sources/crystax/include"
+#	LNFLAGS=( -L$AGCC_NDK/sources/crystax/libs/armeabi/$AGCC_GCC -lcrystax_static -lgcc_eh "${LDFLAGS[@]}" )
+#fi
 
 # Now implement a quick parser for a gcc-like command line
 
@@ -203,6 +213,9 @@ fi
 CMD=( "${CMD[@]}" "${ARGS[@]}" )
 if [ $NEED_LINK -ne 0 ]; then
 	CMD=( "${CMD[@]}" "${LDFLAGS[@]}" )
+fi
+if [ $NEED_SHLINK -ne 0 ]; then
+	CMD=( "${CMD[@]}" "${SHFLAGS_END[@]}" )
 fi
 
 if [ "$AGCC_ECHO" != "" ]; then
