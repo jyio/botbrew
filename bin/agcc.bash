@@ -134,6 +134,33 @@ while true; do
 				exit 1
 			fi
 			;;
+		-agcc-*)
+			case "$1" in
+				-agcc-cppflags)
+					echo "${CPP[@]}" "${INC[@]}"
+					;;
+				-agcc-cflags)
+					echo "${CFLAGS[@]}"
+					;;
+				-agcc-oflags)
+					echo "${OFLAGS[@]}"
+					;;
+				-agcc-wflags)
+					echo "${WFLAGS[@]}"
+					;;
+				-agcc-ldflags)
+					echo "${LDFLAGS[@]}"
+					;;
+				-agcc-shflags)
+					echo "${SHFLAGS[@]}" "${SHFLAGS_END[@]}"
+					;;
+				*)
+					echo "invalid agcc option" 1>&2
+					exit 1
+					;;
+			esac
+			exit 0
+			;;
 		*)
 			if [[ $1 =~ ^-W.* ]]; then
 				WARN=1
