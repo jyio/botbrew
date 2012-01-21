@@ -1,0 +1,29 @@
+--- libiberty/getpagesize.c
++++ libiberty/getpagesize.c
+@@ -60,11 +60,13 @@
+ # endif /* PAGESIZE */
+ #endif /* GNU_OUR_PAGESIZE */
+ 
++#ifndef ANDROID
+ int
+ getpagesize (void)
+ {
+   return (GNU_OUR_PAGESIZE);
+ }
++#endif
+ 
+ #else /* VMS */
+ 
+--- libiberty/setproctitle.c
++++ libiberty/setproctitle.c
+@@ -43,6 +43,10 @@
+ #ifdef PR_SET_NAME
+   /* On Linux this sets the top visible "comm", but not necessarily
+      the name visible in ps. */
++#ifndef ANDROID
+   prctl (PR_SET_NAME, name);
++#else
++  prctl (PR_SET_NAME, name, 0, 0, 0);
++#endif
+ #endif
+ }

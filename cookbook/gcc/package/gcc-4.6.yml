@@ -1,0 +1,17 @@
+Package: gcc-4.6
+Version: 4.6.2-0
+Architecture: armeabi
+Section: devel
+Priority: optional
+Source: http://gcc.gnu.org/
+Description: |
+ GNU C compiler
+ This is the GNU C compiler, a fairly portable optimizing compiler for C.
+Depends: binutils
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p $PACKAGE
+    cp -r $BUILD/* $PACKAGE/
+    #cp -r $BUILD/system/bin $PACKAGE/system/
+    #cp -r $BUILD/system/lib/ldscripts $PACKAGE/system/lib/

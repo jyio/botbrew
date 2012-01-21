@@ -1,0 +1,59 @@
+--- gcc/gthr.h
++++ gcc/gthr.h
+@@ -143,13 +143,13 @@
+ /* Check first for thread specific defines.  */
+ #if defined (__tpf__)
+ #include "gthr-tpf.h"
+-#elif _PTHREADS
++#elif defined (_PTHREADS)
+ #include "gthr-posix.h"
+-#elif _PTHREADS95
++#elif defined (_PTHREADS95)
+ #include "gthr-posix95.h"
+-#elif _DCE_THREADS
++#elif defined (_DCE_THREADS)
+ #include "gthr-dce.h"
+-#elif _SOLARIS_THREADS
++#elif defined (_SOLARIS_THREADS)
+ #include "gthr-solaris.h"
+ 
+ /* Include GTHREAD_FILE if one is defined.  */
+--- libgomp/env.c
++++ libgomp/env.c
+@@ -30,6 +30,7 @@
+ #include "libgomp_f.h"
+ #include <ctype.h>
+ #include <stdlib.h>
++#include <asm/page.h>
+ #ifdef STRING_WITH_STRINGS
+ # include <string.h>
+ # include <strings.h>
+--- libiberty/getpagesize.c
++++ libiberty/getpagesize.c
+@@ -60,11 +60,13 @@
+ # endif /* PAGESIZE */
+ #endif /* GNU_OUR_PAGESIZE */
+ 
++#ifndef ANDROID
+ int
+ getpagesize (void)
+ {
+   return (GNU_OUR_PAGESIZE);
+ }
++#endif
+ 
+ #else /* VMS */
+ 
+--- libiberty/setproctitle.c
++++ libiberty/setproctitle.c
+@@ -43,6 +43,10 @@
+ #ifdef PR_SET_NAME
+   /* On Linux this sets the top visible "comm", but not necessarily
+      the name visible in ps. */
++#ifndef ANDROID
+   prctl (PR_SET_NAME, name);
++#else
++  prctl (PR_SET_NAME, name, 0, 0, 0);
++#endif
+ #endif
+ }

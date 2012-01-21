@@ -1,0 +1,11 @@
+--- setup.py
++++ setup.py
+@@ -1860,7 +1860,7 @@
+                                          ffi_configfile):
+                 from distutils.dir_util import mkpath
+                 mkpath(ffi_builddir)
+-                config_args = []
++                config_args = sysconfig.get_config_var("CONFIG_ARGS").split(); print '*****',config_args
+ 
+                 # Pass empty CFLAGS because we'll just append the resulting
+                 # CFLAGS to Python's; -g or -O2 is to be avoided.
