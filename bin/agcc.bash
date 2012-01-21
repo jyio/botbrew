@@ -69,11 +69,13 @@ TOOLCHAIN=$AGCC_NDK/toolchains/$AGCC_CXC-$AGCC_GCC
 PREBUILT=$TOOLCHAIN/prebuilt/linux-x86
 LDSCRIPTS=$PREBUILT/$AGCC_CXC/lib/ldscripts
 
-if [ "$CMD" != "g++" ]; then
+if [ "$CMD" = "g++" ] || [ "$CMD" = "c++" ]; then
+	CMD=g++
+else
 	CMD=gcc
 fi
 
-INC=( -I$PLATFORM/usr/include -I$AGCC_NDK/sources/cxx-stl/stlport/stlport )
+INC=( -I$PLATFORM/usr/include )
 
 CPP=( -D__ARM_ARCH_5__ -D__ARM_ARCH_5T__ -D__ARM_ARCH_5E__ -D__ARM_ARCH_5TE__ -DANDROID -DSK_RELEASE -DNDEBUG -UDEBUG )
 
@@ -87,13 +89,13 @@ LNFLAGS=( -Wl,-rpath-link=$PLATFORM/usr/lib -L$PLATFORM/usr/lib -L$PREBUILT/lib/
 
 LDFLAGS=( "${LNFLAGS[@]}" -Bdynamic -Wl,-T,$LDSCRIPTS/armelf_linux_eabi.x -Wl,-dynamic-linker,/system/bin/linker -Wl,--gc-sections -Wl,-z,nocopyreloc -Wl,--no-undefined -nostdlib $PLATFORM/usr/lib/crtend_android.o $PLATFORM/usr/lib/crtbegin_dynamic.o -lc -lm -ldl -lgcc )
 
-SHFLAGS=( "${LNFLAGS[@]}" -nostdlib -Wl,-T,$LDSCRIPTS/armelf_linux_eabi.xsc -Wl,--gc-sections -Wl,-shared,-Bsymbolic -Wl,--no-undefined -Wl,--whole-archive )	# .a, .o input files go *after* here
+SHFLAGS=( "${LNFLAGS[@]}" -nostdlib -Wl,-T,$LDSCRIPTS/armelf_linux_eabi.xsc -Wl,--gc-sections -Wl,-shared,-Bsymbolic -Wl,--whole-archive )	# .a, .o input files go *after* here
 SHFLAGS_END=( -Wl,--no-whole-archive -lc -lm -lgcc )
 
-if [ "$CMD" = "g++" ]; then
-	LDFLAGS=( "${LDFLAGS[@]}" -Wl,-rpath-link=$AGCC_NDK/sources/cxx-stl/stlport/libs/armeabi -L$AGCC_NDK/sources/cxx-stl/stlport/libs/armeabi -lstlport_static -lgcc )
-	SHFLAGS_END=( "SHFLAGS_END" -Wl,-rpath-link=$AGCC_NDK/sources/cxx-stl/stlport/libs/armeabi -L$AGCC_NDK/sources/cxx-stl/stlport/libs/armeabi -lstlport_shared -lgcc )
-fi
+#if [ "$CMD" = "g++" ]; then
+#	LDFLAGS=( "${LDFLAGS[@]}" -Wl,-rpath-link=$AGCC_NDK/sources/cxx-stl/stlport/libs/armeabi -L$AGCC_NDK/sources/cxx-stl/stlport/libs/armeabi -lstlport_static -lgcc )
+#	SHFLAGS_END=( "SHFLAGS_END" -Wl,-rpath-link=$AGCC_NDK/sources/cxx-stl/stlport/libs/armeabi -L$AGCC_NDK/sources/cxx-stl/stlport/libs/armeabi -lstlport_shared -lgcc )
+#fi
 
 #if [ "$AGCC_CRYSTAX" != "" ]; then
 #	INC[${#INC[@]}]="-I$AGCC_NDK/sources/crystax/include"
@@ -214,6 +216,11 @@ fi
 
 # Assemble the command
 
+if [ "$CMD" = "g++" ]; then
+	APPEND=( -std=c++98 )
+else
+	APPEND=( )
+fi
 CMD=( "${PREBUILT}/bin/${AGCC_CXC}-${CMD}" )
 if [ "$MODE" != DEFAULT ]; then
 	CMD[${#CMD[@]}]="$MODE"
@@ -246,7 +253,7 @@ if [ $NEED_SHLINK -ne 0 ]; then
 fi
 
 if [ "$AGCC_ECHO" != "" ]; then
-	echo " <= ${CMD[@]}"
+	echo " <= ${CMD[@]} ${APPEND[@]}"
 fi
 
-exec "${CMD[@]}"
+exec "${CMD[@]}" "${APPEND[@]}"
