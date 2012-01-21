@@ -11,6 +11,5 @@ Depends: binutils
 Data:
  /CONTROL/init: |
     #!/bin/sh
-    mkdir -p $PACKAGE
-    cp -r $BUILD/* $PACKAGE/
-    rm -rf $PACKAGE/system/share
+    mkdir -p $PACKAGE/system
+    cp -r $BUILD/system/share $PACKAGE/system/
