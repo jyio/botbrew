@@ -7,9 +7,11 @@ DIR_COOKBOOK	:= cookbook
 
 export OPKG_MAINTAINER	:= Jiang Yio <inportb@gmail.com>
 #export AGCC_ECHO	:= yes
+#export AGCC_CRYSTAX	:= yes
 
 CROSS			:= arm-linux-androideabi
-NDKPATH			:= ${HOME}/android-ndk-r6
+NDKPATH			:= ${HOME}/android-ndk-r7
+NDKREL			:= 7
 NDKAPI			:= 8
 NDKGCC			:= 4.4.3
 
@@ -34,7 +36,10 @@ LDFLAGS	:= -Wl,-rpath=/system/lib -L${TOP_INSTALL}/system/lib
 export PATH	:= ${TOP}/bin:${TOP}/bin/opkg-utils:${NDKPREBUILT}/bin:${NDKPATH}:${PATH}
 
 export AGCC_NDK		:= ${NDKPATH}
+export AGCC_REL		:= ${NDKREL}
 export AGCC_CXC		:= ${CROSS}
+export AGCC_API		:= ${NDKAPI}
+export AGCC_GCC		:= ${NDKGCC}
 export OPKG_MAINTAINER
 
 RECIPE_LIST = $(shell find . -name ${RECIPE_FILENAME} | sed 's/\/${RECIPE_FILENAME}//')
@@ -65,6 +70,10 @@ define process_recipes
 	$(foreach DIR,$(RECIPE_LIST),$(call process_recipe,$(DIR)))
 endef
 
+# top-level rule, registered before Makefile fragments
+.PHONY:	top
+top: 	all
+
 CWD			:=
 ALL_MAKE	:=
 ALL_INSTALL	:=
@@ -76,10 +85,14 @@ $(eval $(process_recipes))
 
 ~			:= tilde is broken in commands
 
-.PHONY:		all package clean clobber
+.PHONY:		all package repo clean clobber
 all:		$(ALL_MAKE)
 install:	$(ALL_INSTALL)
 package:	$(ALL_PACKAGE)
+	opkg-make-index ${DIR_REPO} > ${DIR_REPO}/Packages
+	mv Packages.* ${DIR_REPO}/
+	gzip -c9 ${DIR_REPO}/Packages > ${DIR_REPO}/Packages.gz
+repo:
 	opkg-make-index ${DIR_REPO} > ${DIR_REPO}/Packages
 	mv Packages.* ${DIR_REPO}/
 	gzip -c9 ${DIR_REPO}/Packages > ${DIR_REPO}/Packages.gz
