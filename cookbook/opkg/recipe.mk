@@ -38,7 +38,7 @@ $~/source/configure:
 	touch $$@
 
 $~/source/Makefile: $~/source/configure | $(call COOK,curl) $(call COOK,openssl) $(call COOK,gpgme)
-	cd $${@D}; CC="agcc.bash" CFLAGS="${CFLAGS} -I${TOP}/$~/compat" LD="agcc.bash" LDFLAGS="${LDFLAGS}" OBJDUMP="${OBJDUMP}" AR="${AR}" STRIP="${STRIP} --strip-unneeded" RANLIB="${RANLIB}" CURL_CFLAGS="-I${TOP_INSTALL}/system/include" CURL_LIBS="-L${TOP_INSTALL}/system/lib" ./configure --host=arm-eabi --with-opkglibdir=/system/usr/lib --with-opkgetcdir=/system/etc --disable-shared --enable-static --enable-openssl=yes --enable-gpg=no \
+	cd $${@D}; CC="agcc.bash" CFLAGS="${CFLAGS} -I${TOP}/$~/compat" LD="agcc.bash" LDFLAGS="${LDFLAGS}" OBJDUMP="${OBJDUMP}" AR="${AR}" STRIP="${STRIP} --strip-unneeded" RANLIB="${RANLIB}" CURL_CFLAGS="-I${TOP_INSTALL}/system/include" CURL_LIBS="-L${TOP_INSTALL}/system/lib" ./configure --host=arm-linux-androideabi --with-opkglibdir=/system/usr/lib --with-opkgetcdir=/system/etc --disable-shared --enable-static --enable-openssl=yes \
 		--prefix=/system \
 		--sbindir=/system/xbin \
 		--sharedstatedir=/data/local/com \

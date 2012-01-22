@@ -34,7 +34,7 @@ $~/source/configure:
 	touch $$@
 
 $~/source/Makefile: $~/source/configure | ${DIR_COOKBOOK}/openssl/install
-	cd $${@D}; CC="agcc.bash" CFLAGS="${CFLAGS}" LD="${LD}" LDFLAGS="${LDFLAGS}" STRIP="${STRIP} --strip-unneeded" ./configure --host=arm-eabi --enable-threaded-resolver --with-ssl --with-ca-path=/system/etc/ssl/certs \
+	cd $${@D}; CC="agcc.bash" CFLAGS="${CFLAGS}" LD="${LD}" LDFLAGS="${LDFLAGS}" STRIP="${STRIP} --strip-unneeded" ./configure --host=arm-linux-androideabi --enable-threaded-resolver --with-ssl --with-ca-path=/system/etc/ssl/certs \
 		--prefix=/system \
 		--sbindir=/system/xbin \
 		--sharedstatedir=/data/local/com \
