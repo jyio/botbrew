@@ -1,0 +1,21 @@
+--- common/http.h
++++ common/http.h
+@@ -25,6 +25,8 @@
+ #include "estream.h"
+ #endif
+ 
++#include "../jnlib/strlist.h"
++
+ struct uri_tuple_s {
+   struct uri_tuple_s *next;
+   const char *name;	/* A pointer into name. */
+--- tools/gpgkey2ssh.c
++++ tools/gpgkey2ssh.c
+@@ -37,6 +37,7 @@
+ 
+ #include "util.h"
+ #include "sysutils.h"
++#include "../jnlib/types.h"
+ 
+ 
+ 
