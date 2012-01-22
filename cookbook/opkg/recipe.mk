@@ -37,7 +37,7 @@ $~/source/configure:
 		glib-gettextize --force --copy
 	touch $$@
 
-$~/source/Makefile: $~/source/configure | $(call COOK,curl) $(call COOK,openssl) $(call COOK,gpgme)
+$~/source/Makefile: $~/source/configure | $(call COOK,curl) $(call COOK,openssl)
 	cd $${@D}; CC="agcc.bash" CFLAGS="${CFLAGS} -I${TOP}/$~/compat" LD="agcc.bash" LDFLAGS="${LDFLAGS}" OBJDUMP="${OBJDUMP}" AR="${AR}" STRIP="${STRIP} --strip-unneeded" RANLIB="${RANLIB}" CURL_CFLAGS="-I${TOP_INSTALL}/system/include" CURL_LIBS="-L${TOP_INSTALL}/system/lib" ./configure --host=arm-linux-androideabi --with-opkglibdir=/system/usr/lib --with-opkgetcdir=/system/etc --disable-shared --enable-static --enable-openssl=yes \
 		--prefix=/system \
 		--sbindir=/system/xbin \
