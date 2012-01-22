@@ -30,7 +30,7 @@ $~/${ARCHIVE}:
 	rm -rf $$@
 	wget ftp://ftp.gnupg.org/gcrypt/${NAME}/${ARCHIVE} -O $$@
 
-$~/source/Makefile: | $~/${ARCHIVE} $(call COOK,libgpg-error) $(call COOK,libgcrypt) $(call COOK,libassuan) $(call COOK,libksba) $(call COOK,pth) $(call COOK,libiconv)
+$~/source/Makefile: | $~/${ARCHIVE} $(call COOK,libgpg-error) $(call COOK,libgcrypt) $(call COOK,libassuan) $(call COOK,libksba) $(call COOK,pth) $(call COOK,libiconv) $(call COOK,readline) $(call COOK,bzip2)
 	if [ ! -d $${@D} ]; then \
 		tar jxf $~/${ARCHIVE} -C $~/; \
 		mv $~/${NAME}-${VERSION} $${@D}; \
@@ -40,7 +40,7 @@ $~/source/Makefile: | $~/${ARCHIVE} $(call COOK,libgpg-error) $(call COOK,libgcr
 		cd  $${@D}; \
 			patch -p0 < ../patch/gnupg-2.0.18-android.patch; \
 	fi
-	cd $${@D}; CC="agcc.bash" CFLAGS="${CFLAGS}" LD="agcc.bash" LDFLAGS="${LDFLAGS}" STRIP="${STRIP} --strip-unneeded" ./configure --host=arm-linux-androideabi \
+	cd $${@D}; CC="agcc.bash" CFLAGS="${CFLAGS}" LD="agcc.bash" LDFLAGS="${LDFLAGS}" LIBS="-lncurses" STRIP="${STRIP} --strip-unneeded" ./configure --host=arm-linux-androideabi \
 		--with-gpg-error-prefix=${TOP_INSTALL}/system \
 		--with-libgcrypt-prefix=${TOP_INSTALL}/system \
 		--with-libassuan-prefix=${TOP_INSTALL}/system \
@@ -56,6 +56,7 @@ $~/source/Makefile: | $~/${ARCHIVE} $(call COOK,libgpg-error) $(call COOK,libgcr
 $~/build/.d: $~/source/Makefile
 	${MAKE} -C $~/source
 	${MAKE} -C $~/source install DESTDIR=${TOP}/$~/build
+	-${STRIP} --strip-unneeded ${TOP}/$~/build/system/bin/* ${TOP}/$~/build/system/libexec/*
 	for file in \
 		$${@D}/system/bin/gpgsm-gencert.sh \
 		$${@D}/system/share/doc/gnupg/examples/scd-event \
