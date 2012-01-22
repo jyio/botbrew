@@ -44,6 +44,10 @@ export OPKG_MAINTAINER
 
 RECIPE_LIST = $(shell find . -name ${RECIPE_FILENAME} | sed 's/\/${RECIPE_FILENAME}//')
 
+define COOK
+	${DIR_COOKBOOK}/$1/install
+endef
+
 define process_recipe
 	~				:= $1
 	~F				:= ${TOP}/$1
