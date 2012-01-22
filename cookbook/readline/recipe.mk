@@ -36,7 +36,7 @@ $~/source/Makefile: | $~/${ARCHIVE} ${DIR_COOKBOOK}/ncurses/install
 		mv $~/${NAME}-${VERSION} $${@D}; \
 		cd $${@D}; patch -p0 < ../patch/readline-6.2-android.patch; \
 	fi
-	cd $${@D}; CC="agcc.bash" CFLAGS="${CFLAGS}" LDFLAGS="${LDFLAGS} -lncurses" STRIP="${STRIP} --strip-unneeded" RANLIB="${RANLIB}" ./configure --host=arm-eabi \
+	cd $${@D}; CC="agcc.bash" CFLAGS="${CFLAGS}" LDFLAGS="${LDFLAGS} -lncurses" STRIP="${STRIP} --strip-unneeded" RANLIB="${RANLIB}" ./configure --host=arm-android-eabi \
 		--prefix=/system \
 		--sbindir=/system/xbin \
 		--sharedstatedir=/data/local/com \

@@ -76,7 +76,7 @@ $~/source/Makefile: | $~/${ARCHIVE} $~/source-host/Makefile ${DIR_COOKBOOK}/read
 			patch -p1 < ../patch/Python-2.7.2-android.patch; \
 			patch -p0 < ../patch/Python-2.7.2-regen.patch; \
 	fi
-	cd $${@D}; CC="agcc.bash ${__CFLAGS}" LD="agcc.bash" LDFLAGS="${__LDFLAGS}" AR="${AR}" RANLIB="${RANLIB}" ./configure --build=i686 --host=arm-eabi --enable-shared --with-readline=${TOP_INSTALL}/system/lib INSTSONAME=libpython2.7.so \
+	cd $${@D}; CC="agcc.bash ${__CFLAGS}" LD="agcc.bash" LDFLAGS="${__LDFLAGS}" AR="${AR}" RANLIB="${RANLIB}" ./configure --build=i686 --host=arm-linux-androideabi --enable-shared --with-readline=${TOP_INSTALL}/system/lib INSTSONAME=libpython2.7.so \
 		--prefix=/system \
 		--sbindir=/system/xbin \
 		--sharedstatedir=/data/local/com \

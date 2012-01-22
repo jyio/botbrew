@@ -36,7 +36,7 @@ $~/source/Makefile: | $~/${ARCHIVE} ${DIR_COOKBOOK}/readline/install ${DIR_COOKB
 		mv $~/${NAME}-${VERSION} $${@D}; \
 		cd $${@D}; patch -p0 < ../patch/ruby-1.9.3-android.patch; \
 	fi
-	cd $${@D}; CC="agcc.bash" CFLAGS="${CFLAGS}" CXX="agcc.bash" CXXFLAGS="${CFLAGS}" LD="agcc.bash" LDSHARED="agcc.bash -shared -lgcc" LDFLAGS="${LDFLAGS}" STRIP="${STRIP} --strip-unneeded" ./configure --host=arm-eabi --enable-shared --disable-ipv6 --disable-wide-getaddrinfo \
+	cd $${@D}; CC="agcc.bash" CFLAGS="${CFLAGS}" CXX="agcc.bash" CXXFLAGS="${CFLAGS}" LD="agcc.bash" LDSHARED="agcc.bash -shared -lgcc" LDFLAGS="${LDFLAGS}" STRIP="${STRIP} --strip-unneeded" ./configure --host=arm-android-eabi --enable-shared --disable-ipv6 --disable-wide-getaddrinfo \
 		--prefix=/system \
 		--sbindir=/system/xbin \
 		--sharedstatedir=/data/local/com \

@@ -41,7 +41,7 @@ $~/source/src/auto/config.mk: | ${DIR_COOKBOOK}/ncurses/install
 		vim_cv_memmove_handles_overlap=no \
 		vim_cv_bcopy_handles_overlap=no \
 		vim_cv_memcpy_handles_overlap=no \
-		./configure --host=arm-eabi --with-tlib=ncurses --disable-gtktest \
+		./configure --host=arm-linux-androideabi --with-tlib=ncurses --disable-gtktest \
 			--prefix=/system \
 			--sbindir=/system/xbin \
 			--sharedstatedir=/data/local/com \
