@@ -36,7 +36,7 @@ $~/source/configure: | $~/${ARCHIVE} ${DIR_COOKBOOK}/binutils/install ${DIR_COOK
 		mv $~/${NAME}-${VERSION} $${@D}; \
 		cp -lf $${@D}/include/sha1.h $${@D}/libiberty/; \
 		cd $${@D}; \
-			patch -p0 < ../patch/gcc-4.6.2-xcompile.patch; \
+			patch -p0 < ../patch/gcc-4.6.2-android.patch; \
 	fi
 
 # --disable-symvers to suppress "version node not found for symbol"
