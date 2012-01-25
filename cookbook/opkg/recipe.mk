@@ -38,7 +38,7 @@ $~/source/configure:
 	touch $$@
 
 $~/source/Makefile: $~/source/configure | $(call COOK,curl) $(call COOK,openssl)
-	cd $${@D}; CC="agcc.bash" CFLAGS="${CFLAGS} -I${TOP}/$~/compat" LD="agcc.bash" LDFLAGS="${LDFLAGS}" OBJDUMP="${OBJDUMP}" AR="${AR}" STRIP="${STRIP} --strip-unneeded" RANLIB="${RANLIB}" CURL_CFLAGS="-I${TOP_INSTALL}/system/include" CURL_LIBS="-L${TOP_INSTALL}/system/lib" ./configure --host=arm-linux-androideabi --with-opkglibdir=/system/usr/lib --with-opkgetcdir=/system/etc --disable-shared --enable-static --enable-openssl=yes \
+	cd $${@D}; CC="agcc.bash" CFLAGS="${CFLAGS} -I${TOP}/$~/compat" LD="agcc.bash" LDFLAGS="${LDFLAGS}" OBJDUMP="${OBJDUMP}" AR="${AR}" STRIP="${STRIP} --strip-unneeded" RANLIB="${RANLIB}" CURL_CFLAGS="-I${TOP_INSTALL}/system/include" CURL_LIBS="-L${TOP_INSTALL}/system/lib" ./configure --host=arm-linux-androideabi --with-opkglibdir=/system/usr/lib --with-opkgetcdir=/system/etc --with-opkglockfile=/cache/opkg/lock --enable-static --disable-shared --enable-openssl=yes --disable-gpg \
 		--prefix=/system \
 		--sbindir=/system/xbin \
 		--sharedstatedir=/data/local/com \
@@ -52,7 +52,7 @@ $~/compat/libcompat.a:
 		${AR} -r libcompat.a *.o
 
 $~/build/.d: $~/source/Makefile $~/compat/libcompat.a
-	${MAKE} -C $~/source LIBS="-L${TOP}/$~/compat -lcompat -lcurl -lssl -lcrypto -lz"
+	${MAKE} -C $~/source LIBS="-L${TOP}/$~/compat ${TOP_INSTALL}/system/lib/libcurl.a ${TOP_INSTALL}/system/lib/libssl.a ${TOP_INSTALL}/system/lib/libcrypto.a -lcompat -lz"
 	${MAKE} -C $~/source install DESTDIR=${TOP}/$~/build
 	mkdir -p $${@D}/system
 	mv $${@D}/system/bin/opkg-cl $${@D}/system/bin/opkg
