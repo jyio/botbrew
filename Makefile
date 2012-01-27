@@ -117,10 +117,10 @@ opkg.tgz: cookbook/opkg/package/opkg.yml
 	echo "echo 'You have installed Opkg. For best results, please run:'" >> temp
 	echo "echo '	opkg update'" >> temp
 	echo "echo '	opkg install opkg'" >> temp
-	echo "rm -f /system/bin/opkg-install" >> temp
+	echo "rm /system/bin/opkg-install" >> temp
 	mv temp opkg_tgz/system/bin/opkg-install
 	chmod +x opkg_tgz/system/bin/opkg-install
 	rm -rf opkg_tgz/CONTROL
-	for file in opkg_tgz/system/etc/opkg/*.opkg-new; do mv "$$file" "$${file%.opkg-new}"; done
+	#for file in opkg_tgz/system/etc/opkg/*.opkg-new; do mv "$$file" "$${file%.opkg-new}"; done
 	cd opkg_tgz; fakeroot tar --owner=root --group=root -zcvf ../opkg.tgz *
 	rm -rf opkg_tgz
