@@ -1,5 +1,5 @@
 Package: opkg
-Version: 0.1.8-2
+Version: 0.1.8-3
 Architecture: armeabi
 Section: admin
 Priority: required
@@ -26,7 +26,7 @@ Data:
     #!/system/bin/sh
     
     mkdir -p /system/etc/opkg /system/usr/lib/opkg /data/local/var/lib/opkg /cache/opkg/tmp /cache/opkg/archives
-    chmod a+x /cache
+    chmod 0771 /cache
     
     if [ -f /system/etc/opkg/opkg.conf ]; then
     	rm -f /system/etc/opkg/opkg.conf.opkg-new
