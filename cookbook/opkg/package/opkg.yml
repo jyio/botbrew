@@ -26,6 +26,7 @@ Data:
     #!/system/bin/sh
     
     mkdir -p /system/etc/opkg /system/usr/lib/opkg /data/local/var/lib/opkg /cache/opkg/tmp /cache/opkg/archives
+    chmod a+x /cache
     
     if [ -f /system/etc/opkg/opkg.conf ]; then
     	rm -f /system/etc/opkg/opkg.conf.opkg-new
