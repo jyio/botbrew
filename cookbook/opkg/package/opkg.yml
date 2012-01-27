@@ -1,5 +1,5 @@
 Package: opkg
-Version: 0.1.8-3
+Version: 0.1.8-4
 Architecture: armeabi
 Section: admin
 Priority: required
@@ -25,7 +25,7 @@ Data:
  /CONTROL/postinst: |
     #!/system/bin/sh
     
-    mkdir -p /system/etc/opkg /system/usr/lib/opkg /data/local/var/lib/opkg /cache/opkg/tmp /cache/opkg/archives
+    mkdir -p /system/etc/opkg /system/usr/lib/opkg/lists /system/usr/lib/opkg/info /data/local/var/lib/opkg /cache/opkg/tmp /cache/opkg/archives
     chmod 0771 /cache
     
     if [ -f /system/etc/opkg/opkg.conf ]; then
