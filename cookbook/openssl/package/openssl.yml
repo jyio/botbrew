@@ -6,17 +6,7 @@ Priority: optional
 Source: http://www.openssl.org/
 Description: |
  Secure Socket Layer (SSL) binary and related cryptographic tools
- This package contains the openssl binary and related tools.
- .
- It is part of the OpenSSL implementation of SSL.
- .
- You need it to perform certain cryptographic actions like:
-  -  Creation of RSA, DH and DSA key parameters;
-  -  Creation of X.509 certificates, CSRs and CRLs;
-  -  Calculation of message digests;
-  -  Encryption and decryption with ciphers;
-  -  SSL/TLS client and server tests;
-  -  Handling of S/MIME signed or encrypted mail.
+ This package contains the openssl binary and related tools. It is part of the OpenSSL implementation of SSL. You need it to perform certain cryptographic actions like: creation of RSA, DH and DSA key parameters; creation of X.509 certificates, CSRs and CRLs; calculation of message digests; encryption and decryption with ciphers; SSL/TLS client and server tests; and handling of S/MIME signed or encrypted mail.
 Data:
  /CONTROL/postinst: |
     #!/system/bin/sh

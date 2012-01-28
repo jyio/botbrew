@@ -6,9 +6,7 @@ Priority: optional
 Source: http://www.gnu.org/software/binutils/
 Description: |
  GNU assembler, linker and binary utilities
- The programs in this package are used to assemble, link and manipulate
- binary and object files.  They may be used in conjunction with a compiler
- and various libraries to build programs.
+ The programs in this package are used to assemble, link and manipulate binary and object files.  They may be used in conjunction with a compiler and various libraries to build programs.
 Data:
  /CONTROL/init: |
     #!/bin/sh

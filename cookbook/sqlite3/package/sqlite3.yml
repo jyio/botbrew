@@ -6,9 +6,7 @@ Priority: optional
 Source: http://www.sqlite.org/
 Description: |
  Command line interface for SQLite 3
- SQLite is a C library that implements an SQL database engine.
- Programs that link with the SQLite library can have SQL database
- access without running a separate RDBMS process.
+ SQLite is a C library that implements an SQL database engine. Programs that link with the SQLite library can have SQL database access without running a separate RDBMS process.
 Data:
  /CONTROL/init: |
     #!/bin/sh

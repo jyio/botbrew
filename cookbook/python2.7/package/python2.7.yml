@@ -6,9 +6,7 @@ Priority: optional
 Source: http://www.python.org/
 Description: |
  An interactive high-level object-oriented language (version 2.7)
- Version 2.7 of the high-level, interactive object oriented language,
- includes an extensive class library with lots of goodies for
- network programming, system administration, sounds and graphics.
+ Version 2.7 of the high-level, interactive object oriented language, includes an extensive class library with lots of goodies for network programming, system administration, sounds and graphics.
 Data:
  /CONTROL/postinst: |
     #!/system/bin/sh

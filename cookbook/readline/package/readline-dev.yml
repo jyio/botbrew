@@ -6,10 +6,7 @@ Priority: optional
 Source: http://www.gnu.org/software/readline/
 Description: |
  GNU readline and history libraries
- .
- The GNU readline library aids in the consistency of user interface across discrete programs that need to provide a command line interface.
- .
- The GNU history library provides a consistent user interface for recalling lines of previously typed input.
+ The GNU readline library aids in the consistency of user interface across discrete programs that need to provide a command line interface. The GNU history library provides a consistent user interface for recalling lines of previously typed input.
 Data:
  /CONTROL/init: |
     #!/bin/sh

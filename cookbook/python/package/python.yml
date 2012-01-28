@@ -6,10 +6,5 @@ Priority: optional
 Source: http://www.python.org/
 Description: |
  interactive high-level object-oriented language (default version)
- Python, the high-level, interactive object oriented language,
- includes an extensive class library with lots of goodies for
- network programming, system administration, sounds and graphics.
- .
- This package is a dependency package, which depends on Android's
- default Python version (currently v2.7).
+ Python, the high-level, interactive object oriented language, includes an extensive class library with lots of goodies for network programming, system administration, sounds and graphics. This package is a dependency package, which depends on Android's default Python version (currently v2.7).
 Depends: python2.7
