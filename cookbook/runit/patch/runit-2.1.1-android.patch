@@ -1,0 +1,48 @@
+--- runit.c
++++ runit.c
+@@ -23,9 +23,9 @@
+ #define FATAL "- runit: fatal: "
+ 
+ const char * const stage[3] ={
+-  "/etc/runit/1",
+-  "/etc/runit/2",
+-  "/etc/runit/3" };
++  "/system/etc/runit/1",
++  "/system/etc/runit/2",
++  "/system/etc/runit/3" };
+ 
+ int selfpipe[2];
+ int sigc =0;
+--- runit.h
++++ runit.h
+@@ -1,4 +1,4 @@
+-#define RUNIT "/sbin/runit"
+-#define STOPIT "/etc/runit/stopit"
+-#define REBOOT "/etc/runit/reboot"
+-#define CTRLALTDEL "/etc/runit/ctrlaltdel"
++#define RUNIT "/system/xbin/runit"
++#define STOPIT "/cache/runit/stopit"
++#define REBOOT "/cache/runit/reboot"
++#define CTRLALTDEL "/cache/runit/ctrlaltdel"
+--- runsvchdir.c
++++ runsvchdir.c
+@@ -7,7 +7,7 @@
+ #include "buffer.h"
+ 
+ #define USAGE " dir"
+-#define SVDIR "/etc/runit/runsvdir"
++#define SVDIR "/system/etc/service"
+ 
+ #define VERSION "$Id: 9bf17f77e33c6b961e060aacffa3c8abd38fc64a $"
+ 
+--- sv.c
++++ sv.c
+@@ -32,7 +32,7 @@
+ char *progname;
+ char *action;
+ char *acts;
+-char *varservice ="/service/";
++char *varservice ="/system/etc/service/";
+ char **service;
+ char **servicex;
+ unsigned int services;
