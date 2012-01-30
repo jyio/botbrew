@@ -12,7 +12,7 @@ EXPORT_CLOBBER	+= $~/clobber
 
 # locals
 
-__CFLAGS	:= ${CFLAGS} -I${TOP_INSTALL}/system/include/ncurses
+__CFLAGS	:= ${CFLAGS}
 __LDFLAGS	:= ${LDFLAGS} -L${TOP}/$~/source
 __HPYTHON	:= ${TOP}/$~/build-host/bin/python
 __HPGEN		:= ${TOP}/$~/build-host/bin/pgen

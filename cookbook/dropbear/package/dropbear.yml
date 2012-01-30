@@ -27,20 +27,16 @@ Data:
     if [ -d /system/etc/service/enabled ] && ! [ -e /system/etc/service/enabled/dropbear ]; then
     	ln -s /system/etc/service/dropbear /system/etc/service/enabled/dropbear
     fi
-    if ! [ -e /system/etc/service/dropbear/supervise ]; then
-    	ln -s /data/local/var/run/sv.dropbear /system/etc/service/dropbear/supervise
-    fi
-    if ! [ -e /system/etc/service/dropbear/log/supervise ]; then
-    	ln -s /data/local/var/run/sv.log.dropbear /system/etc/service/dropbear/log/supervise
-    fi
  /CONTROL/prerm: |
     #!/system/bin/sh
     busybox rm -rf /system/etc/service/enabled/dropbear
  /CONTROL/postrm: |
     #!/system/bin/sh
-    busybox rm -rf /system/etc/service/dropbear /data/local/var/run/sv.dropbear /data/local/var/run/sv.log.dropbear
+    busybox rm -rf /data/local/var/run/sv.dropbear /data/local/var/run/sv.log.dropbear
  /CONTROL/init: |
     #!/bin/sh
     mkdir -p $PACKAGE/system
     cp -r $BUILD/system/bin $PACKAGE/system/
+    ln -s /data/local/var/run/sv.dropbear $PACKAGE/system/etc/service/dropbear/supervise
+    ln -s /data/local/var/run/sv.log.dropbear $PACKAGE/system/etc/service/dropbear/log/supervise
     chmod +x $PACKAGE/system/etc/service/dropbear/run $PACKAGE/system/etc/service/dropbear/log/run
