@@ -35,8 +35,9 @@ $~/source/Makefile: | $~/${ARCHIVE}
 		tar zxf $~/${ARCHIVE} -C $~/; \
 		mv $~/${NAME}-${VERSION} $${@D}; \
 	fi
-	cd $${@D}; CC="agcc.bash" CFLAGS="${CFLAGS}" LD="agcc.bash" LDFLAGS="${LDFLAGS}" RANLIB="${RANLIB}" STRIP="${STRIP} --strip-unneeded" ./Configure linux-generic32 no-asm no-idea no-bf no-cast no-seed no-md2 -DL_ENDIAN --prefix=/system --openssldir=/system/etc/ssl
-	touch $$@
+	cd $${@D}; CC="agcc.bash" LD="agcc.bash" RANLIB="${RANLIB}" STRIP="${STRIP} --strip-unneeded" ./Configure linux-generic32 zlib-dynamic no-idea no-bf no-cast no-seed no-md2 -DL_ENDIAN \
+		--prefix=/system \
+		--openssldir=/system/etc/ssl
 
 $~/build/.d: $~/source/Makefile
 	${MAKE} -C $~/source depend MAKEDEPPROG="agcc.bash -E -MM"
