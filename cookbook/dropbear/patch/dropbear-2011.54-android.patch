@@ -1,0 +1,339 @@
+--- cli-auth.c
++++ cli-auth.c
+@@ -32,6 +32,10 @@
+ #include "packet.h"
+ #include "runopts.h"
+ 
++#ifdef ANDROID
++#include "netbsd_getpass.c"
++#endif
++
+ void cli_authinitialise() {
+ 
+ 	memset(&ses.authstate, 0, sizeof(ses.authstate));
+--- cli-kex.c
++++ cli-kex.c
+@@ -155,11 +155,15 @@
+ 	homedir = getenv("HOME");
+ 
+ 	if (!homedir) {
++#ifdef ANDROID
++		homedir = "/mnt/sdcard";
++#else
+ 		struct passwd * pw = NULL;
+ 		pw = getpwuid(getuid());
+ 		if (pw) {
+ 			homedir = pw->pw_dir;
+ 		}
++#endif
+ 	}
+ 
+ 	if (homedir) {
+--- includes.h
++++ includes.h
+@@ -153,4 +153,10 @@
+ # define UNUSED(x) x 
+ #endif
+ 
++#ifdef ANDROID
++#define S_IREAD		S_IRUSR
++#define S_IWRITE	S_IWUSR
++#define S_IEXEC		S_IXUSR
++#endif
++
+ #endif /* _INCLUDES_H_ */
+--- loginrec.c
++++ loginrec.c
+@@ -158,6 +158,10 @@
+ #include "dbutil.h"
+ #include "atomicio.h"
+ 
++#ifdef ANDROID
++#define DEAD_PROCESS 8
++#endif
++
+ /**
+  ** prototypes for helper functions in this file
+  **/
+--- options.h
++++ options.h
+@@ -21,10 +21,10 @@
+ 
+ /* Default hostkey paths - these can be specified on the command line */
+ #ifndef DSS_PRIV_FILENAME
+-#define DSS_PRIV_FILENAME "/etc/dropbear/dropbear_dss_host_key"
++#define DSS_PRIV_FILENAME "/system/etc/dropbear/dropbear_dss_host_key"
+ #endif
+ #ifndef RSA_PRIV_FILENAME
+-#define RSA_PRIV_FILENAME "/etc/dropbear/dropbear_rsa_host_key"
++#define RSA_PRIV_FILENAME "/system/etc/dropbear/dropbear_rsa_host_key"
+ #endif
+ 
+ /* Set NON_INETD_MODE if you require daemon functionality (ie Dropbear listens
+@@ -49,10 +49,10 @@
+ several kB in binary size however will make the symmetrical ciphers and hashes
+ slower, perhaps by 50%. Recommended for small systems that aren't doing
+ much traffic. */
+-/*#define DROPBEAR_SMALL_CODE*/
++#define DROPBEAR_SMALL_CODE
+ 
+ /* Enable X11 Forwarding - server only */
+-#define ENABLE_X11FWD
++/*#define ENABLE_X11FWD*/
+ 
+ /* Enable TCP Fowarding */
+ /* 'Local' is "-L" style (client listening port forwarded via server)
+@@ -144,15 +144,15 @@
+ #endif
+ 
+ /* Whether to do reverse DNS lookups. */
+-#define DO_HOST_LOOKUP
++/*#define DO_HOST_LOOKUP*/
+ 
+ /* Whether to print the message of the day (MOTD). This doesn't add much code
+  * size */
+-#define DO_MOTD
++/*#define DO_MOTD*/
+ 
+ /* The MOTD file path */
+ #ifndef MOTD_FILENAME
+-#define MOTD_FILENAME "/etc/motd"
++#define MOTD_FILENAME "/system/etc/motd"
+ #endif
+ 
+ /* Authentication Types - at least one required.
+@@ -165,7 +165,7 @@
+  * PAM challenge/response.
+  * You can't enable both PASSWORD and PAM. */
+ 
+-#define ENABLE_SVR_PASSWORD_AUTH
++/*#define ENABLE_SVR_PASSWORD_AUTH*/
+ /* PAM requires ./configure --enable-pam */
+ /*#define ENABLE_SVR_PAM_AUTH*/
+ #define ENABLE_SVR_PUBKEY_AUTH
+@@ -220,13 +220,13 @@
+  * not yet authenticated. After this limit, connections are rejected */
+ /* The first setting is per-IP, to avoid denial of service */
+ #ifndef MAX_UNAUTH_PER_IP
+-#define MAX_UNAUTH_PER_IP 5
++#define MAX_UNAUTH_PER_IP 3
+ #endif
+ 
+ /* And then a global limit to avoid chewing memory if connections 
+  * come from many IPs */
+ #ifndef MAX_UNAUTH_CLIENTS
+-#define MAX_UNAUTH_CLIENTS 30
++#define MAX_UNAUTH_CLIENTS 10
+ #endif
+ 
+ /* Maximum number of failed authentication tries (server option) */
+@@ -237,7 +237,7 @@
+ /* The default file to store the daemon's process ID, for shutdown
+    scripts etc. This can be overridden with the -P flag */
+ #ifndef DROPBEAR_PIDFILE
+-#define DROPBEAR_PIDFILE "/var/run/dropbear.pid"
++#define DROPBEAR_PIDFILE "/data/local/var/run/dropbear.pid"
+ #endif
+ 
+ /* The command to invoke for xauth when using X11 forwarding.
+@@ -250,12 +250,12 @@
+  * OpenSSH), set the path below. If the path isn't defined, sftp will not
+  * be enabled */
+ #ifndef SFTPSERVER_PATH
+-#define SFTPSERVER_PATH "/usr/libexec/sftp-server"
++#define SFTPSERVER_PATH "/system/libexec/sftp-server"
+ #endif
+ 
+ /* This is used by the scp binary when used as a client binary. If you're
+  * not using the Dropbear client, you'll need to change it */
+-#define _PATH_SSH_PROGRAM "/usr/bin/dbclient"
++#define _PATH_SSH_PROGRAM "/system/bin/dbclient"
+ 
+ /* Whether to log commands executed by a client. This only logs the 
+  * (single) command sent to the server, not what a user did in a 
+@@ -292,7 +292,7 @@
+ #define DEFAULT_IDLE_TIMEOUT 0
+ 
+ /* The default path. This will often get replaced by the shell */
+-#define DEFAULT_PATH "/usr/bin:/bin"
++#define DEFAULT_PATH "/system/bin:/system/xbin:/data/system/bin:/data/system/xbin"
+ 
+ /* Some other defines (that mostly should be left alone) are defined
+  * in sysoptions.h */
+--- sshpty.c
++++ sshpty.c
+@@ -22,6 +22,13 @@
+ #include "errno.h"
+ #include "sshpty.h"
+ 
++#ifdef ANDROID
++#include <termios.h>
++#include <fcntl.h>
++#include <unistd.h>
++#define HAVE_OPENPTY
++#endif
++
+ /* Pty allocated with _getpty gets broken if we do I_PUSH:es to it. */
+ #if defined(HAVE__GETPTY) || defined(HAVE_OPENPTY)
+ #undef HAVE_DEV_PTMX
+@@ -38,6 +45,34 @@
+ #define O_NOCTTY 0
+ #endif
+ 
++#ifdef ANDROID
++int openpty (int *amaster, int *aslave, char *name, struct termios *termp, struct winsize *winp)
++{
++	int master, slave;
++	char *name_slave;
++	master = open("/dev/ptmx", O_RDWR | O_NONBLOCK);
++	if (master == -1) {
++		TRACE(("Fail to open master"))
++		return -1;
++	}
++	if (grantpt(master)) goto fail;
++	if (unlockpt(master)) goto fail;
++	name_slave = ptsname(master);
++	TRACE(("openpty: slave name %s", name_slave))
++	slave = open(name_slave, O_RDWR | O_NOCTTY);
++	if (slave == -1) goto fail;
++	if (termp) tcsetattr(slave, TCSAFLUSH, termp);
++	if (winp) ioctl (slave, TIOCSWINSZ, winp);
++	*amaster = master;
++	*aslave = slave;
++	if (name != NULL) strcpy(name, name_slave);
++	return 0;
++fail:
++	close(master);
++	return -1;
++}
++#endif
++
+ /*
+  * Allocates and opens a pty.  Returns 0 if no pty could be allocated, or
+  * nonzero if a pty was successfully allocated.  On success, open file
+@@ -50,19 +85,15 @@
+ {
+ #if defined(HAVE_OPENPTY)
+ 	/* exists in recent (4.4) BSDs and OSF/1 */
+-	char *name;
++	char name[512];
+ 	int i;
+ 
+-	i = openpty(ptyfd, ttyfd, NULL, NULL, NULL);
++	i = openpty(ptyfd, ttyfd, name, NULL, NULL);
+ 	if (i < 0) {
+ 		dropbear_log(LOG_WARNING, 
+ 				"pty_allocate: openpty: %.100s", strerror(errno));
+ 		return 0;
+ 	}
+-	name = ttyname(*ttyfd);
+-	if (!name) {
+-		dropbear_exit("ttyname fails for openpty device");
+-	}
+ 
+ 	strlcpy(namebuf, name, namebuflen);	/* possible truncation */
+ 	return 1;
+--- svr-auth.c
++++ svr-auth.c
+@@ -39,6 +39,34 @@
+ static int checkusername(unsigned char *username, unsigned int userlen);
+ static void send_msg_userauth_banner();
+ 
++#ifdef ANDROID
++struct passwd pass;
++
++struct passwd* getpwuid(uid_t uid) {
++	TRACE(("entering fake-getpwuid"));
++	pass.pw_name	= "root";
++	pass.pw_uid	= 0;
++	pass.pw_gid	= 0;
++	pass.pw_dir	= "/mnt/sdcard";
++	pass.pw_shell	= "/system/bin/sh";
++	pass.pw_passwd	= "";	/*DEBUG_HACKCRYPT*/
++	TRACE(("leaving fake-getpwuid"));
++	return &pass;
++}
++
++struct passwd* getpwnam(const char *login) {
++	TRACE(("entering fake-getpwnam"));
++	pass.pw_name	= m_strdup(login);
++	pass.pw_uid	= 0;
++	pass.pw_gid	= 0;
++	pass.pw_dir	= "/mnt/sdcard";
++	pass.pw_shell	= "/system/bin/sh";
++	pass.pw_passwd	= "";	/*DEBUG_HACKCRYPT*/
++	TRACE(("leaving fake-getpwnam"));
++	return &pass;
++}
++#endif
++
+ /* initialise the first time for a session, resetting all parameters */
+ void svr_authinitialise() {
+ 
+@@ -255,9 +283,10 @@
+ 	usershell = ses.authstate.pw_shell;
+ 	if (usershell[0] == '\0') {
+ 		/* empty shell in /etc/passwd means /bin/sh according to passwd(5) */
+-		usershell = "/bin/sh";
++		usershell = "/system/bin/sh";
+ 	}
+ 
++#ifndef ANDROID	/* bionic does not really support (set|get|end)usershell */
+ 	/* check the shell is valid. If /etc/shells doesn't exist, getusershell()
+ 	 * should return some standard shells like "/bin/sh" and "/bin/csh" (this
+ 	 * is platform-specific) */
+@@ -280,6 +309,7 @@
+ goodshell:
+ 	endusershell();
+ 	TRACE(("matching shell"))
++#endif
+ 
+ 	TRACE(("uid = %d", ses.authstate.pw_uid))
+ 	TRACE(("leave checkusername"))
+--- svr-authpubkey.c
++++ svr-authpubkey.c
+@@ -408,6 +408,7 @@
+  * group or other */
+ /* returns DROPBEAR_SUCCESS or DROPBEAR_FAILURE */
+ static int checkfileperm(char * filename) {
++#ifndef ANDROID
+ 	struct stat filestat;
+ 	int badperm = 0;
+ 
+@@ -437,6 +438,7 @@
+ 		return DROPBEAR_FAILURE;
+ 	}
+ 
++#endif
+ 	TRACE(("leave checkfileperm: success"))
+ 	return DROPBEAR_SUCCESS;
+ }
+--- svr-chansession.c
++++ svr-chansession.c
+@@ -896,6 +896,7 @@
+ 		/* ... but if the daemon is the same uid as the requested uid, we don't
+ 		 * need to */
+ 
++#ifndef ANDROID /* XXX - getuid is broken on Android */
+ 		/* XXX - there is a minor issue here, in that if there are multiple
+ 		 * usernames with the same uid, but differing groups, then the
+ 		 * differing groups won't be set (as with initgroups()). The solution
+@@ -903,6 +904,7 @@
+ 		if (getuid() != ses.authstate.pw_uid) {
+ 			dropbear_exit("Couldn't	change user as non-root");
+ 		}
++#endif
+ 	}
+ 
+ 	/* set env vars */
+--- sysoptions.h
++++ sysoptions.h
+@@ -52,7 +52,7 @@
+ 
+ #define _PATH_TTY "/dev/tty"
+ 
+-#define _PATH_CP "/bin/cp"
++#define _PATH_CP "/system/xbin/busybox cp"
+ 
+ /* success/failure defines */
+ #define DROPBEAR_SUCCESS 0
