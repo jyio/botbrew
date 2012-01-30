@@ -20,10 +20,7 @@ Data:
     rm "/system/etc/service/enabled/$1"
  /CONTROL/postinst: |
     #!/system/bin/sh
-    mkdir -p /system/etc/service/enabled /cache/runit
- /CONTROL/postrm: |
-    #!/system/bin/sh
-    rm -r /cache/runit
+    mkdir -p /system/etc/service/enabled /data/local/var/run /data/local/var/log
  /CONTROL/init: |
     #!/bin/sh
     mkdir -p $PACKAGE/system

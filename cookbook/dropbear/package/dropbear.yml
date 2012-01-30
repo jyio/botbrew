@@ -17,7 +17,7 @@ Data:
     exec svlogd -tt /data/local/var/log/dropbear
  /CONTROL/postinst: |
     #!/system/bin/sh
-    mkdir -p /system/etc/dropbear /data/local/var/log/dropbear
+    mkdir -p /system/etc/dropbear /data/local/var/run/sv.dropbear /data/local/var/run/sv.log.dropbear /data/local/var/log/dropbear
     if [ ! -e /system/etc/dropbear/dropbear_rsa_host_key ]; then
     	dropbearkey -t rsa -f /system/etc/dropbear/dropbear_rsa_host_key
     fi
@@ -27,11 +27,18 @@ Data:
     if [ -d /system/etc/service/enabled ] && ! [ -e /system/etc/service/enabled/dropbear ]; then
     	ln -s /system/etc/service/dropbear /system/etc/service/enabled/dropbear
     fi
+    if ! [ -e /system/etc/service/dropbear/supervise ]; then
+    	ln -s /data/local/var/run/sv.dropbear /system/etc/service/dropbear/supervise
+    fi
+    if ! [ -e /system/etc/service/dropbear/log/supervise ]; then
+    	ln -s /data/local/var/run/sv.log.dropbear /system/etc/service/dropbear/log/supervise
+    fi
  /CONTROL/prerm: |
     #!/system/bin/sh
-    if [ -e /system/etc/service/enabled/dropbear ]; then
-    	rm -r /system/etc/service/enabled/dropbear
-    fi
+    busybox rm -rf /system/etc/service/enabled/dropbear
+ /CONTROL/postrm: |
+    #!/system/bin/sh
+    busybox rm -rf /system/etc/service/dropbear /data/local/var/run/sv.dropbear /data/local/var/run/sv.log.dropbear
  /CONTROL/init: |
     #!/bin/sh
     mkdir -p $PACKAGE/system
