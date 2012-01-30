@@ -1,0 +1,14 @@
+Package: runit-doc
+Version: 2.1.1-0
+Architecture: all
+Section: admin
+Priority: optional
+Source: http://smarden.org/runit/
+Description: |
+ system-wide service supervision
+ runit is a cross-platform Unix init scheme with service supervision, a replacement for sysvinit, and other init schemes. It runs on GNU/Linux, *BSD, MacOSX, Solaris, and can easily be adapted to other Unix operating systems.
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p $PACKAGE/system
+    cp -r $BUILD/system/share $PACKAGE/system/

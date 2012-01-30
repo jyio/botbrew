@@ -1,0 +1,31 @@
+Package: runit
+Version: 2.1.1-0
+Architecture: armeabi
+Section: admin
+Priority: optional
+Source: http://smarden.org/runit/
+Description: |
+ system-wide service supervision
+ runit is a cross-platform Unix init scheme with service supervision, a replacement for sysvinit, and other init schemes. It runs on GNU/Linux, *BSD, MacOSX, Solaris, and can easily be adapted to other Unix operating systems.
+Data:
+ /system/bin/runsvdir-start: |
+    #!/system/bin/sh
+    PATH=/system/bin:/system/xbin:/data/system/bin:/data/system/xbin
+    exec runsvdir -P /system/etc/service/enabled 'log: ................................................................................................................................................................................................................................................................'
+ /system/bin/svenable: |
+    #!/system/bin/sh
+    ln -s "/system/etc/service/$1" "/system/etc/service/enabled/$1"
+ /system/bin/svdisable: |
+    #!/system/bin/sh
+    rm "/system/etc/service/enabled/$1"
+ /CONTROL/postinst: |
+    #!/system/bin/sh
+    mkdir -p /system/etc/service/enabled /cache/runit
+ /CONTROL/postrm: |
+    #!/system/bin/sh
+    rm -r /cache/runit
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p $PACKAGE/system
+    cp -r $BUILD/system/bin $PACKAGE/system/
+    chmod +x $PACKAGE/system/bin/runsvdir-start $PACKAGE/system/bin/svenable $PACKAGE/system/bin/svdisable
