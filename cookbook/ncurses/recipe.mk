@@ -38,7 +38,15 @@ $~/source/Makefile: | $~/${ARCHIVE}
 		tar zxf $~/${ARCHIVE} -C $~/; \
 		mv $~/${NAME}-${VERSION} $${@D}; \
 	fi
-	cd $${@D}; CC="agcc.bash" CFLAGS="${CFLAGS}" CXX="agcc.bash" CXXFLAGS="${CFLAGS}" LD="agcc.bash" LDFLAGS="${LDFLAGS}" STRIP="${STRIP} --strip-unneeded" ./configure --host=arm-linux-androideabi --without-cxx-binding \
+	cat $${@D}/configure \
+		| sed -E 's/\.\$$$$[\{\(](ABI|REL)_VERSION[\)\}]//g' \
+		> temp
+	cat temp > $${@D}/configure
+	cat $${@D}/mk-1st.awk \
+		| sed -E 's/\.\$$$$[\{\(](ABI|REL)_VERSION[\)\}]//g' \
+		> temp
+	mv temp $${@D}/mk-1st.awk
+	cd $${@D}; CC="agcc.bash" CFLAGS="${CFLAGS}" CXX="agcc.bash" CXXFLAGS="${CFLAGS}" LD="agcc.bash" LDFLAGS="${LDFLAGS}" STRIP="${STRIP} --strip-unneeded" ./configure --host=arm-linux-androideabi --with-shared --without-cxx-binding \
 		--prefix=/system \
 		--sbindir=/system/xbin \
 		--sharedstatedir=/data/local/com \
@@ -48,13 +56,24 @@ $~/source/Makefile: | $~/${ARCHIVE}
 		--mandir=/system/share/man
 	sed -e 's/#define HAVE_LOCALE_H 1//' $${@D}/include/ncurses_cfg.h > temp
 	mv temp $${@D}/include/ncurses_cfg.h
-	touch $$@
+	sed -E 's/\(\)/:/g' $${@D}/ncurses/Makefile > temp
+	mv temp $${@D}/ncurses/Makefile
+	sed -E 's/\(\)/:/g' $${@D}/form/Makefile > temp
+	mv temp $${@D}/form/Makefile
+	sed -E 's/\(\)/:/g' $${@D}/menu/Makefile > temp
+	mv temp $${@D}/menu/Makefile
+	sed -E 's/\(\)/:/g' $${@D}/panel/Makefile > temp
+	mv temp $${@D}/panel/Makefile
 
 $~/build/.d: $~/source/Makefile
 	${MAKE} -C $~/source
 	${MAKE} -C $~/source install DESTDIR=${TOP}/$~/build
 	mv $${@D}/system/include/ncurses/* $${@D}/system/include/
 	rm -rf $${@D}/system/include/ncurses
+	for file in $${@D}/system/include/*.h; do \
+		sed -e 's/<ncurses\//</g' $$$${file} > temp; \
+		mv temp $$$${file}; \
+	done
 	touch $$@
 
 endef
