@@ -53,7 +53,7 @@ $~/build/.d: $~/source/.d | ${DIR_COOKBOOK}/readline/install
 	cd $~/source; agcc.bash -c shell.c sqlite3.c ${CFLAGS} ${__SQLITE}
 	${AR} -r $${@D}/system/lib/libsqlite3.a $~/source/sqlite3.o
 	agcc.bash -o ${TOP}/$~/build/system/lib/libsqlite3.so -shared -Wl,-soname,libsqlite3.so $~/source/sqlite3.o -ldl
-	agcc.bash -o $${@D}/system/bin/sqlite3 $~/source/shell.o ${LDFLAGS} -L$${@D}/system/lib -lreadline -lncurses -lsqlite3
+	agcc.bash -o $${@D}/system/bin/sqlite3 $~/source/shell.o ${LDFLAGS} -L$${@D}/system/lib -lsqlite3 -lreadline
 	${STRIP} --strip-unneeded $${@D}/system/bin/* $${@D}/system/lib/*
 	cp -rl $~/source/*.h $${@D}/system/include/
 	touch $$@
