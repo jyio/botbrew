@@ -52,11 +52,18 @@ $~/source/src/auto/config.mk: | ${DIR_COOKBOOK}/ncurses/install
 		| sed -e 's/#define HAVE_SYSINFO_MEM_UNIT 1//' \
 		> temp
 	mv temp $${@D}/config.h
-	touch $$@
+	cat $~/source/src/auto/osdef.h \
+		| sed -e 's/^.*?\b(tgetent|tgoto|tputs)\b.*//g' \
+		> temp
+	mv temp $~/source/src/auto/osdef.h
 
 $~/build/.d: $~/source/src/auto/config.mk
 	${MAKE} -C $~/source
 	${MAKE} -C $~/source install DESTDIR=${TOP}/$~/build
+	sed -e 's/#!\/bin\/sh/#!\/system\/bin\/sh/' $${@D}/system/bin/vimtutor > temp
+	cat temp > $${@D}/system/bin/vimtutor
+	rm temp
+	${STRIP} --strip-unneeded $${@D}/system/bin/vim $${@D}/system/bin/xxd
 	touch $$@
 
 endef
