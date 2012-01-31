@@ -35,14 +35,37 @@ $~/source/Makefile: | $~/${ARCHIVE}
 		tar zxf $~/${ARCHIVE} -C $~/; \
 		mv $~/${NAME}-${VERSION} $${@D}; \
 	fi
-	touch $$@
+	cat $${@D}/Makefile-libbz2_so \
+		| sed -e 's/\blibbz2\.so[0123456789\.]*/libbz2.so/g' $${@D}/Makefile-libbz2_so \
+		| sed -e 's/rm \-f libbz2\.so//g' \
+		| sed -e 's/ln \-s libbz2\.so libbz2\.so//g' \
+		> temp
+	mv temp $${@D}/Makefile-libbz2_so
 
 $~/build/.d: $~/source/Makefile
-	${MAKE} -C $~/source CC="agcc.bash" CFLAGS="${CFLAGS}" AR="${AR}" RANLIB="${RANLIB}" libbz2.a bzip2 bzip2recover
-	${MAKE} -C $~/source PREFIX=${TOP}/$~/build install
+	${MAKE} -C $~/source CC="agcc.bash" CFLAGS="${CFLAGS}" AR="${AR}" RANLIB="${RANLIB}" PREFIX=${TOP}/$~/build install
+	${MAKE} -f Makefile-libbz2_so -C $~/source CC="agcc.bash" CFLAGS="${CFLAGS}" AR="${AR}" RANLIB="${RANLIB}" all
+	cp -lf $~/source/bzip2-shared $~/build/bin/
+	cp -lf $~/source/libbz2.so $~/build/lib/
 	mkdir -p $${@D}/system/share
 	mv $${@D}/bin $${@D}/include $${@D}/lib $${@D}/system/
 	mv $${@D}/man $${@D}/system/share/
+	for file in \
+		$${@D}/system/bin/bzdiff \
+		$${@D}/system/bin/bzgrep \
+		$${@D}/system/bin/bzmore; do \
+			sed -e 's/#!\/bin\/sh/#!\/system\/bin\/sh/' $$$${file} > temp; \
+			cat temp > $$$${file}; \
+	done
+	rm temp
+	cd $${@D}/system/bin; \
+		ln -sf bzdiff bzcmp; \
+		ln -sf bzgrep bzegrep; \
+		ln -sf bzgrep bzfgrep; \
+		ln -sf bzmore bzless;
+	cd $${@D}/system/bin; \
+		${STRIP} --strip-unneeded bunzip2 bzcat bzip2 bzip2recover bzip2-shared
+	${STRIP} --strip-unneeded $${@D}/system/lib/libbz2.so
 	touch $$@
 
 endef
