@@ -36,18 +36,24 @@ $~/source/Makefile: | $~/${ARCHIVE} ${DIR_COOKBOOK}/ncurses/install
 		mv $~/${NAME}-${VERSION} $${@D}; \
 		cd $${@D}; patch -p0 < ../patch/readline-6.2-android.patch; \
 	fi
-	cd $${@D}; CC="agcc.bash" CFLAGS="${CFLAGS}" LDFLAGS="${LDFLAGS} -lncurses" STRIP="${STRIP} --strip-unneeded" RANLIB="${RANLIB}" ./configure --host=arm-android-eabi \
+	cd $${@D}; CC="agcc.bash" CFLAGS="${CFLAGS}" LD="agcc.bash" LDFLAGS="${LDFLAGS}" LIBS="${TOP_INSTALL}/system/lib/libncurses.a" STRIP="${STRIP} --strip-unneeded" RANLIB="${RANLIB}" ./configure --host=arm-android-eabi \
 		--prefix=/system \
 		--sbindir=/system/xbin \
 		--sharedstatedir=/data/local/com \
 		--localstatedir=/data/local/var \
 		--oldincludedir=/system/include
-	touch $$@
+	sed -e 's/^SHLIB_LIBVERSION = .*/SHLIB_LIBVERSION = so/g' $${@D}/shlib/Makefile > temp
+	mv temp $${@D}/shlib/Makefile
 
 $~/build/.d: $~/source/Makefile
 	${MAKE} -C $~/source
 	${MAKE} -C $~/source install DESTDIR=${TOP}/$~/build
 	rm -f $${@D}/system/lib/*.old
+	agcc.bash -shared -Wl,-soname,libreadline.so -o $${@D}/system/lib/libreadline.libncurses.so \
+		$${@D}/system/lib/libreadline.a \
+		${TOP_INSTALL}/system/lib/libncurses.a
+	mv $${@D}/system/lib/libreadline.libncurses.so $${@D}/system/lib/libreadline.so
+	${STRIP} --strip-unneeded $${@D}/system/lib/*.so
 	touch $$@
 
 endef
