@@ -74,6 +74,12 @@ $~/build/.d: $~/source/Makefile
 		sed -e 's/<ncurses\//</g' $$$${file} > temp; \
 		mv temp $$$${file}; \
 	done
+	sed -e 's/#!\/bin\/sh/#!\/system\/bin\/sh/' $${@D}/system/bin/ncurses5-config > temp
+	cat temp > $${@D}/system/bin/ncurses5-config
+	rm temp
+	cd $${@D}/system/bin; \
+		${STRIP} --strip-unneeded captoinfo clear infocmp infotocap reset tabs tic toe tput tset
+	${STRIP} --strip-unneeded $${@D}/system/lib/*.so
 	touch $$@
 
 endef
