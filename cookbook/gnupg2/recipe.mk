@@ -40,7 +40,7 @@ $~/source/Makefile: | $~/${ARCHIVE} $(call COOK,libgpg-error) $(call COOK,libgcr
 		cd  $${@D}; \
 			patch -p0 < ../patch/gnupg-2.0.18-android.patch; \
 	fi
-	cd $${@D}; CC="agcc.bash" CFLAGS="${CFLAGS}" LD="agcc.bash" LDFLAGS="${LDFLAGS}" LIBS="-lncurses" STRIP="${STRIP} --strip-unneeded" ./configure --host=arm-linux-androideabi \
+	cd $${@D}; CC="agcc.bash" CFLAGS="${CFLAGS}" LD="agcc.bash" LDFLAGS="${LDFLAGS}" STRIP="${STRIP} --strip-unneeded" ./configure --host=arm-linux-androideabi \
 		--with-gpg-error-prefix=${TOP_INSTALL}/system \
 		--with-libgcrypt-prefix=${TOP_INSTALL}/system \
 		--with-libassuan-prefix=${TOP_INSTALL}/system \
@@ -51,7 +51,6 @@ $~/source/Makefile: | $~/${ARCHIVE} $(call COOK,libgpg-error) $(call COOK,libgcr
 		--sharedstatedir=/data/local/com \
 		--localstatedir=/data/local/var \
 		--oldincludedir=/system/include
-	touch $$@
 
 $~/build/.d: $~/source/Makefile
 	${MAKE} -C $~/source
@@ -62,8 +61,9 @@ $~/build/.d: $~/source/Makefile
 		$${@D}/system/share/doc/gnupg/examples/scd-event \
 		$${@D}/system/xbin/*; do \
 			sed -e 's/#!\/bin\/sh/#!\/system\/bin\/sh/' $$$${file} > temp; \
-			mv temp $$$${file}; \
+			cat temp > $$$${file}; \
 	done
+	rm temp
 	touch $$@
 
 endef
