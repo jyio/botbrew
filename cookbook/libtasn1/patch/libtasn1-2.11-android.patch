@@ -1,0 +1,12 @@
+--- gl/read-file.c
++++ gl/read-file.c
+@@ -27,7 +27,8 @@
+ #include <stdio.h>
+ 
+ /* Get SIZE_MAX.  */
+-#include <stdint.h>
++#include <sys/limits.h>
++#include <machine/limits.h>
+ 
+ /* Get malloc, realloc, free. */
+ #include <stdlib.h>
