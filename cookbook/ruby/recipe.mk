@@ -30,7 +30,7 @@ $~/${ARCHIVE}:
 	rm -rf $$@
 	wget http://ftp.ruby-lang.org/pub/ruby/1.9/${ARCHIVE} -O $$@
 
-$~/source/Makefile: | $~/${ARCHIVE} ${DIR_COOKBOOK}/readline/install ${DIR_COOKBOOK}/openssl/install
+$~/source/Makefile: | $~/${ARCHIVE} ${DIR_COOKBOOK}/readline/install ${DIR_COOKBOOK}/openssl/install ${DIR_COOKBOOK}/libffi/install ${DIR_COOKBOOK}/libyaml/install
 	if [ ! -d $${@D} ]; then \
 		tar zxf $~/${ARCHIVE} -C $~/; \
 		mv $~/${NAME}-${VERSION} $${@D}; \
@@ -47,7 +47,13 @@ $~/source/Makefile: | $~/${ARCHIVE} ${DIR_COOKBOOK}/readline/install ${DIR_COOKB
 $~/build/.d: $~/source/Makefile
 	${MAKE} -C $~/source
 	${MAKE} -C $~/source install DESTDIR=${TOP}/$~/build
+	rm -f $${@D}/system/lib/libruby.so
+	mv $${@D}/system/lib/libruby.so.* $${@D}/system/lib/libruby.so
 	rm -rf $${@D}/system/lib/pkgconfig
+	${STRIP} --strip-unneeded $${@D}/system/bin/ruby
+	for file in `find $${@D} | grep \\.so$$$$`; do \
+		${STRIP} --strip-unneeded $$$${file}; \
+	done
 	touch $$@
 
 endef
