@@ -62,8 +62,9 @@ $~/build/.d: $~/source/Makefile $~/compat/libcompat.a
 		$${@D}/system/bin/update-alternatives \
 		$${@D}/system/share/opkg/intercept/*; do \
 			sed -e 's/#!\/bin\/sh/#!\/system\/bin\/sh/' $$$${file} > temp; \
-			mv temp $$$${file}; \
+			cat temp > $$$${file}; \
 	done
+	rm temp
 	touch $$@
 
 endef
