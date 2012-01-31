@@ -1,6 +1,6 @@
-NAME	:= gmp
-VERSION	:= 5.0.2
-ARCHIVE	:= ${NAME}-${VERSION}.tar.gz
+NAME	:= libgcrypt
+VERSION	:= 1.5.0
+ARCHIVE	:= ${NAME}-${VERSION}.tar.bz2
 
 # exports
 
@@ -28,31 +28,25 @@ $~/clobber:
 
 $~/${ARCHIVE}:
 	rm -rf $$@
-	wget http://ftp.gnu.org/gnu/${NAME}/${ARCHIVE} -O $$@
+	wget ftp://ftp.gnupg.org/gcrypt/${NAME}/${ARCHIVE} -O $$@
 
-$~/source/configure: | $~/${ARCHIVE}
+$~/source/Makefile: | $~/${ARCHIVE} $(call COOK,libgpg-error)
 	if [ ! -d $${@D} ]; then \
-		tar zxf $~/${ARCHIVE} -C $~/; \
+		tar jxf $~/${ARCHIVE} -C $~/; \
 		mv $~/${NAME}-${VERSION} $${@D}; \
 	fi
-	cd $${@D}; autoreconf -sfi
-
-$~/source/Makefile: $~/source/configure
-	cd $${@D}; CC="agcc.bash" CXX="agcc-bash-g++" LD="agcc.bash" AR="${AR}" STRIP="${STRIP} --strip-unneeded" ./configure --host=arm-linux-androideabi \
+	cd $${@D}; CC="agcc.bash" CFLAGS="${CFLAGS}" LD="agcc.bash" LDFLAGS="${LDFLAGS}" STRIP="${STRIP} --strip-unneeded" ./configure --host=arm-linux-androideabi \
+		--with-gpg-error-prefix=${TOP_INSTALL}/system \
 		--prefix=/system \
 		--sbindir=/system/xbin \
 		--sharedstatedir=/data/local/com \
 		--localstatedir=/data/local/var \
 		--oldincludedir=/system/include
-	cat $${@D}/config.h \
-		| sed -e 's/#define HAVE_LOCALE_H 1//' \
-		> temp
-	mv temp $${@D}/config.h
 
 $~/build/.d: $~/source/Makefile
 	${MAKE} -C $~/source
 	${MAKE} -C $~/source install DESTDIR=${TOP}/$~/build
-	rm -f $${@D}/system/lib/*.la
+	rm $${@D}/system/lib/*.la
 	touch $$@
 
 endef

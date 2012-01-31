@@ -41,11 +41,11 @@ $~/source/Makefile: | $~/${ARCHIVE}
 		--sharedstatedir=/data/local/com \
 		--localstatedir=/data/local/var \
 		--oldincludedir=/system/include
-	touch $$@
 
 $~/build/.d: $~/source/Makefile
 	${MAKE} -C $~/source
 	${MAKE} -C $~/source install DESTDIR=${TOP}/$~/build
+	rm $${@D}/system/lib/*.la
 	touch $$@
 
 endef

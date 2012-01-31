@@ -48,7 +48,7 @@ $~/build/.d: $~/source/Makefile
 	${MAKE} -C $~/source
 	${MAKE} -C $~/source install DESTDIR=${TOP}/$~/build
 	mv $${@D}/system/lib/${NAME}-${VERSION}/include $${@D}/system/
-	rm -rf $${@D}/system/lib/${NAME}-${VERSION} $${@D}/system/lib/pkgconfig
+	rm -rf $${@D}/system/lib/${NAME}-${VERSION} $${@D}/system/lib/*.la $${@D}/system/lib/pkgconfig
 	touch $$@
 
 endef
