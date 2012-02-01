@@ -1,15 +1,16 @@
-Package: ncurses-doc
-Version: 5.9-1
-Architecture: all
-Section: doc
+Package: libncursesw-dev
+Version: 5.9-0
+Architecture: armeabi
+Section: libdevel
 Priority: optional
 Source: http://www.gnu.org/software/ncurses/
 Description: |
- terminal-related programs
+ developer's libraries for ncursesw
  The ncurses library routines are a terminal-independent method of updating character screens with reasonable optimization. This package contains the programs used for manipulating the terminfo database and individual terminfo entries, as well as some programs for resetting terminals and such.
-Conflicts: ncursesw-doc
+Depends: libncursesw
 Data:
  /CONTROL/init: |
     #!/bin/sh
-    mkdir -p $PACKAGE/system/share
-    cp -r $BUILD/system/share/man $PACKAGE/system/share/
+    mkdir -p $PACKAGE/system $PACKAGE/system/lib
+    cp -r ${BUILD}w/system/include ${BUILD}w/system/lib $PACKAGE/system/
+    cp -r ${BUILD}w/system/lib/*.a $PACKAGE/system/lib/
