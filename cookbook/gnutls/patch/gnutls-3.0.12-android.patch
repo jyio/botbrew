@@ -1,0 +1,41 @@
+--- gl/gettimeofday.c
++++ gl/gettimeofday.c
+@@ -99,9 +99,15 @@
+    that lack this function, or whose implementation of this function
+    causes problems.  */
+ 
++#ifdef ANDROID
++int
++gettimeofday (struct timeval *restrict tv, struct timezone *restrict tz)
++{
++#else
+ int
+ gettimeofday (struct timeval *restrict tv, void *restrict tz)
+ {
++#endif
+ #undef gettimeofday
+ #if HAVE_GETTIMEOFDAY
+ # if GETTIMEOFDAY_CLOBBERS_LOCALTIME
+--- gl/read-file.c
++++ gl/read-file.c
+@@ -27,7 +27,7 @@
+ #include <stdio.h>
+ 
+ /* Get SIZE_MAX.  */
+-#include <stdint.h>
++#include <limits.h>
+ 
+ /* Get malloc, realloc, free. */
+ #include <stdlib.h>
+--- src/benchmark.h
++++ src/benchmark.h
+@@ -6,7 +6,9 @@
+ #endif
+ #include "timespec.h"           /* gnulib gettime */
+ 
++#ifndef ANDROID
+ typedef void (*sighandler_t)(int);
++#endif
+ 
+ void benchmark_cipher (int init, int debug_level);
+ void benchmark_tls (int debug_level);
