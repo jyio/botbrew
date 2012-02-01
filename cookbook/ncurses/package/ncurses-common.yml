@@ -10,5 +10,6 @@ Description: |
 Data:
  /CONTROL/init: |
     #!/bin/sh
-    mkdir -p $PACKAGE/system/share
+    mkdir -p $PACKAGE/system/lib $PACKAGE/system/share
     cp -r $BUILD/system/share/tabset $BUILD/system/share/terminfo $PACKAGE/system/share/
+    ln -s ../share/terminfo $PACKAGE/system/lib/terminfo
