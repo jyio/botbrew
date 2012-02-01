@@ -7,11 +7,10 @@ Source: http://www.gnu.org/software/ncurses/
 Description: |
  terminal-related programs
  The ncurses library routines are a terminal-independent method of updating character screens with reasonable optimization. This package contains the programs used for manipulating the terminfo database and individual terminfo entries, as well as some programs for resetting terminals and such.
-Depends: libncurses
+Depends: ncurses-common, libncurses
 Conflicts: ncursesw
 Data:
  /CONTROL/init: |
     #!/bin/sh
     mkdir -p $PACKAGE/system/share
     cp -r $BUILD/system/bin $PACKAGE/system/
-    cp -r $BUILD/system/share/tabset $BUILD/system/share/terminfo $PACKAGE/system/share/
