@@ -1,0 +1,94 @@
+--- configure
++++ configure
+@@ -17508,7 +17508,7 @@
+    if test "$cross_compiling" = yes; then :
+   { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+ $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+-as_fn_error $? "cannot run test program while cross compiling
++$as_echo $? "cannot run test program while cross compiling
+ See \`config.log' for more details" "$LINENO" 5; }
+ else
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+@@ -17540,7 +17540,7 @@
+ fi
+ 
+ if test "x$iconv_found" = "xno" ; then
+-   as_fn_error $? "
++   $as_echo $? "
+ *** Iconv headers and/or libraries couldn't be found on your system.
+ *** Try to install them with your software package manager.
+ *** WeeChat can't be built without Iconv support." "$LINENO" 5
+--- src/core/wee-hook.h
++++ src/core/wee-hook.h
+@@ -24,6 +24,10 @@
+ #include <gnutls/gnutls.h>
+ #endif
+ 
++#ifdef ANDROID
++#include <sys/select.h>
++#endif
++
+ struct t_gui_bar;
+ struct t_gui_buffer;
+ struct t_gui_line;
+--- src/gui/curses/gui-curses-window.c
++++ src/gui/curses/gui-curses-window.c
+@@ -56,6 +56,10 @@
+ #include "../gui-nicklist.h"
+ #include "gui-curses.h"
+ 
++#ifdef ANDROID
++#include <asm/termios.h>
++#endif
++
+ 
+ int gui_window_current_style_fg;       /* current foreground color          */
+ int gui_window_current_style_bg;       /* current background color          */
+--- src/gui/gui-completion.c
++++ src/gui/gui-completion.c
+@@ -49,6 +49,19 @@
+ #include "gui-buffer.h"
+ 
+ 
++#ifdef ANDROID
++/* ported from the BSD 4.0 libc */
++char *
++rindex(register const char *p, register int ch)
++{
++	register char *save;
++	for (save = NULL;; ++p) {
++		if (*p == ch) save = (char *)p;
++		if (!*p) return save;
++	}
++}
++#endif
++
+ /*
+  * gui_completion_buffer_init: init completion for a buffer
+  */
+--- src/plugins/Makefile.am
++++ src/plugins/Makefile.am
+@@ -99,8 +99,8 @@
+ # install plugin header
+ 
+ install-data-hook:
+-	$(INSTALL) -d $(includedir)/$(PACKAGE)
+-	$(INSTALL_DATA) $(abs_top_srcdir)/src/plugins/weechat-plugin.h $(includedir)/$(PACKAGE)
++	$(INSTALL) -d $(DESTDIR)/$(includedir)/$(PACKAGE)
++	$(INSTALL_DATA) $(abs_top_srcdir)/src/plugins/weechat-plugin.h $(DESTDIR)/$(includedir)/$(PACKAGE)
+ 
+ # uninstall plugin header
+ 
+--- src/plugins/Makefile.in
++++ src/plugins/Makefile.in
+@@ -773,8 +773,8 @@
+ # install plugin header
+ 
+ install-data-hook:
+-	$(INSTALL) -d $(includedir)/$(PACKAGE)
+-	$(INSTALL_DATA) $(abs_top_srcdir)/src/plugins/weechat-plugin.h $(includedir)/$(PACKAGE)
++	$(INSTALL) -d $(DESTDIR)/$(includedir)/$(PACKAGE)
++	$(INSTALL_DATA) $(abs_top_srcdir)/src/plugins/weechat-plugin.h $(DESTDIR)/$(includedir)/$(PACKAGE)
+ 
+ # uninstall plugin header
+ 
