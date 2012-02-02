@@ -1,0 +1,13 @@
+--- arscan.c
++++ arscan.c
+@@ -18,6 +18,10 @@
+ 
+ #include "make.h"
+ 
++#ifdef ANDROID
++#include "ar.h"
++#endif
++
+ #ifdef HAVE_FCNTL_H
+ #include <fcntl.h>
+ #else
