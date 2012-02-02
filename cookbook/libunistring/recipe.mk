@@ -47,7 +47,7 @@ $~/source/Makefile: $~/source/configure
 $~/build/.d: $~/source/Makefile
 	${MAKE} -C $~/source
 	${MAKE} -C $~/source install DESTDIR=${TOP}/$~/build
-	rm $${@D}/system/lib/*.la
+	rm $${@D}/system/lib/*.la $${@D}/system/lib/charset.alias
 	touch $$@
 
 endef
