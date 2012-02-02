@@ -1,0 +1,16 @@
+Package: autoconf
+Version: 2.68-0
+Architecture: all
+Section: devel
+Priority: optional
+Source: http://www.gnu.org/software/autoconf/
+Description: |
+ automatic configure script builder
+ The standard for FSF source packages. This is only useful if you write your own programs or if you extensively modify other people's programs. For an extensive library of additional Autoconf macros, install the `autoconf-archive' package. The Debian project regards the full documentation for autoconf to be non-free, so it is not included in Debian. Nevertheless, the non-free distribution that accompanies Debian includes the manual in its `autoconf-doc' package. This version of autoconf is not compatible with scripts meant for Autoconf 2.13 or earlier. If you need support for such scripts, you must also install the autoconf2.13 package.
+Depends: m4
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p $PACKAGE/system/share
+    cp -r $BUILD/system/bin $PACKAGE/system/
+    cp -r $BUILD/system/share/autoconf $BUILD/system/share/emacs $PACKAGE/system/share/
