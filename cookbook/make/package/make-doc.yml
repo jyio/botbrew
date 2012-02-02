@@ -1,0 +1,14 @@
+Package: make-doc
+Version: 3.82-0
+Architecture: all
+Section: doc
+Priority: optional
+Source: http://www.gnu.org/software/make/
+Description: |
+ A utility for directing compilation.
+ GNU Make is a utility which controls the generation of executables and other target files of a program from the program's source files. It determines automatically which pieces of a large program need to be (re)created, and issues the commands to (re)create them. Make is not limited to programs and executable, it can be applied to any task where a set of target files must be created based on a set of input files, based on dependency and processing rules. Indeed, Make is a general purpose dependency solver.
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p $PACKAGE/system/share
+    cp -r $BUILD/system/share/info $BUILD/system/share/man $PACKAGE/system/share/
