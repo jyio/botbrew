@@ -34,8 +34,6 @@ $~/source/configure: | $~/${ARCHIVE} ${DIR_COOKBOOK}/nettle/install ${DIR_COOKBO
 	if [ ! -d $${@D} ]; then \
 		tar Jxf $~/${ARCHIVE} -C $~/; \
 		mv $~/${NAME}-${VERSION} $${@D}; \
-		cd $${@D}; \
-			patch -p0 < ../patch/gnutls-3.0.12-android.patch; \
 	fi
 
 $~/source/Makefile: $~/source/configure
@@ -48,6 +46,7 @@ $~/source/Makefile: $~/source/configure
 		--sharedstatedir=/data/local/com \
 		--localstatedir=/data/local/var \
 		--oldincludedir=/system/include
+	$(call GNULIB,$${@D}/gl)
 	sed -E 's/(install-exec-am\:) install-defexecDATA/\1/g' $${@D}/lib/Makefile > temp
 	mv temp $${@D}/lib/Makefile
 	sed -E 's/(install-exec-am\:) install-defexecDATA/\1/g' $${@D}/extra/Makefile > temp

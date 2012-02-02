@@ -48,6 +48,28 @@ define COOK
 	${DIR_COOKBOOK}/$1/install
 endef
 
+define GNULIB
+	if [ -f "$1/stdint.in.h" ]; then \
+		${MAKE} -C $1 stdint.in.h; \
+		echo '#@INCLUDE_NEXT@ @NEXT_STDINT_H@' > $1/stdint.in.h; \
+	fi
+	if [ -f "$1/time.in.h" ]; then \
+		mkdir -p "$1/sys" "$1/asm"; \
+		echo '#include <time.h>' > "$1/sys/types.h"; \
+		echo '#include_next <sys/types.h>' >> "$1/sys/types.h"; \
+		echo '#include <sys/types.h>' > "$1/asm/siginfo.h"; \
+		echo '#include_next <asm/siginfo.h>' >> "$1/asm/siginfo.h"; \
+	fi
+	if [ -f "$1/nl_langinfo.c" ]; then \
+		cat $1/nl_langinfo.c \
+			| sed -E 's/localeconv \(\) ->decimal_point/","/g' \
+			| sed -E 's/localeconv \(\) ->thousands_sep/","/g' \
+			> temp; \
+		mv temp $1/nl_langinfo.c; \
+	fi
+
+endef
+
 define process_recipe
 	~				:= $1
 	~F				:= ${TOP}/$1

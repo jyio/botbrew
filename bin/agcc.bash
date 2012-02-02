@@ -229,9 +229,6 @@ if [ "$OUT" != "" ]; then
 	CMD[${#CMD[@]}]="-o"
 	CMD[${#CMD[@]}]="$OUT"
 fi
-if [ $NEED_CPP -ne 0 ]; then
-	CMD=( "${CMD[@]}" "${INC[@]}" "${CPP[@]}" )
-fi
 if [ $NEED_COMPILE -ne 0 ]; then
 	CMD=( "${CMD[@]}" "${CFLAGS[@]}" )
 	if [ $WARN -ne 0 ]; then
@@ -245,6 +242,9 @@ if [ $NEED_SHLINK -ne 0 ]; then
 	CMD=( "${CMD[@]}" "${SHFLAGS[@]}" )
 fi
 CMD=( "${CMD[@]}" "${ARGS[@]}" )
+if [ $NEED_CPP -ne 0 ]; then
+	CMD=( "${CMD[@]}" "${INC[@]}" "${CPP[@]}" )
+fi
 if [ $NEED_LINK -ne 0 ]; then
 	CMD=( "${CMD[@]}" "${LDFLAGS[@]}" )
 fi

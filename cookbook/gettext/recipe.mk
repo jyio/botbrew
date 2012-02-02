@@ -53,11 +53,16 @@ $~/source/Makefile: $~/source/configure
 		--sharedstatedir=/data/local/com \
 		--localstatedir=/data/local/var \
 		--oldincludedir=/system/include
+	$(call GNULIB,$${@D}/gettext-runtime/gnulib-lib)
+	$(call GNULIB,$${@D}/gettext-runtime/libasprintf)
+	$(call GNULIB,$${@D}/gettext-tools/gnulib-lib)
+	$(call GNULIB,$${@D}/gettext-tools/libgettextpo)
+	$(call GNULIB,$${@D}/gettext-tools/libgrep)
 
 $~/build/.d: $~/source/Makefile
 	${MAKE} -C $~/source
 	${MAKE} -C $~/source install DESTDIR=${TOP}/$~/build
-	rm $${@D}/system/lib/*.la
+	rm $${@D}/system/lib/*.la $${@D}/system/lib/charset.alias
 	-${STRIP} --strip-unneeded $${@D}/system/bin/* $${@D}/system/lib/gettext/*
 	for file in `grep -rlIF '/bin/sh' $${@D}`; do \
 		sed -e 's/\/bin\/sh/\/system\/bin\/sh/' $$$${file} > temp; \
