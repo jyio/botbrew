@@ -1,0 +1,14 @@
+Package: patch-doc
+Version: 2.6.1.136-0
+Architecture: all
+Section: doc
+Priority: optional
+Source: http://www.gnu.org/software/patch/
+Description: |
+ Apply a diff file to an original
+ Patch will take a patch file containing any of the four forms of difference listing produced by the diff program and apply those differences to an original file, producing a patched version.
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p $PACKAGE/system
+    cp -r $BUILD/system/share $PACKAGE/system/
