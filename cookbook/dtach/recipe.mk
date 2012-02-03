@@ -40,7 +40,6 @@ $~/source/configure: | $~/${ARCHIVE}
 
 $~/source/Makefile: $~/source/configure
 	cd $${@D}; CC="agcc.bash" CFLAGS="${CFLAGS}" LD="agcc.bash" LDFLAGS="${LDFLAGS}" AR="${AR}" STRIP="${STRIP} --strip-unneeded" ./configure --host=arm-linux-androideabi \
-		--enable-debug \
 		--prefix=/system \
 		--sbindir=/system/xbin \
 		--sharedstatedir=/data/local/com \
