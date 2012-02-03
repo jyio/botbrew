@@ -11,5 +11,10 @@ Depends: ncurses-common, libncursesw
 Data:
  /CONTROL/init: |
     #!/bin/sh
-    mkdir -p $PACKAGE/system
+    mkdir -p $PACKAGE/system/lib/weechat/plugins
     cp -r $BUILD/system/bin $BUILD/system/share $PACKAGE/system/
+    cp -r $BUILD/system/lib/weechat/plugins/*.so $PACKAGE/system/lib/weechat/plugins/
+    rm $PACKAGE/system/lib/weechat/plugins/libcharset.so
+    rm $PACKAGE/system/lib/weechat/plugins/librmodifier.so
+    rm $PACKAGE/system/lib/weechat/plugins/libiconv.so
+    rm $PACKAGE/system/lib/weechat/plugins/libintl.so

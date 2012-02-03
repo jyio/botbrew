@@ -1,7 +1,7 @@
 Package: readline-doc
 Version: 6.2-0
 Architecture: all
-Section: utils
+Section: doc
 Priority: optional
 Source: http://www.gnu.org/software/readline/
 Description: |

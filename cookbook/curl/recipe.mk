@@ -34,7 +34,7 @@ $~/source/configure:
 	touch $$@
 
 $~/source/Makefile: $~/source/configure | ${DIR_COOKBOOK}/openssl/install
-	cd $${@D}; CC="agcc.bash" CFLAGS="${CFLAGS}" LD="${LD}" LDFLAGS="${LDFLAGS}" STRIP="${STRIP} --strip-unneeded" ./configure --host=arm-linux-androideabi --enable-threaded-resolver --with-ssl --with-ca-path=/system/etc/ssl/certs \
+	cd $${@D}; CC="agcc.bash" CFLAGS="${CFLAGS}" LD="${LD}" LDFLAGS="${LDFLAGS}" STRIP="${STRIP} --strip-unneeded" ./configure --host=arm-linux-androideabi --enable-shared --enable-threaded-resolver --with-ssl --with-ca-path=/system/etc/ssl/certs \
 		--prefix=/system \
 		--sbindir=/system/xbin \
 		--sharedstatedir=/data/local/com \
@@ -45,8 +45,10 @@ $~/source/Makefile: $~/source/configure | ${DIR_COOKBOOK}/openssl/install
 $~/build/.d: $~/source/Makefile
 	${MAKE} -C $~/source
 	${MAKE} -C $~/source install DESTDIR=${TOP}/$~/build
-#	agcc.bash -o $~/build/lib/libcurl.so.${VERSION} -shared -Wl,-soname,libcurl.so.${VERSION},--whole-archive,$~/source/lib/.libs/libcurl.a,--no-whole-archive
 	rm -rf $${@D}/system/lib/*.la $${@D}/system/lib/pkgconfig
+	rm $${@D}/system/bin/curl-config $${@D}/system/lib/libcurl.so $${@D}/system/lib/libcurl.so.5
+	mv $${@D}/system/lib/libcurl.so.5.2.0 $${@D}/system/lib/libcurl.so
+	${STRIP} --strip-unneeded $${@D}/system/bin/* $${@D}/system/lib/*.so
 	touch $$@
 
 endef

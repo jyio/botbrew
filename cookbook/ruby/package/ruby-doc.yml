@@ -1,7 +1,7 @@
 Package: ruby-doc
 Version: 1.9.3.0-0
 Architecture: all
-Section: ruby
+Section: doc
 Priority: optional
 Source: http://www.ruby-lang.org/
 Description: |

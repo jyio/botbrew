@@ -1,7 +1,7 @@
 Package: python2.7-doc
 Version: 2.7.2-0
 Architecture: all
-Section: python
+Section: doc
 Priority: optional
 Source: http://www.python.org/
 Description: |

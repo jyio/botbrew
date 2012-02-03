@@ -51,8 +51,14 @@ $~/source/Makefile: $~/source/configure
 $~/build/.d: $~/source/Makefile
 	${MAKE} -C $~/source
 	${MAKE} -C $~/source install DESTDIR=${TOP}/$~/build
+	cd $${@D}/system/lib/weechat/plugins; \
+		for file in *.a; do \
+			ar -x $$$${file}; \
+			agcc.bash -shared -Wl,-soname,`basename $$$${file} .a`.so -o `basename $$$${file} .a`.so *.o; \
+			rm *.o; \
+		done
 	rm -rf $${@D}/system/lib/weechat/plugins/*.la $${@D}/system/lib/pkgconfig
-	${STRIP} --strip-unneeded $${@D}/system/bin/*
+	${STRIP} --strip-unneeded $${@D}/system/bin/* $${@D}/system/lib/weechat/plugins/*.so
 	touch $$@
 
 endef

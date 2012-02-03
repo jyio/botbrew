@@ -56,6 +56,7 @@ $~/build/.d: $~/source/Makefile $~/compat/libcompat.a
 	${MAKE} -C $~/source install DESTDIR=${TOP}/$~/build
 	mkdir -p $${@D}/system
 	mv $${@D}/system/bin/opkg-cl $${@D}/system/bin/opkg
+	${STRIP} --strip-unneeded $${@D}/system/bin/opkg
 	rm -rf $${@D}/system/lib/*.la $${@D}/system/lib/pkgconfig
 	for file in \
 		$${@D}/system/bin/opkg-key \

@@ -34,6 +34,8 @@ $~/source/configure: | $~/${ARCHIVE}
 	if [ ! -d $${@D} ]; then \
 		tar zxf $~/${ARCHIVE} -C $~/; \
 		mv $~/${NAME}-${VERSION} $${@D}; \
+		sed -e 's/\/bin\/sh/\/system\/bin\/sh/g' $${@D}/job.c > temp; \
+		mv temp $${@D}/job.c; \
 		cd $${@D}; \
 			cp ../patch/ar.h ./; \
 			patch -p0 < ../patch/make-3.82-android.patch; \

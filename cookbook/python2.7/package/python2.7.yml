@@ -1,5 +1,5 @@
 Package: python2.7
-Version: 2.7.2-0
+Version: 2.7.2-1
 Architecture: armeabi
 Section: python
 Priority: optional
@@ -7,6 +7,7 @@ Source: http://www.python.org/
 Description: |
  An interactive high-level object-oriented language (version 2.7)
  Version 2.7 of the high-level, interactive object oriented language, includes an extensive class library with lots of goodies for network programming, system administration, sounds and graphics.
+Depends: libsqlite3
 Data:
  /CONTROL/postinst: |
     #!/system/bin/sh
@@ -24,5 +25,5 @@ Data:
     mkdir -p $PACKAGE/system/lib
     cp -r $BUILD/system/bin $PACKAGE/system/
     cp -r $BUILD/system/include/python2.7/pyconfig.h $PACKAGE/system/include/python2.7/
-    cp -r $BUILD/system/lib/python2.7 $BUILD/system/lib/lib*.so* $PACKAGE/system/lib/
+    cp -r $BUILD/system/lib/python2.7 $BUILD/system/lib/*.so $PACKAGE/system/lib/
     rm -f $PACKAGE/system/bin/python

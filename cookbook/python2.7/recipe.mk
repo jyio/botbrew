@@ -62,7 +62,6 @@ $~/build-host/.d: $~/source-host/Makefile
 	#	curl https://raw.github.com/pypa/pip/master/contrib/get-pip.py | ${__HPYTHON}; \
 	#	./bin/pip install virtualenv; \
 	#	./bin/pip install virtualenvwrapper
-	touch $$@
 
 # target
 
@@ -76,7 +75,7 @@ $~/source/Makefile: | $~/${ARCHIVE} $~/source-host/Makefile ${DIR_COOKBOOK}/read
 			patch -p1 < ../patch/Python-2.7.2-android.patch; \
 			patch -p0 < ../patch/Python-2.7.2-regen.patch; \
 	fi
-	cd $${@D}; CC="agcc.bash ${__CFLAGS}" LD="agcc.bash" LDFLAGS="${__LDFLAGS}" AR="${AR}" RANLIB="${RANLIB}" ./configure --build=i686 --host=arm-linux-androideabi --enable-shared --with-readline=${TOP_INSTALL}/system/lib INSTSONAME=libpython2.7.so \
+	cd $${@D}; CC="agcc.bash ${__CFLAGS}" LD="agcc.bash" LDFLAGS="${__LDFLAGS}" AR="${AR}" RANLIB="${RANLIB}" ./configure --build=i686 --host=arm-linux-androideabi --enable-shared INSTSONAME=libpython2.7.so \
 		--prefix=/system \
 		--sbindir=/system/xbin \
 		--sharedstatedir=/data/local/com \
@@ -95,13 +94,19 @@ $~/source/Makefile: | $~/${ARCHIVE} $~/source-host/Makefile ${DIR_COOKBOOK}/read
 		| sed -e 's/\/usr\/local/\/system/g' \
 		> temp
 	mv temp $${@D}/setup.py
-	touch $$@
 
 $~/build/.d: $~/source/Makefile | $~/build-host/.d
-	ARCH="armeabi" NDKPLATFORM="${NDKPLATFORM}" ${MAKE} -C $~/source LDFLAGS="${__LDFLAGS} -ldl -lncurses -lhistory -lcrypto -lssl" HOSTPYTHON="${__HPYTHON}" HOSTPGEN="${__HPGEN}" CROSS_COMPILE_TARGET=yes libpython2.7.so
+	ARCH="armeabi" NDKPLATFORM="${NDKPLATFORM}" ${MAKE} -C $~/source LDFLAGS="${__LDFLAGS} -ldl" HOSTPYTHON="${__HPYTHON}" HOSTPGEN="${__HPGEN}" CROSS_COMPILE_TARGET=yes libpython2.7.so
 	ARCH="armeabi" NDKPLATFORM="${NDKPLATFORM}" ${MAKE} -C $~/source LDFLAGS="${__LDFLAGS} -ldl -lpython2.7" HOSTPYTHON="${__HPYTHON}" HOSTPGEN="${__HPGEN}" CROSS_COMPILE_TARGET=yes
 	ARCH="armeabi" NDKPLATFORM="${NDKPLATFORM}" ${MAKE} -C $~/source install HOSTPYTHON="${__HPYTHON}" CROSS_COMPILE_TARGET=yes DESTDIR=${TOP}/$~/build
+	rm -f $${@D}/system/lib/libpython2.7.so
+	mv $${@D}/system/lib/libpython2.7.so.* $${@D}/system/lib/libpython2.7.so
+	chmod 0755 $${@D}/system/lib/libpython2.7.so
 	rm -rf $${@D}/system/lib/pkgconfig
+	${STRIP} --strip-unneeded $${@D}/system/bin/python2.7
+	for file in `find $${@D} | grep \\.so$$$$`; do \
+		${STRIP} --strip-unneeded $$$${file}; \
+	done
 	touch $$@
 
 endef

@@ -1,6 +1,6 @@
-NAME	:= mpc
-VERSION	:= 0.9
-ARCHIVE	:= ${NAME}-${VERSION}.tar.gz
+NAME	:= libevent
+VERSION	:= 2.0.16
+ARCHIVE	:= ${NAME}-${VERSION}-stable.tar.gz
 
 # exports
 
@@ -28,24 +28,30 @@ $~/clobber:
 
 $~/${ARCHIVE}:
 	rm -rf $$@
-	wget http://www.multiprecision.org/${NAME}/download/${ARCHIVE} -O $$@
+	wget https://github.com/downloads/${NAME}/${NAME}/${ARCHIVE} -O $$@
 
-$~/source/Makefile: | $~/${ARCHIVE} ${DIR_COOKBOOK}/gmp/install ${DIR_COOKBOOK}/mpfr/install
+$~/source/configure: | $~/${ARCHIVE}
 	if [ ! -d $${@D} ]; then \
 		tar zxf $~/${ARCHIVE} -C $~/; \
-		mv $~/${NAME}-${VERSION} $${@D}; \
+		mv $~/${NAME}-${VERSION}-stable $${@D}; \
+		cd $${@D}; \
+			patch -p0 < ../patch/libevent-2.0.16-stable-android.patch; \
 	fi
-	cd $${@D}; CC="agcc.bash" CXX="agcc-bash-g++" LD="agcc.bash" AR="${AR}" STRIP="${STRIP} --strip-unneeded" ./configure --host=arm-android-eabi --with-gmp=${TOP_INSTALL}/system --with-mpfr=${TOP_INSTALL}/system \
+
+$~/source/Makefile: $~/source/configure
+	cd $${@D}; CC="agcc.bash" LD="agcc.bash" AR="${AR}" STRIP="${STRIP} --strip-unneeded" ./configure --host=arm-android-eabi \
 		--prefix=/system \
 		--sbindir=/system/xbin \
 		--sharedstatedir=/data/local/com \
 		--localstatedir=/data/local/var \
 		--oldincludedir=/system/include
+	sed -e 's/#define HAVE_TAILQFOREACH 1//' $${@D}/config.h > temp
+	mv temp $${@D}/config.h
 
 $~/build/.d: $~/source/Makefile
 	${MAKE} -C $~/source
 	${MAKE} -C $~/source install DESTDIR=${TOP}/$~/build
-	rm -f $${@D}/system/lib/*.la
+	rm -rf $${@D}/system/lib/*.la $${@D}/system/lib/pkgconfig
 	touch $$@
 
 endef

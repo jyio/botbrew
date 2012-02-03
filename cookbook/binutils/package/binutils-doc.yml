@@ -1,7 +1,7 @@
 Package: binutils-doc
 Version: 2.22-0
 Architecture: all
-Section: devel
+Section: doc
 Priority: optional
 Source: http://www.gnu.org/software/binutils/
 Description: |

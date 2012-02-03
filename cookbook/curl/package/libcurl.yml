@@ -1,14 +1,14 @@
-Package: curl-doc
+Package: libcurl
 Version: 7.24.0-0
-Architecture: all
-Section: doc
+Architecture: armeabi
+Section: libs
 Priority: optional
 Source: http://curl.haxx.se/
 Description: |
- Get a file from an HTTP, HTTPS or FTP server
+ easy-to-use client-side URL transfer library (OpenSSL flavour)
  curl is a client to get files from servers using any of the supported protocols. The command is designed to work without user interaction or any kind of interactivity. curl offers a busload of useful tricks like proxy support, user authentication, FTP upload, HTTP post, file transfer resume and more.
 Data:
  /CONTROL/init: |
     #!/bin/sh
-    mkdir -p $PACKAGE/system/share
-    cp -r $BUILD/system/share/man $PACKAGE/system/share/
+    mkdir -p $PACKAGE/system/lib
+    cp -r $BUILD/system/lib/*.so $PACKAGE/system/lib/

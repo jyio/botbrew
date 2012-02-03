@@ -1,7 +1,7 @@
 Package: gcc-4.6-doc
 Version: 4.6.2-0
 Architecture: armeabi
-Section: devel
+Section: doc
 Priority: optional
 Source: http://gcc.gnu.org/
 Description: |

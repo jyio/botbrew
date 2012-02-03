@@ -1,7 +1,7 @@
 Package: vim-doc
 Version: 7.3-0
 Architecture: all
-Section: editors
+Section: doc
 Priority: optional
 Source: http://www.vim.org/
 Description: |

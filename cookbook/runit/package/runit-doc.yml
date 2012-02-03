@@ -1,7 +1,7 @@
 Package: runit-doc
 Version: 2.1.1-0
 Architecture: all
-Section: admin
+Section: doc
 Priority: optional
 Source: http://smarden.org/runit/
 Description: |

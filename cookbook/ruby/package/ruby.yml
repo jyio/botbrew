@@ -1,5 +1,5 @@
 Package: ruby
-Version: 1.9.3.0-0
+Version: 1.9.3.0-1
 Architecture: armeabi
 Section: ruby
 Priority: optional
@@ -7,6 +7,7 @@ Source: http://www.ruby-lang.org/
 Description: |
  Interpreter of object-oriented scripting language Ruby
  Ruby is the interpreted scripting language for quick and easy object-oriented programming. It has many features to process text files and to do system management tasks (as in perl). It is simple, straight-forward, and extensible. In the name of this package, `1.9.1' indicates the Ruby library compatibility version. This package currently provides the `1.9.3' branch of Ruby, which is compatible with the `1.9.1' branch.
+Depends: readline
 Data:
  /CONTROL/init: |
     #!/bin/sh

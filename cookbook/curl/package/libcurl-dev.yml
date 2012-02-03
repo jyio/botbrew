@@ -1,14 +1,16 @@
-Package: curl-doc
+Package: libcurl-dev
 Version: 7.24.0-0
-Architecture: all
-Section: doc
+Architecture: armeabi
+Section: libdevel
 Priority: optional
 Source: http://curl.haxx.se/
 Description: |
- Get a file from an HTTP, HTTPS or FTP server
+ development files for libcurl (OpenSSL flavour)
  curl is a client to get files from servers using any of the supported protocols. The command is designed to work without user interaction or any kind of interactivity. curl offers a busload of useful tricks like proxy support, user authentication, FTP upload, HTTP post, file transfer resume and more.
+Depends: libcurl
 Data:
  /CONTROL/init: |
     #!/bin/sh
-    mkdir -p $PACKAGE/system/share
-    cp -r $BUILD/system/share/man $PACKAGE/system/share/
+    mkdir -p $PACKAGE/system/lib
+    cp -r $BUILD/system/include $PACKAGE/system/
+    cp $BUILD/system/lib/*.a $PACKAGE/system/lib/
