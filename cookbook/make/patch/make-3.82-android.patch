@@ -1,13 +1,13 @@
 --- arscan.c
 +++ arscan.c
-@@ -18,6 +18,10 @@
- 
- #include "make.h"
+@@ -16,6 +16,10 @@
+ You should have received a copy of the GNU General Public License along with
+ this program.  If not, see <http://www.gnu.org/licenses/>.  */
  
 +#ifdef ANDROID
-+#include "ar.h"
++#include <ar.h>
 +#endif
 +
+ #include "make.h"
+ 
  #ifdef HAVE_FCNTL_H
- #include <fcntl.h>
- #else

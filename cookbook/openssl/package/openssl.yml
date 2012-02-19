@@ -1,5 +1,5 @@
 Package: openssl
-Version: 1.0.0f-0
+Version: 1.0.0f-1
 Architecture: armeabi
 Section: utils
 Priority: optional
@@ -19,4 +19,5 @@ Data:
  /CONTROL/init: |
     #!/bin/sh
     mkdir -p $PACKAGE/system/lib
-    cp -r $BUILD/system/bin $BUILD/system/etc $PACKAGE/system/
+    cp -r $EXPORT/system/bin $EXPORT/system/etc $PACKAGE/system/
+    mv $PACKAGE/system/etc/ssl/openssl.cnf $PACKAGE/system/etc/ssl/openssl.cnf.opkg-new

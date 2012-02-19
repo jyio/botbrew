@@ -1,0 +1,12 @@
+Package: repository-botbrew-stable
+Version: 0.0.1-0
+Architecture: all
+Section: admin
+Priority: optional
+Source: http://botbrew.inportb.com/
+Description: |
+ BotBrew stable repository
+ The `stable' repository contains the latest officially-released BotBrew software. We recommend using this repository in production.
+Data:
+ /system/etc/opkg/src.botbrew-stable.conf: |
+    src/gz	botbrew-stable http://botbrew.inportb.com/stable/main

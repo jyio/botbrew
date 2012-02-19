@@ -1,5 +1,5 @@
 Package: python2.7-doc
-Version: 2.7.2-0
+Version: 2.7.2-1
 Architecture: all
 Section: doc
 Priority: optional
@@ -8,17 +8,7 @@ Description: |
  An interactive high-level object-oriented language (version 2.7)
  Version 2.7 of the high-level, interactive object oriented language, includes an extensive class library with lots of goodies for network programming, system administration, sounds and graphics.
 Data:
- /CONTROL/postinst: |
-    #!/system/bin/sh
-    if [ ! -f /system/bin/python ]; then
-    	ln -s python2.7 /system/bin/python
-    fi
- /CONTROL/prerm: |
-    #!/system/bin/sh
-    if [ "`readlink /system/bin/python`" == "python2.7" ]; then
-    	rm /system/bin/python
-    fi
  /CONTROL/init: |
     #!/bin/sh
     mkdir -p $PACKAGE/system/share
-    cp -r $BUILD/system/share/man $PACKAGE/system/share/
+    cp -r $EXPORT/system/share/man $PACKAGE/system/share/

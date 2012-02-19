@@ -1,16 +1,16 @@
 --- cli-auth.c
 +++ cli-auth.c
-@@ -32,6 +32,10 @@
- #include "packet.h"
- #include "runopts.h"
+@@ -23,6 +23,10 @@
+  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  * SOFTWARE. */
  
 +#ifdef ANDROID
-+#include "netbsd_getpass.c"
++#include <getpass.h>
 +#endif
 +
- void cli_authinitialise() {
- 
- 	memset(&ses.authstate, 0, sizeof(ses.authstate));
+ #include "includes.h"
+ #include "session.h"
+ #include "auth.h"
 --- cli-kex.c
 +++ cli-kex.c
 @@ -155,11 +155,15 @@
@@ -36,9 +36,9 @@
  #endif
  
 +#ifdef ANDROID
-+#define S_IREAD		S_IRUSR
++#define S_IREAD	S_IRUSR
 +#define S_IWRITE	S_IWUSR
-+#define S_IEXEC		S_IXUSR
++#define S_IEXEC	S_IXUSR
 +#endif
 +
  #endif /* _INCLUDES_H_ */
@@ -132,7 +132,7 @@
     scripts etc. This can be overridden with the -P flag */
  #ifndef DROPBEAR_PIDFILE
 -#define DROPBEAR_PIDFILE "/var/run/dropbear.pid"
-+#define DROPBEAR_PIDFILE "/data/local/var/run/dropbear.pid"
++#define DROPBEAR_PIDFILE "/data/run/dropbear.pid"
  #endif
  
  /* The command to invoke for xauth when using X11 forwarding.
@@ -162,56 +162,19 @@
   * in sysoptions.h */
 --- sshpty.c
 +++ sshpty.c
-@@ -22,6 +22,13 @@
- #include "errno.h"
- #include "sshpty.h"
+@@ -17,6 +17,11 @@
+ 
+ /*RCSID("OpenBSD: sshpty.c,v 1.7 2002/06/24 17:57:20 deraadt Exp ");*/
  
 +#ifdef ANDROID
-+#include <termios.h>
-+#include <fcntl.h>
-+#include <unistd.h>
++#include <openpty.h>
 +#define HAVE_OPENPTY
 +#endif
 +
- /* Pty allocated with _getpty gets broken if we do I_PUSH:es to it. */
- #if defined(HAVE__GETPTY) || defined(HAVE_OPENPTY)
- #undef HAVE_DEV_PTMX
-@@ -38,6 +45,34 @@
- #define O_NOCTTY 0
- #endif
- 
-+#ifdef ANDROID
-+int openpty (int *amaster, int *aslave, char *name, struct termios *termp, struct winsize *winp)
-+{
-+	int master, slave;
-+	char *name_slave;
-+	master = open("/dev/ptmx", O_RDWR | O_NONBLOCK);
-+	if (master == -1) {
-+		TRACE(("Fail to open master"))
-+		return -1;
-+	}
-+	if (grantpt(master)) goto fail;
-+	if (unlockpt(master)) goto fail;
-+	name_slave = ptsname(master);
-+	TRACE(("openpty: slave name %s", name_slave))
-+	slave = open(name_slave, O_RDWR | O_NOCTTY);
-+	if (slave == -1) goto fail;
-+	if (termp) tcsetattr(slave, TCSAFLUSH, termp);
-+	if (winp) ioctl (slave, TIOCSWINSZ, winp);
-+	*amaster = master;
-+	*aslave = slave;
-+	if (name != NULL) strcpy(name, name_slave);
-+	return 0;
-+fail:
-+	close(master);
-+	return -1;
-+}
-+#endif
-+
- /*
-  * Allocates and opens a pty.  Returns 0 if no pty could be allocated, or
-  * nonzero if a pty was successfully allocated.  On success, open file
-@@ -50,19 +85,15 @@
+ #include "includes.h"
+ #include "dbutil.h"
+ #include "errno.h"
+@@ -50,19 +55,15 @@
  {
  #if defined(HAVE_OPENPTY)
  	/* exists in recent (4.4) BSDs and OSF/1 */

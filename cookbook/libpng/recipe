@@ -1,0 +1,31 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=1.5.8
+PACKAGE_DEPEND=()
+
+FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
+ARCHIVE=${FULLNAME}.tar.gz
+
+botbrew_do_build() {
+	botbrew_download http://downloads.sourceforge.net/project/${PACKAGE_NAME}/${PACKAGE_NAME}15/${PACKAGE_VERSION}/${ARCHIVE} ${ARCHIVE}
+	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
+	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
+	botbrew_fix_config ${G_SOURCE}
+	if ! [ -e ${G_OBJECT}/Makefile ]; then
+		(
+			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
+			CC="agcc.bash" LD="agcc.bash" \
+			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET}
+		)
+	fi
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		${G_MAKE} -C ${G_OBJECT}
+		mkdir -p ${G_EXPORT}/system/lib ${G_EXPORT}/system/include/libpng15
+		cp ${G_OBJECT}/.libs/libpng15.a ${G_EXPORT}/system/lib/libpng15.a
+		cp ${G_SOURCE}/png.h ${G_SOURCE}/pngconf.h ${G_EXPORT}/system/include/libpng15/
+		cp ${G_SOURCE}/scripts/pnglibconf.h.prebuilt ${G_EXPORT}/system/include/libpng15/pnglibconf.h
+		touch ${G_EXPORT}/.d
+	fi
+}

@@ -1,0 +1,40 @@
+Package: python2.7-minimal
+Version: 2.7.2-0
+Architecture: armeabi
+Section: python
+Priority: optional
+Source: http://www.python.org/
+Description: |
+ A minimal subset of the Python language (version 2.7)
+ Version 2.7 of the high-level, interactive object oriented language, includes an extensive class library with lots of goodies for network programming, system administration, sounds and graphics.
+Data:
+ /CONTROL/postinst: |
+    #!/system/bin/sh
+    if [ ! -f /system/bin/python ]; then
+    	ln -s python2.7 /system/bin/python
+    fi
+    mkdir -p /system/lib/python2.7/lib-dynload
+ /CONTROL/prerm: |
+    #!/system/bin/sh
+    if [ "`readlink /system/bin/python`" == "python2.7" ]; then
+    	rm /system/bin/python
+    fi
+    rmdir /system/lib/python2.7/lib-dynload || true
+ /CONTROL/init: |
+    #!/bin/bash
+    mkdir -p $PACKAGE/system/bin $PACKAGE/system/lib/python2.7/config $PACKAGE/system/include/python2.7
+    cp $EXPORT/system/bin/python2.7 $PACKAGE/system/bin/
+    cp $EXPORT/system/lib/*.so $PACKAGE/system/lib/
+    cp $EXPORT/system/lib/python2.7/{ConfigParser.py,StringIO.py,UserDict.py,__future__.py,_abcoll.py} $PACKAGE/system/lib/python2.7/
+    cp $EXPORT/system/lib/python2.7/{_weakrefset.py,abc.py,atexit.py,base64.py,bisect.py,codecs.py} $PACKAGE/system/lib/python2.7/
+    cp $EXPORT/system/lib/python2.7/{collections.py,compileall.py,copy.py,copy_reg.py,dis.py,fnmatch.py} $PACKAGE/system/lib/python2.7/
+    cp $EXPORT/system/lib/python2.7/{functools.py,genericpath.py,getopt.py,glob.py,hashlib.py,heapq.py} $PACKAGE/system/lib/python2.7/
+    cp $EXPORT/system/lib/python2.7/{inspect.py,keyword.py,linecache.py,md5.py,opcode.py,optparse.py} $PACKAGE/system/lib/python2.7/
+    cp $EXPORT/system/lib/python2.7/{os.py,pickle.py,pkgutil.py,platform.py,popen2.py,posixpath.py} $PACKAGE/system/lib/python2.7/
+    cp $EXPORT/system/lib/python2.7/{py_compile.py,random.py,re.py,repr.py,runpy.py,sha.py,shutil.py} $PACKAGE/system/lib/python2.7/
+    cp $EXPORT/system/lib/python2.7/{site.py,socket.py,sre.py,sre_compile.py,sre_constants.py,sre_parse.py} $PACKAGE/system/lib/python2.7/
+    cp $EXPORT/system/lib/python2.7/{ssl.py,stat.py,string.py,stringprep.py,struct.py,subprocess.py} $PACKAGE/system/lib/python2.7/
+    cp $EXPORT/system/lib/python2.7/{sysconfig.py,tempfile.py,textwrap.py,token.py,tokenize.py} $PACKAGE/system/lib/python2.7/
+    cp -r $EXPORT/system/lib/python2.7/{traceback.py,types.py,warnings.py,weakref.py,encodings,logging} $PACKAGE/system/lib/python2.7/
+    cp $EXPORT/system/lib/python2.7/config/Makefile $PACKAGE/system/lib/python2.7/config/
+    cp $EXPORT/system/include/python2.7/pyconfig.h $PACKAGE/system/include/python2.7/

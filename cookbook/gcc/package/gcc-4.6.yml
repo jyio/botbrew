@@ -1,5 +1,5 @@
 Package: gcc-4.6
-Version: 4.6.2-0
+Version: 4.6.2-1
 Architecture: armeabi
 Section: devel
 Priority: optional
@@ -7,10 +7,10 @@ Source: http://gcc.gnu.org/
 Description: |
  GNU C compiler
  This is the GNU C compiler, a fairly portable optimizing compiler for C.
-Depends: binutils
+Depends: binutils, libc-bionic-dev
 Data:
  /CONTROL/init: |
     #!/bin/sh
     mkdir -p $PACKAGE
-    cp -r $BUILD/* $PACKAGE/
+    cp -r $EXPORT/* $PACKAGE/
     rm -rf $PACKAGE/system/share

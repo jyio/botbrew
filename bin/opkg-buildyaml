@@ -2,8 +2,8 @@
 
 import sys, os, shutil, subprocess, tempfile, yaml
 
-build = os.path.abspath(sys.argv[1])
-if not os.path.isdir(build):
+project = os.path.abspath(sys.argv[1])
+if not os.path.isdir(project):
 	exit
 
 meta = yaml.safe_load(sys.stdin)
@@ -56,7 +56,9 @@ if os.path.isfile(initfile):
 	os.chmod(initfile,0755)
 	code = subprocess.call((os.path.abspath(initfile),),env={
 		'PATH':		os.environ.get('PATH',''),
-		'BUILD':	build,
+		'PROJECT':	project,
+		'EXPORT':	os.path.join(project,'export'),
+		'BUILD':	os.path.join(project,'export'),
 		'PACKAGE':	package
 	})
 	if code != 0:
@@ -72,11 +74,7 @@ for dirname,dirnames,filenames in os.walk(package):
 	for filename in filenames:
 		print os.path.join(dirname,filename)[trunc:]
 
-code = subprocess.call(('opkg-build','-O','-oroot','-groot',package),env={
-	'PATH':		os.environ.get('PATH',''),
-	'BUILD':	build,
-	'PACKAGE':	package
-})
+code = subprocess.call(('opkg-build','-O','-oroot','-groot',package),env={'PATH':os.environ.get('PATH','')})
 if code != 0:
 	print >>sys.stderr,'opkg-build failed'
 	exit(code)

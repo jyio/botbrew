@@ -1,0 +1,40 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=3.0.12
+PACKAGE_DEPEND=( gmp nettle libtasn1 libiconv )
+
+FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
+ARCHIVE=${FULLNAME}.tar.xz
+
+botbrew_do_build() {
+	botbrew_download http://ftp.gnu.org/gnu/${PACKAGE_NAME}/${ARCHIVE} ${ARCHIVE}
+	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
+	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
+	botbrew_fix_config ${G_SOURCE}/build-aux
+	botbrew_fix_gnulib ${G_SOURCE}/gl
+	botbrew_import
+	if ! [ -e ${G_OBJECT}/Makefile ]; then
+		(
+			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
+			CC="agcc.bash" CXX="agcc-bash-g++" CPPFLAGS="-I${G_INCDIR}" \
+			LD="agcc.bash" LDFLAGS="-L${G_LIBDIR}" \
+			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
+				--with-nettle-prefix=${G_SYSDIR} \
+				--with-libtasn1-prefix=${G_SYSDIR} \
+				--with-libiconv-prefix=${G_SYSDIR}
+			sed -E 's/(install-exec-am\:) install-defexecDATA/\1/g' lib/Makefile > temp
+			mv temp lib/Makefile
+			sed -E 's/(install-exec-am\:) install-defexecDATA/\1/g' extra/Makefile > temp
+			mv temp extra/Makefile
+		)
+	fi
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		${G_MAKE} -C ${G_OBJECT} -j1
+		${G_MAKE} -C ${G_OBJECT} -j1 install DESTDIR=$(pwd)/${G_EXPORT}
+		rm -rf ${G_EXPORT}/system/lib/*.la ${G_EXPORT}/system/lib/pkgconfig
+		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/* || true
+		touch ${G_EXPORT}/.d
+	fi
+}

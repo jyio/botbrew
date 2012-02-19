@@ -1,0 +1,20 @@
+Package: weechat-curses
+Version: 0.3.6-1
+Architecture: armeabi
+Section: net
+Priority: optional
+Source: http://www.weechat.org/
+Description: |
+ Fast, light and extensible chat client - console client
+ WeeChat (Wee Enhanced Environment for Chat) is a fast and light chat client for many operating systems. Everything can be done with a keyboard. It is customizable and extensible with plugins/scripts, and includes: nicklist, smart hotlist, horizontal and vertical split, double charset support (decode/encode), FIFO pipe for remote control, 256 colors support, incremental text search, dynamic filtering of buffer content, Perl, Python, Ruby, Lua, and Tcl scripting, spell checking, highly customizable and extensible, and much more! This package provides the console client (ncurses).
+Depends: ncurses-common, libncursesw
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p $PACKAGE/system/lib/weechat/plugins
+    cp -r $EXPORT/system/bin $EXPORT/system/share $PACKAGE/system/
+    cp -r $EXPORT/system/lib/weechat/plugins/*.so $PACKAGE/system/lib/weechat/plugins/
+    rm $PACKAGE/system/lib/weechat/plugins/charset.so
+    rm $PACKAGE/system/lib/weechat/plugins/rmodifier.so
+    #rm $PACKAGE/system/lib/weechat/plugins/iconv.so
+    #rm $PACKAGE/system/lib/weechat/plugins/intl.so

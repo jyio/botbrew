@@ -1,0 +1,16 @@
+Package: libclang
+Version: 3.0-0
+Architecture: armeabi
+Section: libs
+Priority: optional
+Source: http://llvm.org/
+Description: |
+ Low-Level Virtual Machine (LLVM), C language family frontend runtime library
+ The Low-Level Virtual Machine (LLVM) is a collection of libraries and tools that make it easy to build compilers, optimizers, Just-In-Time code generators, and many other compiler-related programs. LLVM uses a single, language-independent virtual instruction set both as an offline code representation (to communicate code between compiler phases and to run-time systems) and as the compiler internal representation (to analyze and transform programs). This persistent code representation allows a common set of sophisticated compiler techniques to be applied at compile-time, link-time, install-time, run-time, or "idle-time" (between program runs). Clang project is a new C, C++, Objective C and Objective C++ front-end for the LLVM compiler. This package provides the libclang runtime library.
+Depends:
+ libllvm
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p $PACKAGE/system/lib
+    cp -r $EXPORT/system/lib/libclang*.so $PACKAGE/system/lib/

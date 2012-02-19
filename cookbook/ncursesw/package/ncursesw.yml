@@ -1,0 +1,17 @@
+Package: ncursesw
+Version: 5.9-1
+Architecture: armeabi
+Section: utils
+Priority: optional
+Source: http://www.gnu.org/software/ncurses/
+Description: |
+ terminal-related programs (wide character support)
+ The ncurses library routines are a terminal-independent method of updating character screens with reasonable optimization. This package contains the programs used for manipulating the terminfo database and individual terminfo entries, as well as some programs for resetting terminals and such.
+Depends: ncurses-common, libncursesw
+Conflicts: ncurses
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p $PACKAGE/system/share
+    cp -r $EXPORT/system/bin $PACKAGE/system/
+    rm $PACKAGE/system/bin/*-config

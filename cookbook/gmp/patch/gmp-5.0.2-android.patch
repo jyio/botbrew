@@ -1,0 +1,29 @@
+--- cxx/ismpf.cc
++++ cxx/ismpf.cc
+@@ -45,7 +45,11 @@
+   bool ok = false;
+ 
+   // C decimal point, as expected by mpf_set_str
++#ifdef ANDROID
++  const char *lconv_point = ".";
++#else
+   const char *lconv_point = localeconv()->decimal_point;
++#endif
+ 
+   // C++ decimal point
+ #if HAVE_STD__LOCALE
+--- cxx/osmpf.cc
++++ cxx/osmpf.cc
+@@ -47,8 +47,12 @@
+   point[0] = use_facet< numpunct<char> >(o.getloc()).decimal_point();
+   point[1] = '\0';
+ #else
++#ifdef ANDROID
++  const char *point = ".";
++#else
+   const char *point = localeconv()->decimal_point;
+ #endif
++#endif
+ 
+   GMP_ASPRINTF_T_INIT (d, &result);
+   ret = __gmp_doprnt_mpf (&__gmp_asprintf_funs_noformat, &d, &param, point, f);

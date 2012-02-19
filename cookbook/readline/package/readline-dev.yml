@@ -1,5 +1,5 @@
 Package: readline-dev
-Version: 6.2-0
+Version: 6.2-1
 Architecture: armeabi
 Section: utils
 Priority: optional
@@ -12,6 +12,6 @@ Data:
     #!/bin/sh
     mkdir -p $PACKAGE/system/lib
     mkdir -p $PACKAGE/system/share
-    cp -r $BUILD/system/include $PACKAGE/system/
-    cp -r $BUILD/system/lib/lib*.a $PACKAGE/system/lib/
-    cp -r $BUILD/system/share/readline $PACKAGE/system/share/
+    cp -r $EXPORT/system/include $PACKAGE/system/
+    cp -r $EXPORT/system/lib/lib*.a $PACKAGE/system/lib/
+    cp -r $EXPORT/system/share/readline $PACKAGE/system/share/

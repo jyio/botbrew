@@ -1,0 +1,14 @@
+Package: libjpeg-progs
+Version: 8-0
+Architecture: armeabi
+Section: graphics
+Priority: optional
+Source: http://libjpeg.sourceforge.net/
+Description: |
+ Programs for manipulating JPEG files
+ This package contains programs for manipulating JPEG files: cjpeg/djpeg, convert to/from the JPEG file format; rdjpgcom/wrjpgcom, read/write comments in JPEG files; jpegtran, lossless transformations of JPEG files; jpegexiforient/exifautotran, manipulate EXIF orientation tag.
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p $PACKAGE/system
+    cp -r $EXPORT/system/bin $PACKAGE/system/

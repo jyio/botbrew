@@ -1,0 +1,20 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=0
+PACKAGE_DEPEND=()
+
+FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
+ARCHIVE=${FULLNAME}.tar.gz
+
+botbrew_do_build() {
+	if ! [ -e ${G_EXPORT} ]; then
+		mkdir -p ${G_EXPORT}
+		cp -rlf ${G_SOURCE}/* ${G_EXPORT}/
+	fi
+}
+
+botbrew_do_clobber() {
+	rm -rf ${G_OBJECT} ${G_IMPORT} ${G_EXPORT}
+}

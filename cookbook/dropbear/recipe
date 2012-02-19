@@ -1,0 +1,43 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=2011.54
+PACKAGE_DEPEND=( libbotbrew )
+
+FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
+ARCHIVE=${FULLNAME}.tar.gz
+PROGRAMS="dropbear dbclient dropbearkey dropbearconvert scp"
+
+botbrew_do_build() {
+	botbrew_download http://matt.ucc.asn.au/${PACKAGE_NAME}/releases/${ARCHIVE} ${ARCHIVE}
+	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
+	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
+	botbrew_fix_config ${G_SOURCE}
+	botbrew_patchtree -p0 ${G_SOURCE} patch/dropbear-2011.54-android.patch
+	botbrew_import
+	if ! [ -e ${G_OBJECT}/Makefile ]; then
+		(
+			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
+			CC="agcc.bash" CPPFLAGS="-I${G_INCDIR}" LD="agcc.bash" LDFLAGS="-L${G_LIBDIR}" LIBS="-lbotbrew" \
+			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
+				--disable-loginfunc \
+				--disable-shadow \
+				--disable-utmp \
+				--disable-utmpx \
+				--disable-wtmp \
+				--disable-wtmpx \
+				--disable-pututline \
+				--disable-pututxline \
+				--disable-lastlog
+		)
+	fi
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		${G_MAKE} -C ${G_OBJECT} PROGRAMS="${PROGRAMS}" SCPPROGRESS=1
+		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT} PROGRAMS="${PROGRAMS}"
+		mv ${G_EXPORT}/system/sbin/* ${G_EXPORT}/system/bin/
+		rm -r ${G_EXPORT}/system/sbin
+		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/* || true
+		touch ${G_EXPORT}/.d
+	fi
+}

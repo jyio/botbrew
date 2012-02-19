@@ -1,0 +1,15 @@
+Package: libc-bionic-dev
+Version: 14-0
+Architecture: all
+Section: libdevel
+Priority: optional
+Source: http://www.android.com/
+Description: |
+ Android C Library: Development Libraries and Header Files
+ The Bionic libc is a derivation of the BSD standard C library code that was originally developed by Google for the Android embedded system operating system. Bionic has several major Linux-specific features and development continues independent of other code bases.
+Conflicts: gcc-4.6
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p $PACKAGE
+    cp -r $EXPORT/* $PACKAGE/

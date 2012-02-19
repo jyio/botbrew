@@ -1,0 +1,57 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=2.0.18
+PACKAGE_DEPEND=( libgpg-error libassuan libksba libgcrypt pth readline ncursesw libiconv bzip2 )
+
+FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
+ARCHIVE=${FULLNAME}.tar.bz2
+
+botbrew_do_build() {
+	botbrew_download ftp://ftp.gnupg.org/gcrypt/${PACKAGE_NAME}/${ARCHIVE} ${ARCHIVE}
+	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
+	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
+	if ! [ -e ${G_SOURCE}/.do.ncursesw ]; then
+		sed -e 's/ncurses/ncursesw/g' ${G_SOURCE}/configure > temp
+		cat temp > ${G_SOURCE}/configure
+		sed -e 's/ncurses/ncursesw/g' ${G_SOURCE}/m4/readline.m4 > temp
+		mv temp ${G_SOURCE}/m4/readline.m4
+		touch ${G_SOURCE}/.do.ncursesw
+	fi
+	if ! [ -e ${G_SOURCE}/.do.util ]; then
+		cp -lf ${G_SOURCE}/common/util.h ${G_SOURCE}/g10/
+		cp -lf ${G_SOURCE}/common/util.h ${G_SOURCE}/keyserver/
+		cp -lf ${G_SOURCE}/common/util.h ${G_SOURCE}/tools/
+		touch ${G_SOURCE}/.do.util
+	fi
+	if ! [ -e ${G_SOURCE}/gl/.do.stdint ]; then
+		echo "#include_next <stdint.h>" > ${G_SOURCE}/gl/stdint_.h
+		touch ${G_SOURCE}/gl/.do.stdint
+	fi
+	botbrew_patchtree -p0 ${G_SOURCE} patch/gnupg-2.0.18-android.patch
+	botbrew_import
+	for config in $(find ${G_IMPORT} -name '*-config' | grep '\/system\/bin\/[^\.]*-config$'); do
+		botbrew_fix_crosslibconfig $config
+	done
+	if ! [ -e ${G_OBJECT}/Makefile ]; then
+		(
+			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
+			CC="agcc.bash" CPPFLAGS="-I${G_INCDIR}" LD="agcc.bash" LDFLAGS="-L${G_LIBDIR}" \
+			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
+				--with-gpg-error-prefix=${G_SYSDIR} \
+				--with-libassuan-prefix=${G_SYSDIR} \
+				--with-ksba-prefix=${G_SYSDIR} \
+				--with-libgcrypt-prefix=${G_SYSDIR} \
+				--with-pth-prefix=${G_SYSDIR} \
+				--with-libiconv-prefix=${G_SYSDIR}
+		)
+	fi
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		${G_MAKE} -C ${G_OBJECT}
+		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
+		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/* ${G_EXPORT}/system/libexec/* || true
+		botbrew_fix_shell_path $(grep -rlIF '/bin/sh' ${G_EXPORT})
+		touch ${G_EXPORT}/.d
+	fi
+}

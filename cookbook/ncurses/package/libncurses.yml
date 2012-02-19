@@ -1,5 +1,5 @@
 Package: libncurses
-Version: 5.9-0
+Version: 5.9-1
 Architecture: armeabi
 Section: libs
 Priority: optional
@@ -11,4 +11,4 @@ Data:
  /CONTROL/init: |
     #!/bin/sh
     mkdir -p $PACKAGE/system/lib
-    cp -r $BUILD/system/lib/*.so $PACKAGE/system/lib/
+    cp -r $EXPORT/system/lib/*.so $PACKAGE/system/lib/

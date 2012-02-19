@@ -20,7 +20,7 @@
 -#define STOPIT "/etc/runit/stopit"
 -#define REBOOT "/etc/runit/reboot"
 -#define CTRLALTDEL "/etc/runit/ctrlaltdel"
-+#define RUNIT "/system/xbin/runit"
++#define RUNIT "/system/bin/runit"
 +#define STOPIT "/cache/runit/stopit"
 +#define REBOOT "/cache/runit/reboot"
 +#define CTRLALTDEL "/cache/runit/ctrlaltdel"

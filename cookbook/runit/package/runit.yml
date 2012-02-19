@@ -1,5 +1,5 @@
 Package: runit
-Version: 2.1.1-0
+Version: 2.1.1-1
 Architecture: armeabi
 Section: admin
 Priority: optional
@@ -20,9 +20,10 @@ Data:
     rm "/system/etc/service/enabled/$1"
  /CONTROL/postinst: |
     #!/system/bin/sh
-    mkdir -p /system/etc/service/enabled /data/local/var/run /data/local/var/log
+    mkdir -p /system/etc/service/enabled /data/run /data/log
  /CONTROL/init: |
     #!/bin/sh
     mkdir -p $PACKAGE/system
-    cp -r $BUILD/system/bin $PACKAGE/system/
+    cp -r $EXPORT/system/bin $PACKAGE/system/
+    rm $PACKAGE/system/bin/runit $PACKAGE/system/bin/runit-init
     chmod +x $PACKAGE/system/bin/runsvdir-start $PACKAGE/system/bin/svenable $PACKAGE/system/bin/svdisable

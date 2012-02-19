@@ -1,0 +1,15 @@
+--- src/llex.c
++++ src/llex.c
+@@ -199,8 +199,12 @@
+ 
+ 
+ #if !defined(getlocaledecpoint)
++#ifdef ANDROID
++#define getlocaledecpoint()	'.'
++#else
+ #define getlocaledecpoint()	(localeconv()->decimal_point[0])
++#endif
+ #endif
+ 
+ 
+ #define buff2d(b,e)	luaO_str2d(luaZ_buffer(b), luaZ_bufflen(b) - 1, e)

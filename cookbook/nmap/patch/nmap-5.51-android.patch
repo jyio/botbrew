@@ -1,0 +1,39 @@
+--- liblua/llex.c
++++ liblua/llex.c
+@@ -176,9 +176,13 @@
+ 
+ static void trydecpoint (LexState *ls, SemInfo *seminfo) {
+   /* format error: try to update decimal point separator */
++#ifdef ANDROID
++  char old = ls->decpoint = '.';
++#else
+   struct lconv *cv = localeconv();
+   char old = ls->decpoint;
+   ls->decpoint = (cv ? cv->decimal_point[0] : '.');
++#endif
+   buffreplace(ls, old, ls->decpoint);  /* try updated decimal separator */
+   if (!luaO_str2d(luaZ_buffer(ls->buff), &seminfo->r)) {
+     /* format error with correct decimal point: no more options */
+--- ncat/sys_wrap.h
++++ ncat/sys_wrap.h
+@@ -123,7 +123,9 @@
+ #include <errno.h>
+ 
+ /* need an autoconf to check for this */
++#ifndef ANDROID
+ typedef void (*sighandler_t)(int);
++#endif
+ 
+ void * Calloc(size_t nmemb, size_t size);
+ int Close(int fd);
+--- nping/nping.h
++++ nping/nping.h
+@@ -112,7 +112,7 @@
+     #endif /* WIN32 */
+ #endif /* HAVE_CONFIG_H */
+ 
+-#ifndef WIN32
++#if !defined(WIN32) && !defined(ANDROID)
+     #include <sysexits.h>
+ #endif
+ 

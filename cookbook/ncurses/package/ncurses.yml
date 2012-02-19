@@ -1,5 +1,5 @@
 Package: ncurses
-Version: 5.9-2
+Version: 5.9-3
 Architecture: armeabi
 Section: utils
 Priority: optional
@@ -13,4 +13,5 @@ Data:
  /CONTROL/init: |
     #!/bin/sh
     mkdir -p $PACKAGE/system/share
-    cp -r $BUILD/system/bin $PACKAGE/system/
+    cp -r $EXPORT/system/bin $PACKAGE/system/
+    rm $PACKAGE/system/bin/*-config

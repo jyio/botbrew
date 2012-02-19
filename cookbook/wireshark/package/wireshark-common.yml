@@ -1,0 +1,14 @@
+Package: wireshark-common
+Version: 1.6.5-1
+Architecture: all
+Section: net
+Priority: optional
+Source: http://www.wireshark.org/
+Description: |
+ network traffic analyzer - common files
+ Wireshark is a network "sniffer" - a tool that captures and analyzes packets off the wire. Wireshark can decode too many protocols to list here. This package contains files common to the Wireshark tools.
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p $PACKAGE/system/share
+    cp -r $EXPORT/system/share/wireshark $PACKAGE/system/share/

@@ -1,0 +1,451 @@
+#!/bin/bash
+set -o errexit -o errtrace
+
+if [ "$0" == "-bash" ] || [ "$0" == "/bin/bash" ]; then
+	G_SELF=$(
+		while :; do
+			if [ -f botbrew ]; then
+				pwd
+				break
+			else
+				if [ "$(pwd)" = "/" ]; then
+					break
+				fi
+			fi
+			cd ..
+		done
+	)
+	if [ "${G_SELF}" == "" ]; then
+		if [ -f /media/external/botbrew ]; then
+			G_SELF=/media/external/botbrew
+			echo 1>&2 "Assuming ${G_SELF}"
+		else
+			echo 1>&2 "Cannot find root"
+			return 1
+		fi
+	else
+		G_SELF=${G_SELF}/botbrew
+	fi
+else
+	G_SELF="$(cd "${0%/*}" 2>/dev/null; echo "$PWD"/"${0##*/}")"
+fi
+
+G_ROOT=$(dirname ${G_SELF})
+
+G_ARCHIVE=archive
+G_COOKBOOK=cookbook
+G_RECIPE=recipe
+G_REPO=repo
+
+G_SOURCE=source
+G_OBJECT=object
+G_IMPORT=import
+G_EXPORT=export
+G_PACKAGE=package
+
+G_NCPU=$(grep -c ^processor /proc/cpuinfo)
+
+G_SYSTEMPREFIX=(
+	--prefix=/system
+	--sbindir=/system/bin
+	--sharedstatedir=/data
+	--localstatedir=/data
+	--oldincludedir=/system/include
+	--infodir=/system/share/info
+	--mandir=/system/share/man
+)
+
+if [ "${G_PATH}" = "" ]; then
+	G_PATH=${PATH}
+fi
+
+# download
+
+botbrew_download() {
+	if ! [ -e "${G_ROOT}/${G_ARCHIVE}/$2" ]; then
+		if ! wget "$1" -O "${G_ROOT}/${G_ARCHIVE}/$2"; then
+			rm -f "${G_ROOT}/${G_ARCHIVE}/$2"
+			return 1
+		fi
+	fi
+}
+
+# unpack
+
+botbrew_unpack() {
+	if [ -f "${G_ROOT}/${G_ARCHIVE}/$1" ] && ! [ -e "${G_ROOT}/${G_ARCHIVE}/$2" ]; then
+		local SRC=${G_ROOT}/${G_ARCHIVE}/$1
+		local DST=${G_ROOT}/${G_ARCHIVE}/$2
+		case "$1" in
+			*.zip|*.jar)
+				mkdir -p "${DST}" && unzip -d "${DST}" "${SRC}"
+				;;
+			*.tgz|*.tar.gz)
+				mkdir -p "${DST}" && tar -C "${DST}" -zxf "${SRC}"
+				;;
+			*.tar.bz2)
+				mkdir -p "${DST}" && tar -C "${DST}" -jxf "${SRC}"
+				;;
+			*.tar.xz)
+				mkdir -p "${DST}" && tar -C "${DST}" -Jxf "${SRC}"
+				;;
+			*)
+				echo 1>&2 "Don't know how to unpack \`$1'"
+				return 1
+				;;
+		esac
+	else
+		return 1
+	fi
+}
+
+# version control
+
+botbrew_svn() {
+	if [ -d "${G_ROOT}/${G_ARCHIVE}/$2" ]; then
+		(cd "${G_ROOT}/${G_ARCHIVE}/$2"; svn update)
+	else
+		svn checkout "$1" "${G_ROOT}/${G_ARCHIVE}/$2"
+	fi
+}
+
+botbrew_git() {
+	if [ -d "${G_ROOT}/${G_ARCHIVE}/$2" ]; then
+		(cd "${G_ROOT}/${G_ARCHIVE}/$2"; git reset --hard; git pull)
+	else
+		if [ "$3" = "" ]; then
+			git clone "$1" "${G_ROOT}/${G_ARCHIVE}/$2"
+		else
+			git clone -b "$3" "${G_ROOT}/${G_ARCHIVE}/$2"
+		fi
+	fi
+}
+
+botbrew_hg() {
+	if [ -d "${G_ROOT}/${G_ARCHIVE}/$2" ]; then
+		(cd "${G_ROOT}/${G_ARCHIVE}/$2"; hg update --clean; hg update)
+	else
+		hg clone "$1" "${G_ROOT}/${G_ARCHIVE}/$2"
+	fi
+}
+
+# copy
+
+botbrew_copytree() {
+	if [ "$1" = "" ] || ! [ -e "${G_ROOT}/${G_ARCHIVE}/$1" ]; then
+		echo 1>&2 "No source tree \`${G_ROOT}/${G_ARCHIVE}/$1'"
+		return 1
+	fi
+	if [ "$2" = "" ]; then
+		if ! [ -e "$1" ]; then
+			mkdir -p "$1"
+			cp -a "${G_ROOT}/${G_ARCHIVE}/$1"/* "$1"/
+		else
+			echo 1>&2 "Not copying: destination \`$1' already exists"
+			return 1
+		fi
+	else
+		if ! [ -e "$2" ]; then
+			mkdir -p "$2"
+			cp -a "${G_ROOT}/${G_ARCHIVE}/$1"/* "$2"/
+		else
+			echo 1>&2 "Not copying: destination \`$2' already exists"
+			return 1
+		fi
+	fi
+}
+
+botbrew_patchtree() {
+	if [ "$1" != "" ] && [ -d "$2" ] && [ -f "$3" ]; then
+		local PATCHNAME=$(basename "$3")
+		if ! [ -e $2/.patch.${PATCHNAME} ]; then
+			local PATCH=$(readlink -m "$3")
+			(cd "$2"; patch $1 < ${PATCH}; cp ${PATCH} .patch.${PATCHNAME})
+		fi
+	else
+		echo 1>&2 "Must specify options, directory, and patch"
+		return 1
+	fi
+}
+
+botbrew_import() {
+	if [ "$1" = "" ]; then
+		local DST=${G_IMPORT}
+		local DEP="${PACKAGE_DEPEND[@]}"
+	else
+		local DST=$1
+		shift
+		local DEP="$@"
+	fi
+	mkdir -p ${DST}
+	local item
+	for item in ${DEP[@]}; do
+		if ! [ -e ${DST}/.import.${item} ]; then
+			(cd ${G_ROOT}/${G_COOKBOOK}/${item} && botbrew_recipe build) && \
+				cp -rlf ${G_ROOT}/${G_COOKBOOK}/${item}/${G_EXPORT}/* ${DST}/ && \
+				touch ${DST}/.import.${item} || return 1
+		fi
+	done
+}
+
+botbrew_recipe() {
+	if [ -f ${G_RECIPE} ]; then
+		local PACKAGE_ACTION=$1
+		shift
+		(
+			G_WORKDIR=$(pwd)
+			G_SYSDIR=${G_WORKDIR}/${G_IMPORT}/system
+			G_BINDIR=${G_SYSDIR}/bin
+			G_LIBDIR=${G_SYSDIR}/lib
+			G_INCDIR=${G_SYSDIR}/include
+			PACKAGE_NAME=
+			PACKAGE_VERSION=
+			PACKAGE_DEPEND=()
+			unset -f botbrew_do_query
+			unset -f botbrew_do_build
+			unset -f botbrew_do_package
+			unset -f botbrew_do_clean
+			unset -f botbrew_do_distclean
+			unset -f botbrew_do_clobber
+			unset -f botbrew_do_isbuilt
+			G_BOTBREW=1
+			. ${G_RECIPE}
+			echo "---------8<---------[ BotBrew ]---------8<---------"
+			echo "% [N] ${PACKAGE_NAME}"
+			echo "% [V] ${PACKAGE_VERSION}"
+			for i in "${PACKAGE_DEPEND[@]}"; do
+				echo "% [D] $i"
+			done
+			echo "--------->8---------[ ======= ]--------->8---------"
+			case ${PACKAGE_ACTION} in
+				query|build|package|clean|distclean|clobber)
+					if [ "${PACKAGE_ACTION}" = build ]; then
+						if type botbrew_do_isbuilt &> /dev/null; then
+							if botbrew_do_isbuilt "$@"; then
+								echo 1>&2 "Already built ${PACKAGE_NAME}!"
+								exit 0
+							fi
+						else
+							if _botbrew_do_isbuilt "$@"; then
+								echo 1>&2 "Already built ${PACKAGE_NAME}!"
+								exit 0
+							fi
+						fi
+					fi
+					if type "botbrew_do_${PACKAGE_ACTION}" &> /dev/null; then
+						"botbrew_do_${PACKAGE_ACTION}" "$@"
+					else
+						"_botbrew_do_${PACKAGE_ACTION}" "$@"
+					fi
+					;;
+				"")
+					;;
+				*)
+					echo 1>&2 "invalid action \`${PACKAGE_ACTION}'"
+					;;
+			esac
+		)
+	else
+		echo 1>&2 "No recipe in this directory."
+		return 1
+	fi
+}
+
+botbrew_reload() {
+	. ${G_SELF}
+}
+
+self() {
+	echo ${G_SELF}
+}
+
+_botbrew_do_query() {
+	:
+}
+_botbrew_do_build() {
+	:
+}
+_botbrew_do_package() {
+	(
+		CWD=$(pwd)
+		cd "${G_ROOT}/${G_REPO}"
+		for item in ${CWD}/${G_PACKAGE}/*.yml; do
+			[ -f "${item}" ] || continue
+			cat "${item}" | opkg-buildyaml "${CWD}"
+		done
+	)
+}
+_botbrew_do_clean() {
+	if [ -e ${G_OBJECT}/Makefile ]; then
+		${G_MAKE} -C ${G_OBJECT} clean
+	fi
+}
+_botbrew_do_distclean() {
+	rm -rf ${G_OBJECT} ${G_IMPORT}
+}
+_botbrew_do_clobber() {
+	rm -rf ${G_SOURCE} ${G_OBJECT} ${G_IMPORT} ${G_EXPORT}
+}
+_botbrew_do_isbuilt() {
+	if [ -f "${G_EXPORT}/.d" ]; then
+		return 0
+	else
+		return 1
+	fi
+}
+
+botbrew_make_repo_index() {
+	(cd ${G_ROOT}/${G_REPO}; opkg-make-index . > Packages; gzip -c9 Packages > Packages.gz)
+}
+
+botbrew_makefile() {
+	(
+		BUILDALL=()
+		PACKAGEALL=()
+		cd ${G_ROOT}
+		echo ".PHONY: all build-all package-all"
+		echo "all: build-all"
+		for item in ${G_COOKBOOK}/*/${G_RECIPE} ${G_COOKBOOK}/*/*/${G_RECIPE}; do
+			if [ -f ${item} ]; then
+				G_BOTBREW=1
+				. ${item}
+				local DIR=$(dirname ${item})
+				local NAME=$(basename ${DIR})
+				echo ".PHONY: ${NAME} package-${NAME} clean-${NAME} distclean-${NAME} clobber-${NAME}"
+				echo "${G_ROOT}/${item}/${G_EXPORT}/.d: ${PACKAGE_DEPEND[@]}"
+				echo "${NAME}: ${G_ROOT}/${item}/${G_EXPORT}/.d"
+				echo "package-${NAME}: ${NAME}"
+				echo "	cd ${G_ROOT}/${DIR}; ${G_ROOT}/botbrew recipe package"
+				echo "clean-${NAME}:"
+				echo "	cd ${G_ROOT}/${DIR}; ${G_ROOT}/botbrew recipe clean"
+				echo "distclean-${NAME}:"
+				echo "	cd ${G_ROOT}/${DIR}; ${G_ROOT}/botbrew recipe distclean"
+				echo "clobber-${NAME}:"
+				echo "	cd ${G_ROOT}/${DIR}; ${G_ROOT}/botbrew recipe clobber"
+				echo "${G_ROOT}/${item}/${G_EXPORT}/.d:"
+				echo "	cd ${G_ROOT}/${DIR}; ${G_ROOT}/botbrew recipe build"
+				BUILDALL[${#BUILDALL[@]}]=${NAME}
+				PACKAGEALL[${#PACKAGEALL[@]}]="package-${NAME}"
+			fi
+		done
+		echo "build-all: ${BUILDALL[@]}"
+		echo "package-all: ${PACKAGEALL[@]}"
+	)
+}
+
+# Common fixes
+
+botbrew_fix_config() {
+	if [ -d "$1" ]; then
+		if ! [ -e $1/.fix_config ]; then
+			chmod +w "$1"/config.guess "$1"/config.sub
+			cp ${G_ROOT}/config.guess ${G_ROOT}/config.sub "$1"/
+			touch $1/.fix_config
+		fi
+	else
+		echo 1>&2 "No such directory \`$1'"
+		return 1
+	fi
+}
+
+botbrew_fix_gnulib() {
+	if [ -e $1/.fix_gnulib ]; then
+		return
+	fi
+	if [ -f "$1/stdint.in.h" ]; then
+		${G_MAKE} -C $1 -j1 stdint.in.h
+		echo '#@INCLUDE_NEXT@ @NEXT_STDINT_H@' > "$1/stdint.in.h"
+	fi
+	if [ -f "$1/time.in.h" ]; then
+		mkdir -p "$1/sys" "$1/asm"
+		echo '#include <time.h>' > "$1/sys/types.h"
+		echo '#include_next <sys/types.h>' >> "$1/sys/types.h"
+		echo '#include <sys/types.h>' > "$1/asm/siginfo.h"
+		echo '#include_next <asm/siginfo.h>' >> "$1/asm/siginfo.h"
+	fi
+	if [ -f "$1/nl_langinfo.c" ]; then
+		cat $1/nl_langinfo.c \
+			| sed -E 's/localeconv \(\) ->decimal_point/","/g' \
+			| sed -E 's/localeconv \(\) ->thousands_sep/","/g' \
+			> temp
+		cat temp > $1/nl_langinfo.c
+		rm -f temp
+	fi
+	touch $1/.fix_gnulib
+}
+
+botbrew_fix_crosslibconfig() {
+	local FILE=$(readlink -m $1)
+	local DIR=$(dirname ${FILE})
+	local NAME=$(basename ${FILE})
+	if ! [ -e ${DIR}/.crosslibconfig.${NAME} ]; then
+		case "${DIR}" in
+			*/system/bin)
+				echo "#!/bin/sh" > temp
+				echo "prefix=$(dirname ${DIR})" >> temp
+				sed -e 's/^prefix=.*//g' ${FILE} >> temp
+				mv ${FILE} ${DIR}/.crosslibconfig.${NAME}
+				mv temp ${FILE}
+				chmod +x ${FILE}
+				;;
+			*)
+				echo 1>&2 "Don't know how to convert \`$1'"
+				return 1
+				;;
+		esac
+	fi
+}
+
+botbrew_fix_shell_path() {
+	local file
+	for file in "$@"; do
+		sed -e 's/\/bin\/sh/\/system\/bin\/sh/g' $file > temp
+		cat temp > $file
+	done
+	rm -f temp
+}
+
+# configuration
+if [ -f ${G_ROOT}/config.sh ]; then
+	. ${G_ROOT}/config.sh || true
+fi
+if [ "${G_MAINTAINER}" = "" ] || [ "${G_NDKPATH}" = "" ]; then
+	echo 1>&2 "Please set G_MAINTAINER and G_NDKPATH in \`config.sh'."
+	exit 1
+fi
+
+G_TRIPLET=${G_TRIPLET:-arm-linux-androideabi}
+G_NDKREL=${G_NDKREL:-7}
+G_NDKAPI=${G_NDKAPI:-8}
+G_NDKGCC=${G_NDKGCC:-4.4.3}
+
+G_NDKPLATFORM=${G_NDKPLATFORM:-${G_NDKPATH}/platforms/android-${G_NDKAPI}/arch-arm}
+G_NDKTOOLCHAIN=${G_NDKTOOLCHAIN:-${G_NDKPATH}/toolchains/${G_TRIPLET}-${G_NDKGCC}}
+G_NDKPREBUILT=${G_NDKPREBUILT:-${G_NDKTOOLCHAIN}/prebuilt/linux-x86}
+G_NDKLDSCRIPTS=${G_NDKLDSCRIPTS:-${G_NDKPREBUILT}/${G_TRIPLET}/lib/ldscripts}
+G_CC=${G_CC:-${G_TRIPLET}-gcc}
+G_CXX=${G_CXX:-${G_TRIPLET}-g++}
+G_LD=${G_LD:-${G_TRIPLET}-ld}
+G_AR=${G_AR:-${G_TRIPLET}-ar}
+G_NM=${G_NM:-${G_TRIPLET}-nm}
+G_RANLIB=${G_RANLIB:-${G_TRIPLET}-ranlib}
+G_STRIP=${G_STRIP:-${G_TRIPLET}-strip}
+G_OBJCOPY=${G_OBJCOPY:-${G_TRIPLET}-objcopy}
+G_OBJDUMP=${G_OBJDUMP:-${G_TRIPLET}-objdump}
+G_MAKE=${G_MAKE:-"make -j$((${G_NCPU}+1))"}
+
+export PATH=${G_ROOT}/bin:${G_ROOT}/bin/opkg-utils:${G_NDKPREBUILT}/bin:${G_NDKPATH}:${G_PATH}
+export AGCC_NDK=${G_NDKPATH}
+export AGCC_REL=${G_NDKREL}
+export AGCC_CXC=${G_TRIPLET}
+export AGCC_API=${G_NDKAPI}
+export AGCC_GCC=${G_NDKGCC}
+export OPKG_MAINTAINER=${G_MAINTAINER}
+
+if [ $# -gt 0 ]; then case "$1" in
+	download|unpack|svn|git|hg|copytree|recipe|makefile)
+		CMD="$1"
+		shift
+		botbrew_${CMD} "$@"
+		;;
+esac; fi

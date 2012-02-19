@@ -17,11 +17,11 @@
  */
  
  #include <ctype.h>
-+#ifndef ANDROID
- #include <sys/statvfs.h>
-+#else
++#ifdef ANDROID
 +#include <sys/statfs.h>
 +#define statvfs statfs
++#else
+ #include <sys/statvfs.h>
 +#endif
  
  #include "libbb/libbb.h"

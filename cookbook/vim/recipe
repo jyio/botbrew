@@ -1,0 +1,44 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=7.3
+PACKAGE_DEPEND=( ncursesw )
+
+botbrew_do_build() {
+	botbrew_hg https://${PACKAGE_NAME}.googlecode.com/hg ${PACKAGE_NAME}
+	botbrew_copytree ${PACKAGE_NAME} ${G_SOURCE} || true
+	botbrew_import
+	botbrew_fix_crosslibconfig ${G_IMPORT}/system/bin/ncursesw5-config
+	if ! [ -e ${G_OBJECT}/Makefile ]; then
+		(
+			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
+			cp -rlf ../${G_SOURCE}/* ./
+			# configuration variables from
+			# http://credentiality2.blogspot.com/2010/08/native-vim-for-android.html
+			CC="agcc.bash" CPPFLAGS="-I${G_INCDIR}" LD="agcc.bash" LDFLAGS="-L${G_LIBDIR}" STRIP="${G_STRIP} --strip-unneeded" \
+			vim_cv_toupper_broken=no \
+			vim_cv_terminfo=yes \
+			vim_cv_tty_group=world \
+			vim_cv_getcwd_broken=no \
+			vim_cv_stat_ignores_slash=no \
+			vim_cv_memmove_handles_overlap=no \
+			vim_cv_bcopy_handles_overlap=no \
+			vim_cv_memcpy_handles_overlap=no \
+			./configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
+				--with-tlib=ncursesw --disable-gtktest
+			cat src/auto/config.h \
+				| sed -e 's/#define HAVE_SYSINFO 1//' \
+				| sed -e 's/#define HAVE_SYSINFO_MEM_UNIT 1//' \
+				> temp
+			mv temp src/auto/config.h
+		)
+	fi
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		${G_MAKE} -C ${G_OBJECT}
+		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
+		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/* || true
+		botbrew_fix_shell_path $(grep -rlIF '/bin/sh' ${G_EXPORT})
+		touch ${G_EXPORT}/.d
+	fi
+}

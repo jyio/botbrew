@@ -1,5 +1,5 @@
 Package: libncurses-dev
-Version: 5.9-0
+Version: 5.9-1
 Architecture: armeabi
 Section: libdevel
 Priority: optional
@@ -11,6 +11,7 @@ Depends: libncurses
 Data:
  /CONTROL/init: |
     #!/bin/sh
-    mkdir -p $PACKAGE/system $PACKAGE/system/lib
-    cp -r $BUILD/system/include $BUILD/system/lib $PACKAGE/system/
-    cp -r $BUILD/system/lib/*.a $PACKAGE/system/lib/
+    mkdir -p $PACKAGE/system/bin $PACKAGE/system/lib
+    cp $EXPORT/system/bin/*-config $PACKAGE/system/bin/
+    cp -r $EXPORT/system/include $EXPORT/system/lib $PACKAGE/system/
+    cp -r $EXPORT/system/lib/*.a $PACKAGE/system/lib/

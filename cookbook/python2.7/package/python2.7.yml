@@ -1,5 +1,5 @@
 Package: python2.7
-Version: 2.7.2-1
+Version: 2.7.2-2
 Architecture: armeabi
 Section: python
 Priority: optional
@@ -7,23 +7,24 @@ Source: http://www.python.org/
 Description: |
  An interactive high-level object-oriented language (version 2.7)
  Version 2.7 of the high-level, interactive object oriented language, includes an extensive class library with lots of goodies for network programming, system administration, sounds and graphics.
-Depends: libsqlite3
+Depends: python2.7-minimal, libbz2, libsqlite3
 Data:
- /CONTROL/postinst: |
-    #!/system/bin/sh
-    if [ ! -f /system/bin/python ]; then
-    	ln -s python2.7 /system/bin/python
-    fi
- /CONTROL/prerm: |
-    #!/system/bin/sh
-    if [ "`readlink /system/bin/python`" == "python2.7" ]; then
-    	rm /system/bin/python
-    fi
  /CONTROL/init: |
-    #!/bin/sh
-    mkdir -p $PACKAGE/system/include/python2.7
-    mkdir -p $PACKAGE/system/lib
-    cp -r $BUILD/system/bin $PACKAGE/system/
-    cp -r $BUILD/system/include/python2.7/pyconfig.h $PACKAGE/system/include/python2.7/
-    cp -r $BUILD/system/lib/python2.7 $BUILD/system/lib/*.so $PACKAGE/system/lib/
-    rm -f $PACKAGE/system/bin/python
+    #!/bin/bash
+    mkdir -p $PACKAGE/system/include/python2.7 $PACKAGE/system/lib
+    cp -r $EXPORT/system/bin $PACKAGE/system/
+    cp -r $EXPORT/system/include/python2.7/pyconfig.h $PACKAGE/system/include/python2.7/
+    cp -r $EXPORT/system/lib/python2.7 $PACKAGE/system/lib/
+    rm -f $PACKAGE/system/bin/python $PACKAGE/system/bin/python2.7 $PACKAGE/system/bin/*-config
+    rm $PACKAGE/system/lib/python2.7/{ConfigParser.py,StringIO.py,UserDict.py,__future__.py,_abcoll.py}
+    rm $PACKAGE/system/lib/python2.7/{_weakrefset.py,abc.py,atexit.py,base64.py,bisect.py,codecs.py}
+    rm $PACKAGE/system/lib/python2.7/{collections.py,compileall.py,copy.py,copy_reg.py,dis.py,fnmatch.py}
+    rm $PACKAGE/system/lib/python2.7/{functools.py,genericpath.py,getopt.py,glob.py,hashlib.py,heapq.py}
+    rm $PACKAGE/system/lib/python2.7/{inspect.py,keyword.py,linecache.py,md5.py,opcode.py,optparse.py}
+    rm $PACKAGE/system/lib/python2.7/{os.py,pickle.py,pkgutil.py,platform.py,popen2.py,posixpath.py}
+    rm $PACKAGE/system/lib/python2.7/{py_compile.py,random.py,re.py,repr.py,runpy.py,sha.py,shutil.py}
+    rm $PACKAGE/system/lib/python2.7/{site.py,socket.py,sre.py,sre_compile.py,sre_constants.py,sre_parse.py}
+    rm $PACKAGE/system/lib/python2.7/{ssl.py,stat.py,string.py,stringprep.py,struct.py,subprocess.py}
+    rm $PACKAGE/system/lib/python2.7/{sysconfig.py,tempfile.py,textwrap.py,token.py,tokenize.py}
+    rm -r $PACKAGE/system/lib/python2.7/{traceback.py,types.py,warnings.py,weakref.py,encodings,logging}
+    rm $PACKAGE/system/lib/python2.7/config/Makefile $PACKAGE/system/include/python2.7/pyconfig.h

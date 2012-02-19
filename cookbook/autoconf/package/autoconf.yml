@@ -12,5 +12,5 @@ Data:
  /CONTROL/init: |
     #!/bin/sh
     mkdir -p $PACKAGE/system/share
-    cp -r $BUILD/system/bin $PACKAGE/system/
-    cp -r $BUILD/system/share/autoconf $BUILD/system/share/emacs $PACKAGE/system/share/
+    cp -r $EXPORT/system/bin $PACKAGE/system/
+    cp -r $EXPORT/system/share/autoconf $EXPORT/system/share/emacs $PACKAGE/system/share/

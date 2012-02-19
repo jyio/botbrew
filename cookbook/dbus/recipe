@@ -1,0 +1,46 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=1.5.6
+PACKAGE_DEPEND=( expat )
+
+FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
+ARCHIVE=${FULLNAME}.tar.gz
+
+botbrew_do_build() {
+	botbrew_download http://cgit.freedesktop.org/${PACKAGE_NAME}/${PACKAGE_NAME}/snapshot/${ARCHIVE} ${ARCHIVE}
+	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
+	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
+	botbrew_import
+	if ! [ -e ${G_SOURCE}/configure ]; then
+		(cd ${G_SOURCE}; ./autogen.sh)
+	fi
+	if ! [ -e ${G_OBJECT}/Makefile ]; then
+		(
+			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
+			CC="agcc.bash" CPPFLAGS="-I${G_INCDIR}" LD="agcc.bash" LDFLAGS="-L${G_LIBDIR}" \
+			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
+				--disable-modular-tests \
+				--disable-tests
+			sed -e 's/#define HAVE_POSIX_GETPWNAM_R 1//g' config.h > temp
+			mv temp config.h
+			cat doc/Makefile \
+				| sed -e 's/install-html-recursive//g' \
+				| sed -e 's/^DATA =.*//g' \
+				| sed -e 's/^html_DATA =.*//g' \
+				| sed -e 's/^dist_html_DATA =.*//g' \
+				> temp
+			mv temp doc/Makefile
+		)
+	fi
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		${G_MAKE} -C ${G_OBJECT}
+		${G_MAKE} -C ${G_OBJECT} -j1 install DESTDIR=$(pwd)/${G_EXPORT}
+		rm -r ${G_EXPORT}/system/lib/*.la ${G_EXPORT}/system/lib/pkgconfig
+		sed -e 's/\/tmp/\/cache/g' ${G_EXPORT}/system/etc/dbus-1/session.conf > temp
+		mv temp ${G_EXPORT}/system/etc/dbus-1/session.conf
+		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/* ${G_EXPORT}/system/libexec/* || true
+		touch ${G_EXPORT}/.d
+	fi
+}

@@ -1,0 +1,17 @@
+Package: libllvm-dev
+Version: 3.0-0
+Architecture: armeabi
+Section: libdevel
+Priority: optional
+Source: http://llvm.org/
+Description: |
+ Low-Level Virtual Machine (LLVM), libraries and headers
+ The Low-Level Virtual Machine (LLVM) is a collection of libraries and tools that make it easy to build compilers, optimizers, Just-In-Time code generators, and many other compiler-related programs. LLVM uses a single, language-independent virtual instruction set both as an offline code representation (to communicate code between compiler phases and to run-time systems) and as the compiler internal representation (to analyze and transform programs). This persistent code representation allows a common set of sophisticated compiler techniques to be applied at compile-time, link-time, install-time, run-time, or "idle-time" (between program runs). This package provides the libraries and headers to develop applications using libllvm.
+Depends: libllvm
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p $PACKAGE/system/bin $PACKAGE/system/include $PACKAGE/system/lib
+    cp $EXPORT/system/bin/*-config $PACKAGE/system/bin/
+    cp -r $EXPORT/system/include/llvm* $PACKAGE/system/include/
+    cp $EXPORT/system/lib/libLLVM*.a $EXPORT/system/lib/libEnhancedDisassembly.a $EXPORT/system/lib/libLTO* $EXPORT/system/lib/libprofile* $PACKAGE/system/lib/

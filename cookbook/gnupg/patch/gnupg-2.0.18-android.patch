@@ -1,0 +1,11 @@
+--- config.h.in
++++ config.h.in
+@@ -808,6 +808,8 @@
+ #define GNUPG_DEFAULT_HOMEDIR "c:/gnupg"
+ #elif defined(__VMS)
+ #define GNUPG_DEFAULT_HOMEDIR "/SYS\$LOGIN/gnupg"
++#elif defined(ANDROID)
++#define GNUPG_DEFAULT_HOMEDIR "/mnt/sdcard/.gnupg"
+ #else
+ #define GNUPG_DEFAULT_HOMEDIR "~/.gnupg"
+ #endif

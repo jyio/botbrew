@@ -1,0 +1,15 @@
+Package: tcpdump-doc
+Version: 4.2.1-0
+Architecture: all
+Section: doc
+Priority: optional
+Source: http://www.tcpdump.org/
+Description: |
+ A powerful tool for network monitoring and data acquisition
+ This program allows you to dump the traffic on a network. tcpdump is able to examine IPv4, ICMPv4, IPv6, ICMPv6, UDP, TCP, SNMP, AFS BGP, RIP, PIM, DVMRP, IGMP, SMB, OSPF, NFS and many other packet types. It can be used to print out the headers of packets on a network interface, filter packets that match a certain expression. You can use this tool to track down network problems, to detect "ping attacks" or to monitor network activities.
+Depends: libpcap
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p $PACKAGE/system
+    cp -r $EXPORT/system/share $PACKAGE/system/

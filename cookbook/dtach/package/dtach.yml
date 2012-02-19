@@ -1,5 +1,5 @@
 Package: dtach
-Version: 0.8-0
+Version: 0.8-1
 Architecture: armeabi
 Section: misc
 Priority: optional
@@ -11,4 +11,4 @@ Data:
  /CONTROL/init: |
     #!/bin/sh
     mkdir -p $PACKAGE/system
-    cp -r $BUILD/system/bin $PACKAGE/system/
+    cp -r $EXPORT/system/bin $PACKAGE/system/

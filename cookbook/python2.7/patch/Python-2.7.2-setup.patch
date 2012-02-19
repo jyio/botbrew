@@ -1,0 +1,25 @@
+--- setup.py
++++ setup.py
+@@ -445,6 +445,13 @@
+                 '/lib', '/usr/lib',
+                 ]
+             inc_dirs += ['/usr/include']
++        else:
++            cross_compile_lib = os.environ.get('CROSS_COMPILE_LIB','').strip()
++            if len(cross_compile_lib) > 0:
++                lib_dirs += cross_compile_lib.split(':')
++            cross_compile_inc = os.environ.get('CROSS_COMPILE_INC','').strip()
++            if len(cross_compile_inc) > 0:
++                inc_dirs += cross_compile_inc.split(':')
+         exts = []
+         missing = []
+ 
+@@ -652,6 +659,8 @@
+                     if 'tinfo' in ln: # termcap interface split out from ncurses
+                         readline_termcap_library = 'tinfo'
+                         break
++        elif self.cross_compile:
++            readline_termcap_library = os.environ.get('TERMCAP_LIBRARY')
+         # Issue 7384: If readline is already linked against curses,
+         # use the same library for the readline and curses modules.
+         if 'curses' in readline_termcap_library:

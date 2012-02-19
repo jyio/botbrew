@@ -1,0 +1,42 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=5.51
+PACKAGE_DEPEND=( openssl libpcap pcre )
+
+FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
+ARCHIVE=${FULLNAME}.tar.bz2
+
+botbrew_do_build() {
+	botbrew_download http://nmap.org/dist/${ARCHIVE} ${ARCHIVE}
+	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
+	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
+	botbrew_patchtree -p0 ${G_SOURCE} patch/nmap-5.51-android.patch
+	botbrew_import
+	botbrew_fix_crosslibconfig ${G_IMPORT}/system/bin/pcap-config
+	botbrew_fix_crosslibconfig ${G_IMPORT}/system/bin/pcre-config
+	if ! [ -e ${G_OBJECT}/Makefile ]; then
+		(
+			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
+			cp -rlf ../${G_SOURCE}/* ./
+			CC="agcc.bash" CXX="agcc-bash-g++" LD="agcc.bash" \
+			ac_cv_func_malloc_0_nonnull=yes ac_cv_func_realloc_0_nonnull=yes \
+			./configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
+				--with-openssl=${G_SYSDIR} \
+				--with-libpcap=${G_SYSDIR} \
+				--with-libpcre=${G_SYSDIR} \
+				--with-libdnet=included \
+				--with-liblua=included \
+				--without-zenmap
+			sed -e 's/-lpthread//g' nping/Makefile.in > temp
+			mv temp nping/Makefile.in
+		)
+	fi
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		${G_MAKE} -C ${G_OBJECT}
+		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
+		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/* || true
+		touch ${G_EXPORT}/.d
+	fi
+}

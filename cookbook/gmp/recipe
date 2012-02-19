@@ -1,0 +1,38 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=5.0.2
+PACKAGE_DEPEND=()
+
+FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
+ARCHIVE=${FULLNAME}.tar.gz
+
+botbrew_do_build() {
+	botbrew_download http://ftp.gnu.org/gnu/${PACKAGE_NAME}/${ARCHIVE} ${ARCHIVE}
+	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
+	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
+	botbrew_patchtree -p0 ${G_SOURCE} patch/gmp-5.0.2-android.patch
+	if ! [ -e ${G_SOURCE}/.do.autoconf ]; then
+		(cd ${G_SOURCE}; autoreconf -sfi)
+		touch ${G_SOURCE}/.do.autoconf
+	fi
+	if ! [ -e ${G_OBJECT}/Makefile ]; then
+		(
+			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
+			CC="agcc.bash" CXX="agcc-bash-g++" LD="agcc.bash" \
+			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
+				--enable-cxx
+			cat config.h \
+				| sed -e 's/#define HAVE_LOCALE_H 1//' \
+				> temp
+			mv temp config.h
+		)
+	fi
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		${G_MAKE} -C ${G_OBJECT}
+		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
+		rm ${G_EXPORT}/system/lib/*.la
+		touch ${G_EXPORT}/.d
+	fi
+}

@@ -1,5 +1,5 @@
 Package: dropbear
-Version: 2011.54-0
+Version: 2011.54-1
 Architecture: armeabi
 Section: net
 Priority: optional
@@ -14,10 +14,10 @@ Data:
     exec dropbear -F -E -p 22
  /system/etc/service/dropbear/log/run: |
     #!/system/bin/sh
-    exec svlogd -tt /data/local/var/log/dropbear
+    exec svlogd -tt /data/log/dropbear
  /CONTROL/postinst: |
     #!/system/bin/sh
-    mkdir -p /system/etc/dropbear /data/local/var/run/sv.dropbear /data/local/var/run/sv.log.dropbear /data/local/var/log/dropbear
+    mkdir -p /system/etc/dropbear /data/run/sv.dropbear /data/run/sv.log.dropbear /data/log/dropbear
     if [ ! -e /system/etc/dropbear/dropbear_rsa_host_key ]; then
     	dropbearkey -t rsa -f /system/etc/dropbear/dropbear_rsa_host_key
     fi
@@ -27,16 +27,22 @@ Data:
     if [ -d /system/etc/service/enabled ] && ! [ -e /system/etc/service/enabled/dropbear ]; then
     	ln -s /system/etc/service/dropbear /system/etc/service/enabled/dropbear
     fi
+    if [ ! -f /system/bin/ssh ]; then
+    	ln -s dropbear /system/bin/ssh
+    fi
  /CONTROL/prerm: |
     #!/system/bin/sh
     busybox rm -rf /system/etc/service/enabled/dropbear
+    if [ "`readlink /system/bin/ssh`" == "dropbear" ]; then
+    	rm /system/bin/ssh
+    fi
  /CONTROL/postrm: |
     #!/system/bin/sh
-    busybox rm -rf /data/local/var/run/sv.dropbear /data/local/var/run/sv.log.dropbear
+    busybox rm -rf /data/run/sv.dropbear /data/run/sv.log.dropbear
  /CONTROL/init: |
     #!/bin/sh
     mkdir -p $PACKAGE/system
-    cp -r $BUILD/system/bin $PACKAGE/system/
-    ln -s /data/local/var/run/sv.dropbear $PACKAGE/system/etc/service/dropbear/supervise
-    ln -s /data/local/var/run/sv.log.dropbear $PACKAGE/system/etc/service/dropbear/log/supervise
+    cp -r $EXPORT/system/bin $PACKAGE/system/
+    ln -s /data/run/sv.dropbear $PACKAGE/system/etc/service/dropbear/supervise
+    ln -s /data/run/sv.log.dropbear $PACKAGE/system/etc/service/dropbear/log/supervise
     chmod +x $PACKAGE/system/etc/service/dropbear/run $PACKAGE/system/etc/service/dropbear/log/run

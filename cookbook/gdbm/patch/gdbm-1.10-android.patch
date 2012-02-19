@@ -1,0 +1,11 @@
+--- src/testgdbm.c
++++ src/testgdbm.c
+@@ -30,6 +30,8 @@
+ #include <sys/ioctl.h>
+ #ifdef HAVE_SYS_TERMIOS_H
+ # include <sys/termios.h>
++#elif defined ANDROID
++# include <asm/termios.h>
+ #endif
+ #include <stdarg.h>
+ #ifdef HAVE_LOCALE_H

@@ -1,0 +1,46 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=1.6.5
+PACKAGE_DEPEND=( glib gettext pcre libiconv gnutls libgcrypt libpcap openssl )
+
+FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
+ARCHIVE=${FULLNAME}.tar.bz2
+
+botbrew_do_build() {
+	botbrew_download http://wiresharkdownloads.riverbed.com/${PACKAGE_NAME}/src/${ARCHIVE} ${ARCHIVE}
+	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
+	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
+	botbrew_fix_config ${G_SOURCE}
+	botbrew_patchtree -p0 ${G_SOURCE} patch/wireshark-1.6.5-android.patch
+	botbrew_import
+	botbrew_fix_crosslibconfig ${G_IMPORT}/system/bin/libgcrypt-config
+	if ! [ -e ${G_OBJECT}/Makefile ]; then
+		(
+			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
+			CC="agcc.bash" CPPFLAGS="-I${G_INCDIR} -I${G_INCDIR}/glib-2.0" \
+			LD="agcc.bash" LDFLAGS="-L${G_LIBDIR}" LIBS="-lintl -lpcre -liconv" \
+			CC_FOR_BUILD="gcc" \
+			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
+				--disable-wireshark \
+				--disable-gtktest \
+				--disable-glibtest \
+				--with-libgcrypt-prefix=${G_SYSDIR} \
+				--with-ssl=${G_SYSDIR}
+			for file in $(grep -rlIF lrt .); do
+				sed -e 's/-lrt//g' ${file} > temp
+				cat temp > ${file}
+			done
+			sed -e 's/TMPDIR-\/tmp/TMPDIR-\/cache/g' Makefile > temp
+			mv temp Makefile
+		)
+	fi
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		${G_MAKE} -C ${G_OBJECT}
+		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
+		find ${G_EXPORT} -type f -name '*.la' -exec rm -f {} \;
+		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/* || true
+		touch ${G_EXPORT}/.d
+	fi
+}

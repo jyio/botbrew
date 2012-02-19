@@ -1,0 +1,36 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=2.4
+PACKAGE_DEPEND=( gmp )
+
+FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
+ARCHIVE=${FULLNAME}.tar.gz
+
+botbrew_do_build() {
+	botbrew_download http://ftp.gnu.org/gnu/${PACKAGE_NAME}/${ARCHIVE} ${ARCHIVE}
+	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
+	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
+	botbrew_fix_config ${G_SOURCE}
+	botbrew_import
+	if ! [ -e ${G_OBJECT}/Makefile ]; then
+		(
+			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
+			CC="agcc.bash" CXX="agcc-bash-g++" CPPFLAGS="-I${G_INCDIR}" \
+			LD="agcc.bash" LDFLAGS="-L${G_LIBDIR}" \
+			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
+				--enable-shared
+		)
+	fi
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		${G_MAKE} -C ${G_OBJECT}
+		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
+		for file in ${G_EXPORT}/system/lib/*.so.*.*; do
+			mv -T "${file}" "${file%.*.*}"
+		done
+		rm -rf ${G_EXPORT}/system/lib/*.so.* ${G_EXPORT}/system/lib/pkgconfig
+		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/* ${G_EXPORT}/system/lib/*.so || true
+		touch ${G_EXPORT}/.d
+	fi
+}

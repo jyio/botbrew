@@ -1,0 +1,38 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=3071000
+PACKAGE_DEPEND=( readline ncursesw )
+
+FULLNAME=${PACKAGE_NAME}-amalgamation-${PACKAGE_VERSION}
+ARCHIVE=${FULLNAME}.zip
+OPTIONS=( -DHAVE_READLINE=1 -DSQLITE_ENABLE_FTS3 -DSQLITE_ENABLE_FTS3_PARENTHESIS -DSQLITE_ENABLE_FTS4 -DSQLITE_ENABLE_RTREE -DSQLITE_ENABLE_STAT3 -DSQLITE_SOUNDEX )
+
+botbrew_do_build() {
+	botbrew_download http://sqlite.org/${ARCHIVE} ${ARCHIVE}
+	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
+	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
+	botbrew_import
+	botbrew_fix_crosslibconfig ${G_IMPORT}/system/bin/ncursesw5-config
+	if ! [ -e ${G_OBJECT}/.d ]; then
+		(
+			set -x
+			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
+			cp -rlf ../${G_SOURCE}/* ./
+			touch .d
+		)
+	fi
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		set -x
+		rm -rf ${G_EXPORT} ${G_OBJECT}/*.o
+		mkdir -p ${G_EXPORT}/system/bin ${G_EXPORT}/system/lib ${G_EXPORT}/system/include
+		(cd ${G_OBJECT}; agcc.bash -c shell.c sqlite3.c "${OPTIONS[@]}" -I${G_INCDIR})
+		${G_AR} -r ${G_EXPORT}/system/lib/libsqlite3.a ${G_OBJECT}/sqlite3.o
+		agcc.bash -o ${G_EXPORT}/system/lib/libsqlite3.so -shared -Wl,-soname,libsqlite3.so ${G_OBJECT}/sqlite3.o -ldl
+		agcc.bash -o ${G_EXPORT}/system/bin/sqlite3 ${G_OBJECT}/shell.o -L${G_EXPORT}/system/lib -L${G_LIBDIR} -lsqlite3 -lreadline -lncursesw
+		cp -rl ${G_OBJECT}/*.h ${G_EXPORT}/system/include/
+		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/* ${G_EXPORT}/system/lib/*.so || true
+		touch ${G_EXPORT}/.d
+	fi
+}

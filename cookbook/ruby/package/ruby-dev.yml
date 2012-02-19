@@ -1,5 +1,5 @@
 Package: ruby-dev
-Version: 1.9.3.0-0
+Version: 1.9.3.0-1
 Architecture: armeabi
 Section: ruby
 Priority: optional
@@ -11,5 +11,5 @@ Data:
  /CONTROL/init: |
     #!/bin/sh
     mkdir -p $PACKAGE/system/lib
-    cp -r $BUILD/system/include $PACKAGE/system/
-    cp -r $BUILD/system/lib/lib*.a $PACKAGE/system/lib/
+    cp -r $EXPORT/system/include $PACKAGE/system/
+    cp -r $EXPORT/system/lib/lib*.a $PACKAGE/system/lib/

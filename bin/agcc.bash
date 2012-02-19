@@ -71,11 +71,13 @@ LDSCRIPTS=$PREBUILT/$AGCC_CXC/lib/ldscripts
 
 if [ "$CMD" = "g++" ] || [ "$CMD" = "c++" ]; then
 	CMD=g++
+	STD="-std=gnu++0x"
 else
 	CMD=gcc
+	STD="-std=gnu99"
 fi
 
-INC=( -I$PLATFORM/usr/include )
+INC=( "-I$PLATFORM/usr/include" )
 
 CPP=( -D__ARM_ARCH_5__ -D__ARM_ARCH_5T__ -D__ARM_ARCH_5E__ -D__ARM_ARCH_5TE__ -DANDROID -DSK_RELEASE -DNDEBUG -UDEBUG )
 
@@ -87,15 +89,16 @@ OFLAGS=( -O2 -finline-functions -finline-limit=300 -fno-inline-functions-called-
 
 LNFLAGS=( -Wl,-rpath-link=$PLATFORM/usr/lib -L$PLATFORM/usr/lib -L$PREBUILT/lib/gcc/$AGCC_CXC/$AGCC_GCC )
 
-LDFLAGS=( "${LNFLAGS[@]}" -Bdynamic -Wl,-T,$LDSCRIPTS/armelf_linux_eabi.x -Wl,-dynamic-linker,/system/bin/linker -Wl,--gc-sections -Wl,-z,nocopyreloc -Wl,--no-undefined -nostdlib $PLATFORM/usr/lib/crtend_android.o $PLATFORM/usr/lib/crtbegin_dynamic.o -lc -lm -ldl -lgcc )
+LDFLAGS=( "${LNFLAGS[@]}" -Bdynamic -Wl,-T,$LDSCRIPTS/armelf_linux_eabi.x -Wl,-dynamic-linker,/system/bin/linker -Wl,--gc-sections -Wl,-z,nocopyreloc -Wl,--no-undefined -nostdlib $PLATFORM/usr/lib/crtend_android.o $PLATFORM/usr/lib/crtbegin_dynamic.o $AGCC_NDK/sources/cxx-stl/gnu-libstdc++/libs/armeabi/libgnustl_static.a -lc -ldl -lgcc -lm )
 
 SHFLAGS=( "${LNFLAGS[@]}" -nostdlib -Wl,-T,$LDSCRIPTS/armelf_linux_eabi.xsc -Wl,--gc-sections -Wl,-shared,-Bsymbolic -Wl,--whole-archive )	# .a, .o input files go *after* here
-SHFLAGS_END=( -Wl,--no-whole-archive -lc -lm -lgcc )
+SHFLAGS_END=( -Wl,--no-whole-archive -L$PREBUILT/lib/gcc/$AGCC_CXC/$AGCC_GCC $PLATFORM/usr/lib/crtend_so.o $PLATFORM/usr/lib/crtbegin_so.o $AGCC_NDK/sources/cxx-stl/gnu-libstdc++/libs/armeabi/libgnustl_static.a -lc -lm -lgcc )
 
-#if [ "$CMD" = "g++" ]; then
-#	LDFLAGS=( "${LDFLAGS[@]}" -Wl,-rpath-link=$AGCC_NDK/sources/cxx-stl/stlport/libs/armeabi -L$AGCC_NDK/sources/cxx-stl/stlport/libs/armeabi -lstlport_static -lgcc )
-#	SHFLAGS_END=( "SHFLAGS_END" -Wl,-rpath-link=$AGCC_NDK/sources/cxx-stl/stlport/libs/armeabi -L$AGCC_NDK/sources/cxx-stl/stlport/libs/armeabi -lstlport_shared -lgcc )
-#fi
+if [ "$CMD" = "g++" ]; then
+	INC=( "-I$AGCC_NDK/sources/cxx-stl/gnu-libstdc++/libs/armeabi/include" "-I$AGCC_NDK/sources/cxx-stl/gnu-libstdc++/include" "${INC[@]}" )
+#	CPP=( "${CPP[@]}" )
+	CFLAGS=( -march=armv5te -mtune=xscale -msoft-float -mthumb-interwork -fpic -frtti -fexceptions -ffunction-sections -funwind-tables -fmessage-length=0 )
+fi
 
 #if [ "$AGCC_CRYSTAX" != "" ]; then
 #	INC[${#INC[@]}]="-I$AGCC_NDK/sources/crystax/include"
@@ -115,12 +118,13 @@ while true; do
 	shopt -u nocasematch
 	case "$1" in
 		'-E'|'-c'|'-S'|'-shared')
-			if [ "$MODE" != DEFAULT ] && [ "$MODE" != "$1" ]; then
-				echo "cannot specify $MODE and $1" 1>&2
-				exit 1
-			else
-				MODE=$1
-			fi
+			MODE="$1"
+			#if [ "$MODE" != DEFAULT ] && [ "$MODE" != "$1" ]; then
+			#	echo "cannot specify $MODE and $1" 1>&2
+			#	exit 1
+			#else
+			#	MODE=$1
+			#fi
 			;;
 		'-o')
 			if [ $# -gt 1 ]; then
@@ -164,15 +168,19 @@ while true; do
 			exit 0
 			;;
 		*)
-			if [[ $1 =~ ^-W.* ]]; then
+			if [[ "$1" =~ ^-W.* ]]; then
 				WARN=1
 			else
-				if [[ $1 =~ ^-O.* ]]; then
+				if [[ "$1" =~ ^-O.* ]]; then
 					OPT=1
 				else
 					shopt -s nocasematch
-					if [[ $1 =~ \.(c|cpp|cxx)$ ]]; then
+					if [[ "$1" =~ \.(c|cpp|cxx)$ ]]; then
 						SRC=1
+					else
+						if [[ "$1" =~ ^-std=.* ]]; then
+							STD="$1"
+						fi
 					fi
 					shopt -u nocasematch
 					ARGS[${#ARGS[@]}]="$1"
@@ -216,11 +224,6 @@ fi
 
 # Assemble the command
 
-if [ "$CMD" = "g++" ]; then
-	APPEND=( -std=c++98 )
-else
-	APPEND=( )
-fi
 CMD=( "${PREBUILT}/bin/${AGCC_CXC}-${CMD}" )
 if [ "$MODE" != DEFAULT ]; then
 	CMD[${#CMD[@]}]="$MODE"
@@ -253,7 +256,7 @@ if [ $NEED_SHLINK -ne 0 ]; then
 fi
 
 if [ "$AGCC_ECHO" != "" ]; then
-	echo " <= ${CMD[@]} ${APPEND[@]}"
+	echo " <= ${CMD[@]} $STD"
 fi
 
-exec "${CMD[@]}" "${APPEND[@]}"
+exec "${CMD[@]}" "$STD"

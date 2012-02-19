@@ -1,0 +1,50 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=2.1.1
+PACKAGE_DEPEND=()
+
+FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
+ARCHIVE=${FULLNAME}.tar.gz
+
+botbrew_do_build() {
+	botbrew_download http://smarden.org/${PACKAGE_NAME}/${ARCHIVE} ${ARCHIVE}
+	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
+	botbrew_copytree ${FULLNAME}/admin/${FULLNAME} ${G_SOURCE} || true
+	botbrew_patchtree -p0 ${G_SOURCE}/src patch/runit-2.1.1-android.patch
+	if ! [ -e ${G_OBJECT}/.d ]; then
+		(
+			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
+			cp -rlf ../${G_SOURCE}/* ./
+			cd src
+			echo "agcc.bash" > conf-cc
+			echo "agcc.bash -s" > conf-ld
+			${G_MAKE} -j1 compile load choose
+			cp iopause.h2	iopause.h
+			cp uint64.h2	uint64.h
+			${G_MAKE} -j1 chkshsgr
+			cp hasshsgr.h2	hasshsgr.h
+			sed -e 's/static/shared/g' Makefile > temp
+			mv temp Makefile
+			touch ../.d
+		)
+	fi
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		${G_MAKE} -C ${G_OBJECT}/src
+		mkdir -p ${G_EXPORT}/system/bin ${G_EXPORT}/system/share/man ${G_EXPORT}/system/share/doc
+		cp -lf ${G_OBJECT}/src/chpst		${G_EXPORT}/system/bin
+		cp -lf ${G_OBJECT}/src/runit		${G_EXPORT}/system/bin
+		cp -lf ${G_OBJECT}/src/runit-init	${G_EXPORT}/system/bin
+		cp -lf ${G_OBJECT}/src/runsv		${G_EXPORT}/system/bin
+		cp -lf ${G_OBJECT}/src/runsvchdir	${G_EXPORT}/system/bin
+		cp -lf ${G_OBJECT}/src/runsvdir		${G_EXPORT}/system/bin
+		cp -lf ${G_OBJECT}/src/sv		${G_EXPORT}/system/bin
+		cp -lf ${G_OBJECT}/src/svlogd		${G_EXPORT}/system/bin
+		cp -lf ${G_OBJECT}/src/utmpset		${G_EXPORT}/system/bin
+		cp -rlf ${G_OBJECT}/src/../man		${G_EXPORT}/system/share/man/man8
+		cp -rlf ${G_OBJECT}/src/../doc		${G_EXPORT}/system/share/doc/runit
+		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/* || true
+		touch ${G_EXPORT}/.d
+	fi
+}

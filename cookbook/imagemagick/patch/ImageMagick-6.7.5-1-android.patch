@@ -1,0 +1,26 @@
+--- configure
++++ configure
+@@ -9716,7 +9716,7 @@
+         if test "$cross_compiling" = yes; then :
+   { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+ $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+-as_fn_error $? "cannot run test program while cross compiling
++as_echo $? "cannot run test program while cross compiling
+ See \`config.log' for more details" "$LINENO" 5; }
+ else
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+--- Magick++/lib/Image.cpp
++++ Magick++/lib/Image.cpp
+@@ -623,10 +623,10 @@
+     kernel_info=AcquireKernelInfo("1");
+   kernel_info->width=order_;
+   kernel_info->height=order_;
+-  kernel_info->values=(MagickRealType *) color_matrix_;
++  kernel_info->values=(double *) color_matrix_;
+   MagickCore::Image* newImage =
+     ColorMatrixImage( image(), kernel_info, &exceptionInfo );
+-  kernel_info->values=(MagickRealType *) NULL;
++  kernel_info->values=(double *) NULL;
+   kernel_info=DestroyKernelInfo(kernel_info);
+   replaceImage( newImage );
+   throwException( exceptionInfo );

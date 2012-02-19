@@ -1,5 +1,5 @@
 Package: diffutils
-Version: 3.2-0
+Version: 3.2-1
 Architecture: armeabi
 Section: utils
 Priority: optional
@@ -10,6 +10,5 @@ Description: |
 Data:
  /CONTROL/init: |
     #!/bin/sh
-    mkdir -p $PACKAGE/system/share
-    cp -r $BUILD/system/bin $PACKAGE/system/
-    cp -r $BUILD/system/share/locale $PACKAGE/system/share/
+    mkdir -p $PACKAGE/system
+    cp -r $EXPORT/system/bin $PACKAGE/system/

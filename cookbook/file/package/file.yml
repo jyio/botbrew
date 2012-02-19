@@ -1,0 +1,15 @@
+Package: file
+Version: 5.09-0
+Architecture: armeabi
+Section: utils
+Priority: optional
+Source: http://www.darwinsys.com/file/
+Description: |
+ Determines file type using "magic" numbers
+ File tests each argument in an attempt to classify it. There are three sets of tests, performed in this order: filesystem tests, magic number tests, and language tests. The first test that succeeds causes the file type to be printed.
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p $PACKAGE/system/share
+    cp -r $EXPORT/system/bin $PACKAGE/system/
+    cp -r $EXPORT/system/share/misc $PACKAGE/system/share/

@@ -11,5 +11,5 @@ Data:
  /CONTROL/init: |
     #!/bin/sh
     mkdir -p $PACKAGE/system/lib
-    cp -r $BUILD/system/include $PACKAGE/system/
-    cp -r $BUILD/system/lib/lib* $PACKAGE/system/lib/
+    cp -r $EXPORT/system/include $PACKAGE/system/
+    cp -r $EXPORT/system/lib/lib* $PACKAGE/system/lib/

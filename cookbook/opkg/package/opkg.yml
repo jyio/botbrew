@@ -1,5 +1,5 @@
 Package: opkg
-Version: 0.1.8-5
+Version: 0.1.8-6
 Architecture: armeabi
 Section: admin
 Priority: required
@@ -23,8 +23,22 @@ Data:
  /CONTROL/postinst: |
     #!/system/bin/sh
     
-    mkdir -p /system/etc/opkg /system/usr/lib/opkg/lists /system/usr/lib/opkg/info /data/local/var/lib/opkg /cache/opkg/tmp /cache/opkg/archives
+    mkdir -p /system/etc/opkg /system/lib/opkg/lists /system/lib/opkg/info /data/lib/opkg /cache/opkg/tmp /cache/opkg/archives
     chmod 0777 /cache/opkg /cache/opkg/tmp
+
+    if [ -d /system/usr/lib/opkg ]; then
+    	if ! [ -d /system/lib/opkg ]; then
+    		mv /system/usr/lib/opkg/* /system/lib/opkg/
+    		rm -r /system/usr/lib/opkg
+    	fi
+    fi
+    
+    if [ -d /data/var/local/lib/opkg ]; then
+    	if ! [ -d /data/lib/opkg ]; then
+    		mv /data/var/local/lib/opkg/* /data/lib/opkg/
+    		rm -r /data/var/local/lib/opkg
+    	fi
+    fi
     
     if [ -f /system/etc/opkg/opkg.conf ]; then
     	rm /system/etc/opkg/opkg.conf.opkg-new
@@ -67,5 +81,5 @@ Data:
  /CONTROL/init: |
     #!/bin/sh
     mkdir -p $PACKAGE/system/share
-    cp -r $BUILD/system/bin $PACKAGE/system/
-    cp -r $BUILD/system/share/opkg $PACKAGE/system/share/
+    cp -r $EXPORT/system/bin $PACKAGE/system/
+    cp -r $EXPORT/system/share/opkg $PACKAGE/system/share/

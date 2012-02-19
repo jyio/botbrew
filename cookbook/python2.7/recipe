@@ -1,0 +1,99 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=Python
+PACKAGE_VERSION=2.7.2
+PACKAGE_DEPEND=( ncursesw sqlite bzip2 openssl gdbm )
+
+local FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
+local ARCHIVE=${FULLNAME}.tgz
+
+local HPYTHON=$(pwd)/${G_OBJECT}-host/python
+local HPGEN=$(pwd)/${G_OBJECT}-host/Parser/pgen
+
+botbrew_do_build() {
+	botbrew_download http://www.python.org/ftp/python/${PACKAGE_VERSION}/${ARCHIVE} ${ARCHIVE}
+	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
+	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
+	botbrew_patchtree -p1 ${G_SOURCE} patch/Python-2.7.2-xcompile.patch
+	botbrew_patchtree -p1 ${G_SOURCE} patch/Python-2.7.2-android.patch
+	botbrew_patchtree -p0 ${G_SOURCE} patch/Python-2.7.2-regen.patch
+	botbrew_patchtree -p0 ${G_SOURCE} patch/Python-2.7.2-setup.patch
+	sed -e 's/#define NO_MALLINFO 0/#define NO_MALLINFO 1/g' ${G_SOURCE}/Modules/_ctypes/libffi/src/dlmalloc.c > temp
+	mv temp ${G_SOURCE}/Modules/_ctypes/libffi/src/dlmalloc.c
+	botbrew_fix_config ${G_SOURCE}/Modules/_ctypes/libffi
+	botbrew_import
+	botbrew_fix_crosslibconfig ${G_IMPORT}/system/bin/ncursesw5-config
+	if ! [ -e ${G_OBJECT}-host/Makefile ]; then
+		(mkdir -p ${G_OBJECT}-host; cd ${G_OBJECT}-host; ../${G_SOURCE}/configure)
+	fi
+	if ! [ -e ${HPYTHON} ] || ! [ -e ${HPGEN} ]; then
+		ARCH="armeabi" NDKPLATFORM="${G_NDKPLATFORM}" ${G_MAKE} -C ${G_OBJECT}-host python Parser/pgen
+	fi
+	if ! [ -e ${G_OBJECT}/Makefile ]; then
+		(
+			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
+			CC="agcc.bash" CPPFLAGS="-I${G_INCDIR} -I${G_INCDIR}/ncursesw" LD="agcc.bash" LDFLAGS="-L${G_LIBDIR} -L$(pwd)" \
+			AR="${G_AR}" RANLIB="${G_RANLIB}" \
+			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
+				 --enable-shared
+		#	cat > Modules/Setup.local <<-EOF
+		#		readline readline.c -lreadline -lncursesw
+		#		_curses _cursesmodule.c -lncursesw
+		#		_curses_panel _curses_panel.c -lpanelw -lncursesw
+		#	EOF
+			cat pyconfig.h \
+				| sed -e '/HAVE_FDATASYNC/ c#undef HAVE_FDATASYNC' \
+				| sed -e '/HAVE_KILLPG/ c#undef HAVE_KILLPG' \
+				| sed -e '/HAVE_DECL_ISFINITE/ c#undef HAVE_DECL_ISFINITE' \
+				| sed -e '/HAVE_GETHOSTBYNAME_R/ c#undef HAVE_GETHOSTBYNAME_R' \
+				> temp
+			mv temp pyconfig.h
+		)
+	fi
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		local BLDSHARED=(
+			agcc.bash -shared -I${G_INCDIR} -L${G_LIBDIR} -L$(pwd)/${G_OBJECT}
+			-lpython2.7 -ldl
+			-Wl,--no-undefined
+		)
+		local BLDSHARED="${BLDSHARED[@]}"
+		ARCH="armeabi" NDKPLATFORM="${G_NDKPLATFORM}" \
+			${G_MAKE} -C ${G_OBJECT} INSTSONAME=libpython2.7.so libpython2.7.so \
+				HOSTPYTHON="${HPYTHON}" HOSTPGEN="${HPGEN}" CROSS_COMPILE_TARGET=yes \
+				BLDSHARED="agcc.bash -shared -I${G_INCDIR} -L${G_LIBDIR} -L$(pwd)/${G_OBJECT} -ldl -Wl,--no-undefined"
+		ARCH="armeabi" NDKPLATFORM="${G_NDKPLATFORM}" \
+			HOSTARCH="${G_TRIPLET}" BUILDARCH="$(${G_ROOT}/config.guess)" \
+			CROSS_COMPILE_INC="${G_INCDIR}:${G_INCDIR}/ncursesw" CROSS_COMPILE_LIB="${G_LIBDIR}" TERMCAP_LIBRARY="ncursesw" \
+			${G_MAKE} -C ${G_OBJECT} INSTSONAME=libpython2.7.so \
+				HOSTPYTHON="${HPYTHON}" HOSTPGEN="${HPGEN}" CROSS_COMPILE_TARGET=yes BLDSHARED="${BLDSHARED}"
+		ARCH="armeabi" NDKPLATFORM="${G_NDKPLATFORM}" \
+			HOSTARCH="${G_TRIPLET}" BUILDARCH="$(${G_ROOT}/config.guess)" \
+			CROSS_COMPILE_INC="${G_INCDIR}:${G_INCDIR}/ncursesw" CROSS_COMPILE_LIB="${G_LIBDIR}" TERMCAP_LIBRARY="ncursesw" \
+			${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT} \
+				HOSTPYTHON="${HPYTHON}" CROSS_COMPILE_TARGET=yes BLDSHARED="${BLDSHARED}"
+		rm -f ${G_EXPORT}/system/lib/libpython2.7.so
+		mv ${G_EXPORT}/system/lib/libpython2.7.so.* ${G_EXPORT}/system/lib/libpython2.7.so
+		chmod 0755 ${G_EXPORT}/system/lib/libpython2.7.so
+		rm -rf ${G_EXPORT}/system/lib/pkgconfig
+		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/python2.7 $(find ${G_EXPORT} -type f -name '*.so') || true
+		touch ${G_EXPORT}/.d
+	fi
+}
+
+_botbrew_do_clean() {
+	if [ -e ${G_OBJECT}/Makefile ]; then
+		${G_MAKE} -C ${G_OBJECT} clean
+	fi
+	if [ -e ${G_OBJECT}-host/Makefile ]; then
+		${G_MAKE} -C ${G_OBJECT}-host clean
+	fi
+}
+
+_botbrew_do_distclean() {
+	rm -rf ${G_OBJECT} ${G_IMPORT} ${G_OBJECT}-host
+}
+
+_botbrew_do_clobber() {
+	rm -rf ${G_SOURCE} ${G_OBJECT} ${G_IMPORT} ${G_EXPORT} ${G_OBJECT}-host ${G_EXPORT}-host
+}

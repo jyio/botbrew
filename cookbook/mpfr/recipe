@@ -1,0 +1,41 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=3.1.0
+PACKAGE_DEPEND=( gmp )
+
+FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
+ARCHIVE=${FULLNAME}.tar.gz
+
+botbrew_do_build() {
+	botbrew_download http://ftp.gnu.org/gnu/${PACKAGE_NAME}/${ARCHIVE} ${ARCHIVE}
+	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
+	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
+	if ! [ -e ${G_SOURCE}/.patch.allpatches ]; then
+		(cd ${G_SOURCE}; wget http://www.mpfr.org/${PACKAGE_NAME}-current/allpatches -O- | patch -N -Z -p1 && touch .patch.allpatches)
+	fi
+	botbrew_import
+	if ! [ -e ${G_OBJECT}/Makefile ]; then
+		(
+			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
+			CC="agcc.bash" LD="agcc.bash" \
+			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
+				--with-gmp=${G_SYSDIR}
+			sed -e 's/-DHAVE_LOCALE_H=1//' src/Makefile > temp
+			mv temp src/Makefile
+			sed -e 's/-DHAVE_LOCALE_H=1//' doc/Makefile > temp
+			mv temp doc/Makefile
+			sed -e 's/-DHAVE_LOCALE_H=1//' tune/Makefile > temp
+			mv temp tune/Makefile
+			sed -e 's/-DHAVE_LOCALE_H=1//' Makefile > temp
+			mv temp Makefile
+		)
+	fi
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		${G_MAKE} -C ${G_OBJECT}
+		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
+		rm ${G_EXPORT}/system/lib/*.la
+		touch ${G_EXPORT}/.d
+	fi
+}

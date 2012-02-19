@@ -11,4 +11,4 @@ Data:
  /CONTROL/init: |
     #!/bin/sh
     mkdir -p $PACKAGE/system/share
-    cp -r $BUILD/system/share/info $BUILD/system/share/man $PACKAGE/system/share/
+    cp -r $EXPORT/system/share/info $EXPORT/system/share/man $PACKAGE/system/share/

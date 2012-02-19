@@ -1,0 +1,39 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=1.9.3-rc1
+PACKAGE_DEPEND=( readline ncurses libiconv openssl libffi libyaml )
+
+FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
+ARCHIVE=${FULLNAME}.tar.gz
+
+botbrew_do_build() {
+	botbrew_download http://ftp.ruby-lang.org/pub/ruby/${ARCHIVE} ${ARCHIVE}
+	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
+	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
+	botbrew_fix_config ${G_SOURCE}/tool
+	botbrew_patchtree -p0 ${G_SOURCE} patch/ruby-1.9.3-android.patch
+	botbrew_import
+	botbrew_fix_crosslibconfig ${G_IMPORT}/system/bin/ncurses5-config
+	if ! [ -e ${G_OBJECT}/Makefile ]; then
+		(
+			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
+			CC="agcc.bash" CPPFLAGS="-I${G_INCDIR}" \
+			LD="agcc.bash" LDFLAGS="-L${G_LIBDIR}" LDSHARED="agcc.bash -shared -lgcc" \
+			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
+				--enable-shared --disable-ipv6 --disable-wide-getaddrinfo
+		)
+	fi
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		${G_MAKE} -C ${G_OBJECT} -j1
+		${G_MAKE} -C ${G_OBJECT} -j1 install DESTDIR=$(pwd)/${G_EXPORT}
+		mv ${G_EXPORT}/system/lib/libruby.so.1.9.1 ${G_EXPORT}/system/lib/libruby.so
+		rm -r ${G_EXPORT}/system/lib/libruby.so.* ${G_EXPORT}/system/lib/pkgconfig
+		mkdir -p ${G_EXPORT}/data
+		mv ${G_EXPORT}/var/* ${G_EXPORT}/data/
+		rm -r ${G_EXPORT}/var
+		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/* $(find ${G_EXPORT} -type f -name '*.so') || true
+		touch ${G_EXPORT}/.d
+	fi
+}

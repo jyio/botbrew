@@ -1,0 +1,14 @@
+Package: libpcap
+Version: 1.2.1-0
+Architecture: armeabi
+Section: libs
+Priority: optional
+Source: http://www.tcpdump.org/
+Description: |
+ system interface for user-level packet capture
+ libpcap (Packet CAPture) provides a portable framework for low-level network monitoring. Applications include network statistics collection, security monitoring, network debugging, etc. Since almost every system vendor provides a different interface for packet capture, and since there are several tools that require this functionality, we've created this system-independent API to ease in porting and to alleviate the need for several system-dependent packet capture modules in each application.
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p $PACKAGE/system/lib
+    cp -r $EXPORT/system/lib/*.so $PACKAGE/system/lib/

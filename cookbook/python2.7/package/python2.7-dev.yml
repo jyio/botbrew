@@ -1,5 +1,5 @@
 Package: python2.7-dev
-Version: 2.7.2-0
+Version: 2.7.2-1
 Architecture: armeabi
 Section: python
 Priority: optional
@@ -8,18 +8,9 @@ Description: |
  An interactive high-level object-oriented language (version 2.7)
  Version 2.7 of the high-level, interactive object oriented language, includes an extensive class library with lots of goodies for network programming, system administration, sounds and graphics.
 Data:
- /CONTROL/postinst: |
-    #!/system/bin/sh
-    if [ ! -f /system/bin/python ]; then
-    	ln -s python2.7 /system/bin/python
-    fi
- /CONTROL/prerm: |
-    #!/system/bin/sh
-    if [ "`readlink /system/bin/python`" == "python2.7" ]; then
-    	rm /system/bin/python
-    fi
  /CONTROL/init: |
     #!/bin/sh
-    mkdir -p $PACKAGE/system
-    cp -r $BUILD/system/include $PACKAGE/system/
+    mkdir -p $PACKAGE/system/bin
+    cp $EXPORT/system/bin/*-config $PACKAGE/system/bin/
+    cp -r $EXPORT/system/include $PACKAGE/system/
     rm -f $PACKAGE/system/include/python2.7/pyconfig.h
