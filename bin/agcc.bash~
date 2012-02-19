@@ -77,7 +77,7 @@ else
 	STD="-std=gnu99"
 fi
 
-INC=( "-I$PLATFORM/usr/include" "-I$AGCC_NDK/sources/cpufeatures" )
+INC=( "-I$PLATFORM/usr/include" )
 
 CPP=( -D__ARM_ARCH_5__ -D__ARM_ARCH_5T__ -D__ARM_ARCH_5E__ -D__ARM_ARCH_5TE__ -DANDROID -DSK_RELEASE -DNDEBUG -UDEBUG )
 
@@ -89,10 +89,10 @@ OFLAGS=( -O2 -finline-functions -finline-limit=300 -fno-inline-functions-called-
 
 LNFLAGS=( -Wl,-rpath-link=$PLATFORM/usr/lib -L$PLATFORM/usr/lib -L$PREBUILT/lib/gcc/$AGCC_CXC/$AGCC_GCC )
 
-LDFLAGS=( "${LNFLAGS[@]}" -Bdynamic -Wl,-T,$LDSCRIPTS/armelf_linux_eabi.x -Wl,-dynamic-linker,/system/bin/linker -Wl,--gc-sections -Wl,-z,nocopyreloc -Wl,--no-undefined -nostdlib $PLATFORM/usr/lib/crtend_android.o $PLATFORM/usr/lib/crtbegin_dynamic.o $AGCC_NDK/sources/cxx-stl/gnu-libstdc++/libs/armeabi/libgnustl_static.a -lc -ldl -lgcc -lm )
+LDFLAGS=( "${LNFLAGS[@]}" -Bdynamic -Wl,-T,$LDSCRIPTS/armelf_linux_eabi.x -Wl,-dynamic-linker,/system/bin/linker -Wl,--gc-sections -Wl,-z,nocopyreloc -Wl,--no-undefined -nostdlib $PLATFORM/usr/lib/crtend_android.o $PLATFORM/usr/lib/crtbegin_dynamic.o $AGCC_NDK/sources/cxx-stl/gnu-libstdc++/libs/armeabi/libgnustl_static.a -lc -lm -ldl -lgcc )
 
 SHFLAGS=( "${LNFLAGS[@]}" -nostdlib -Wl,-T,$LDSCRIPTS/armelf_linux_eabi.xsc -Wl,--gc-sections -Wl,-shared,-Bsymbolic -Wl,--whole-archive )	# .a, .o input files go *after* here
-SHFLAGS_END=( -Wl,--no-whole-archive -L$PREBUILT/lib/gcc/$AGCC_CXC/$AGCC_GCC $PLATFORM/usr/lib/crtend_so.o $PLATFORM/usr/lib/crtbegin_so.o $AGCC_NDK/sources/cxx-stl/gnu-libstdc++/libs/armeabi/libgnustl_static.a -lc -lm -lgcc )
+SHFLAGS_END=( $AGCC_NDK/sources/cxx-stl/gnu-libstdc++/libs/armeabi/libgnustl_static.a -Wl,--no-whole-archive -L$PREBUILT/lib/gcc/$AGCC_CXC/$AGCC_GCC $PLATFORM/usr/lib/crtend_so.o $PLATFORM/usr/lib/crtbegin_so.o -lc -lm -lgcc )
 
 if [ "$CMD" = "g++" ]; then
 	INC=( "-I$AGCC_NDK/sources/cxx-stl/gnu-libstdc++/libs/armeabi/include" "-I$AGCC_NDK/sources/cxx-stl/gnu-libstdc++/include" "${INC[@]}" )
