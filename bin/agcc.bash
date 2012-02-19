@@ -77,7 +77,7 @@ else
 	STD="-std=gnu99"
 fi
 
-INC=( "-I$PLATFORM/usr/include" "-I$AGCC_NDK/sources/cpufeatures" )
+INC=( "-I$PLATFORM/usr/include" )
 
 CPP=( -D__ARM_ARCH_5__ -D__ARM_ARCH_5T__ -D__ARM_ARCH_5E__ -D__ARM_ARCH_5TE__ -DANDROID -DSK_RELEASE -DNDEBUG -UDEBUG )
 
