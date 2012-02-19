@@ -1,0 +1,26 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=0.0.1
+PACKAGE_DEPEND=()
+
+botbrew_do_build() {
+	if ! [ -e ${G_OBJECT} ]; then
+		mkdir -p ${G_OBJECT}
+		cp ${AGCC_NDK}/sources/android/cpufeatures/* ${G_OBJECT}/
+	fi
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		(
+			set -x
+			cd ${G_OBJECT}
+			rm -f *.o *.a
+			agcc.bash -c *.c -I.
+			${G_AR} -r ${PACKAGE_NAME}.a *.o
+		)
+		mkdir -p ${G_EXPORT}/system/lib ${G_EXPORT}/system/include
+		cp ${G_OBJECT}/*.a ${G_EXPORT}/system/lib/
+		cp -r ${G_OBJECT}/*.h ${G_EXPORT}/system/include/
+		touch ${G_EXPORT}/.d
+	fi
+}
