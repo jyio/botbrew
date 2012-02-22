@@ -1,0 +1,14 @@
+--- src/linux_sysfs.c
++++ src/linux_sysfs.c
+@@ -55,6 +55,11 @@
+ #include "pciaccess_private.h"
+ #include "linux_devmem.h"
+ 
++#ifdef ANDROID
++#define pread64 pread
++#define pwrite64 pwrite
++#endif
++
+ static const struct pci_system_methods linux_sysfs_methods;
+ 
+ #define SYS_BUS_PCI "/sys/bus/pci/devices"

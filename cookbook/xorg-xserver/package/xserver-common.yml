@@ -1,0 +1,15 @@
+Package: xserver-common
+Version: 1.11.99.903-0
+Architecture: all
+Section: x11
+Priority: optional
+Source: http://www.x.org/
+Description: |
+ common files used by various X servers
+ This package provides files necessary for all X.Org based X servers.
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p $PACKAGE/system/lib $PACKAGE/system/share
+    cp -r $EXPORT/system/lib/xorg $PACKAGE/system/lib/
+    cp -r $EXPORT/system/share/X11 $PACKAGE/system/share/

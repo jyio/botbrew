@@ -25,7 +25,7 @@ The following Debian packages are required for using BotBrew.
 - libglib2.0-dev
 - python
 - python-yaml
-- python-xcbgen
+- python-xcbgen 1.7
 - ruby1.9.1
 - xsltproc
 - file
@@ -33,6 +33,7 @@ The following Debian packages are required for using BotBrew.
 - flex
 - bison
 - gettext
+- intltool
 
 In addition, the Android NDK (r7 recommended) is required.
 

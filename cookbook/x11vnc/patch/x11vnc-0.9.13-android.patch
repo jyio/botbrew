@@ -1,0 +1,629 @@
+--- libvncserver/rfbserver.c
++++ libvncserver/rfbserver.c
+@@ -1207,7 +1207,12 @@
+         strcat(unixPath, path);
+       }
+       else
++#ifdef ANDROID
++        strcpy(unixPath, "/mnt/sdcard/");
++        strcat(unixPath, path);
++#else
+         strcpy(unixPath, path);
++#endif
+     }
+     for (x=0;x<strlen(unixPath);x++)
+       if (unixPath[x]=='\\') unixPath[x]='/';
+--- rfb/rfb.h
++++ rfb/rfb.h
+@@ -95,6 +95,11 @@
+ #define IF_PTHREADS(x)
+ #endif
+ 
++#ifdef ANDROID
++#include <sys/select.h>
++#include <arpa/inet.h>
++#endif
++
+ /* end of stuff for autoconf */
+ 
+ /* if you use pthreads, but don't define LIBVNCSERVER_HAVE_LIBPTHREAD, the structs
+--- x11vnc/appshare.c
++++ x11vnc/appshare.c
+@@ -271,7 +271,11 @@
+ static char *x11vnc = "x11vnc";
+ static char *control = NULL;
+ static char *trackdir = "unset";
++#ifdef ANDROID
++static char *trackpre = "/cache/x11vnc-appshare-trackdir-tmp";
++#else
+ static char *trackpre = "/tmp/x11vnc-appshare-trackdir-tmp";
++#endif
+ static char *tracktmp = NULL;
+ static char unique_tag[100];
+ static int use_forever = 1;
+@@ -1660,7 +1664,11 @@
+ 		sprintf(tracktmp, "%s/0xprop.cmd", trackdir);
+ 		file = strdup(tracktmp);
+ 	} else {
++#ifdef ANDROID
++		char tmp[] = "/cache/x11vnc-appshare.cmd.XXXXXX";
++#else
+ 		char tmp[] = "/tmp/x11vnc-appshare.cmd.XXXXXX";
++#endif
+ 		int fd = mkstemp(tmp);
+ 		if (fd < 0) {
+ 			return;
+--- x11vnc/cleanup.c
++++ x11vnc/cleanup.c
+@@ -440,10 +440,17 @@
+ 	crash_stack_command2 = (char *) malloc(1000);
+ 	crash_debug_command =  (char *) malloc(1000);
+ 
++#ifdef ANDROID
++	snprintf(crash_stack_command1, 500, "echo where > /cache/gdb.%d;"
++	    " env PATH=$PATH:/system/bin:/system/xbin:/sbin"
++	    " gdb -x /cache/gdb.%d -batch -n %s %d;"
++	    " rm -f /cache/gdb.%d", pid, pid, program_name, pid, pid);
++#else
+ 	snprintf(crash_stack_command1, 500, "echo where > /tmp/gdb.%d;"
+ 	    " env PATH=$PATH:/usr/local/bin:/usr/sfw/bin:/usr/bin"
+ 	    " gdb -x /tmp/gdb.%d -batch -n %s %d;"
+ 	    " rm -f /tmp/gdb.%d", pid, pid, program_name, pid, pid);
++#endif
+ 	snprintf(crash_stack_command2, 500, "pstack %d", program_pid);
+ 	
+ 	snprintf(crash_debug_command, 500, "gdb %s %d", program_name, pid);
+--- x11vnc/connections.c
++++ x11vnc/connections.c
+@@ -630,7 +630,11 @@
+ 		FILE *ph;
+ 		char line[1024];
+ 		char *cmd2 = NULL;
++#ifdef ANDROID
++		char tmp[] = "/cache/x11vnc-tmp.XXXXXX";
++#else
+ 		char tmp[] = "/tmp/x11vnc-tmp.XXXXXX";
++#endif
+ 		int deltmp = 0;
+ 
+ 		if (input != NULL) {
+@@ -738,7 +742,11 @@
+ 				setpgrp();
+ #endif
+ 			}
++#ifdef ANDROID
++			execlp("/system/bin/sh", "/system/bin/sh", "-c", cmd, (char *) NULL);
++#else
+ 			execlp("/bin/sh", "/bin/sh", "-c", cmd, (char *) NULL);
++#endif
+ 			exit(1);
+ 		}
+ 	}
+--- x11vnc/gui.c
++++ x11vnc/gui.c
+@@ -715,8 +715,13 @@
+ #endif
+ 	if (portprompt) {
+ 		char *cmd, *p, *p2, *p1, *p0 = getenv("PATH");
++#ifdef ANDROID
++		char tf1[] = "/cache/x11vnc_port_prompt.2XXXXXX";
++		char tf2[] = "/cache/x11vnc_port_prompt.1XXXXXX";
++#else
+ 		char tf1[] = "/tmp/x11vnc_port_prompt.2XXXXXX";
+ 		char tf2[] = "/tmp/x11vnc_port_prompt.1XXXXXX";
++#endif
+ 		int fd;
+ 		char *dstr = "", *wish = NULL;
+ 		char line[128];
+@@ -872,7 +877,11 @@
+ 		pid_t parent = getpid();
+ 
+ 		if (icon_mode) {
++#ifdef ANDROID
++			char tf[] = "/cache/x11vnc.tray.XXXXXX"; 
++#else
+ 			char tf[] = "/tmp/x11vnc.tray.XXXXXX"; 
++#endif
+ 			int fd;
+ 
+ 			fd = mkstemp(tf);
+--- x11vnc/screen.c
++++ x11vnc/screen.c
+@@ -1796,7 +1796,11 @@
+ 	}
+ 	if (strstr(rstr, "solid=") == rstr) {
+ 		char *n = rstr + strlen("solid=");
++#ifdef ANDROID
++		char tmp[] = "/cache/rawfb_solid.XXXXXX";
++#else
+ 		char tmp[] = "/tmp/rawfb_solid.XXXXXX";
++#endif
+ 		char str[100];
+ 		unsigned int vals[1024], val;
+ 		int x, y, fd, w = 1024, h = 768;
+@@ -1824,7 +1828,11 @@
+ 		sprintf(str, "map:%s@%dx%dx32", tmp, w, h);
+ 		rstr = strdup(str);
+ 	} else if (strstr(rstr, "swirl") == rstr) {
++#ifdef ANDROID
++		char tmp[] = "/cache/rawfb_swirl.XXXXXX";
++#else
+ 		char tmp[] = "/tmp/rawfb_swirl.XXXXXX";
++#endif
+ 		char str[100];
+ 		unsigned int val[1024];
+ 		unsigned int c1, c2, c3, c4;
+--- x11vnc/solid.c
++++ x11vnc/solid.c
+@@ -1169,7 +1169,11 @@
+ extern char macosx_solid_background[];
+ 
+ static void solid_macosx(int restore) {
++#ifdef ANDROID
++	char tmp[] = "/cache/macosx_solid_background.XXXXXX";
++#else
+ 	char tmp[] = "/tmp/macosx_solid_background.XXXXXX";
++#endif
+ 	pid_t pid, parent = getpid();
+ 
+ 	if (restore) {
+@@ -1220,7 +1224,11 @@
+ 			close(fd);
+ 			sprintf(num, "%d", (int) parent);
+ 			set_env("SS_WATCH_PID", num);
++#ifdef ANDROID
++			execlp("/system/bin/sh", "/system/bin/sh", tmp, (char *) NULL);
++#else
+ 			execlp("/bin/sh", "/bin/sh", tmp, (char *) NULL);
++#endif
+ 		}
+ 		exit(1);
+ 	}
+--- x11vnc/sslcmds.c
++++ x11vnc/sslcmds.c
+@@ -484,7 +484,11 @@
+ 	struct stat sbuf;
+ 	int i;
+ 	char *cases1[] = {"/.vnc", "/.vnc/certs", "/.vnc/certs/CA"};
++#ifdef ANDROID
++	char *cases2[] = {"", "/CA", "/cache"};
++#else
+ 	char *cases2[] = {"", "/CA", "/tmp"};
++#endif
+ 
+ 	if (cdir_in != NULL) {
+ 		cdir = cdir_in;
+@@ -515,13 +519,21 @@
+ 		sprintf(cdir, "%s%s", home, cases1[1]);
+ 	}
+ 
++#ifdef ANDROID
++	tmp = (char *) malloc(strlen(cdir) + strlen("/cache") + 1);
++#else
+ 	tmp = (char *) malloc(strlen(cdir) + strlen("/tmp") + 1);
++#endif
+ 	for (i=0; i<3; i++) {
+ 		int ret;
+ 		sprintf(tmp, "%s%s", cdir, cases2[i]);
+ 		if (stat(tmp, &sbuf) != 0) {
+ 			rfbLog("creating dir: %s\n", tmp);
++#ifdef ANDROID
++			if (! strcmp(cases2[i], "/cache")) {
++#else
+ 			if (! strcmp(cases2[i], "/tmp")) {
++#endif
+ 				ret = mkdir(tmp, 0700);
+ 			} else {
+ 				ret = mkdir(tmp, 0755);
+@@ -537,7 +549,11 @@
+ 			return NULL;
+ 		}
+ 	}
++#ifdef ANDROID
++	sprintf(tmp, "%s/cache", cdir);
++#else
+ 	sprintf(tmp, "%s/tmp", cdir);
++#endif
+ 	*tmp_in = tmp;
+ 	return cdir;
+ }
+@@ -598,8 +614,13 @@
+ 		exit(1);
+ 	}
+ 
++#ifdef ANDROID
++	cmd = (char *)malloc(strlen("/system/bin/sh ") + strlen(scr) + 1);
++	sprintf(cmd, "/system/bin/sh %s", scr);
++#else
+ 	cmd = (char *)malloc(strlen("/bin/sh ") + strlen(scr) + 1);
+ 	sprintf(cmd, "/bin/sh %s", scr);
++#endif
+ 
+ 	system(cmd);
+ 	unlink(scr);
+@@ -615,8 +636,13 @@
+ 		exit(1);
+ 	}
+ 
++#ifdef ANDROID
++	cmd = (char *)malloc(strlen("/system/bin/sh ") + strlen(scr) + 1);
++	sprintf(cmd, "/system/bin/sh %s", scr);
++#else
+ 	cmd = (char *)malloc(strlen("/bin/sh ") + strlen(scr) + 1);
+ 	sprintf(cmd, "/bin/sh %s", scr);
++#endif
+ 
+ 	if (! ty) {
+ 		set_env("TYPE", "");
+@@ -647,7 +673,11 @@
+ void sslEncKey(char *path, int mode) {
+ 	char *openssl = find_openssl_bin();
+ 	char *scr, *cert = NULL, *tca, *cdir = NULL;
++#ifdef ANDROID
++	char line[1024], tmp[] = "/cache/x11vnc-tmp.XXXXXX";
++#else
+ 	char line[1024], tmp[] = "/tmp/x11vnc-tmp.XXXXXX";
++#endif
+ 	int tmp_fd, incert, info_only = 0, delete_only = 0, listlong = 0;
+ 	struct stat sbuf;
+ 	FILE *file;
+@@ -744,8 +774,13 @@
+ 		write(tmp_fd, genCert, strlen(genCert));
+ 		close(tmp_fd);
+ 
++#ifdef ANDROID
++		scr = (char *) malloc(strlen("/system/bin/sh ") + strlen(tmp) + 1);
++		sprintf(scr, "/system/bin/sh %s", tmp);
++#else
+ 		scr = (char *) malloc(strlen("/bin/sh ") + strlen(tmp) + 1);
+ 		sprintf(scr, "/bin/sh %s", tmp);
++#endif
+ 
+ 		set_env("BASE_DIR", cdir);
+ 		set_env("OPENSSL", openssl);
+@@ -855,8 +890,13 @@
+ 	write(tmp_fd, genCert, strlen(genCert));
+ 	close(tmp_fd);
+ 
++#ifdef ANDROID
++	scr = (char *) malloc(strlen("/system/bin/sh ") + strlen(tmp) + 1);
++	sprintf(scr, "/system/bin/sh %s", tmp);
++#else
+         scr = (char *) malloc(strlen("/bin/sh ") + strlen(tmp) + 1);
+ 	sprintf(scr, "/bin/sh %s", tmp);
++#endif
+ 
+ 	set_env("BASE_DIR", "/no/such/dir");
+ 	set_env("OPENSSL", openssl);
+--- x11vnc/sslhelper.c
++++ x11vnc/sslhelper.c
+@@ -238,8 +238,13 @@
+ char *create_tmp_pem(char *pathin, int prompt) {
+ 	pid_t pid, pidw;
+ 	FILE *in, *out;
++#ifdef ANDROID
++	char cnf[] = "/cache/x11vnc-cnf.XXXXXX";
++	char pem[] = "/cache/x11vnc-pem.XXXXXX";
++#else
+ 	char cnf[] = "/tmp/x11vnc-cnf.XXXXXX";
+ 	char pem[] = "/tmp/x11vnc-pem.XXXXXX";
++#endif
+ 	char str[8*1024], line[1024], *exe;
+ 	int cnf_fd, pem_fd, status, show_cert = 1;
+ 	char *days;
+@@ -1387,7 +1392,11 @@
+ 
+ static int add_anon_dh(void) {
+ 	pid_t pid, pidw;
++#ifdef ANDROID
++	char cnf[] = "/cache/x11vnc-dh.XXXXXX";
++#else
+ 	char cnf[] = "/tmp/x11vnc-dh.XXXXXX";
++#endif
+ 	char *infile = NULL;
+ 	int status, cnf_fd;
+ 	DH *dh;
+@@ -2572,7 +2581,11 @@
+ 	if (db) fprintf(stderr, "bytes read: %d / %d\n", bytes, ubytes);
+ 
+ 	/* mix in more predictable stuff as well for fallback */
++#ifdef ANDROID
++	sprintf(dtmp, "/cache/p%.8f.XXXXXX", dnow());
++#else
+ 	sprintf(dtmp, "/tmp/p%.8f.XXXXXX", dnow());
++#endif
+ 	fd = mkstemp(dtmp);
+ 	RAND_add(dtmp, strlen(dtmp), 0);
+ 	if (fd >= 0) {
+@@ -3464,7 +3477,11 @@
+ 		free(certret_str);
+ 		certret_str = NULL;
+ 	}
++#ifdef ANDROID
++	certret = strdup("/cache/x11vnc-certret.XXXXXX");
++#else
+ 	certret = strdup("/tmp/x11vnc-certret.XXXXXX");
++#endif
+ 	omode = umask(077);
+ 	certret_fd = mkstemp(certret);
+ 	umask(omode);
+@@ -3481,7 +3498,11 @@
+ 		free(dhret_str);
+ 		dhret_str = NULL;
+ 	}
++#ifdef ANDROID
++	dhret = strdup("/cache/x11vnc-dhret.XXXXXX");
++#else
+ 	dhret = strdup("/tmp/x11vnc-dhret.XXXXXX");
++#endif
+ 	omode = umask(077);
+ 	dhret_fd = mkstemp(dhret);
+ 	umask(omode);
+--- x11vnc/unixpw.c
++++ x11vnc/unixpw.c
+@@ -34,10 +34,14 @@
+ 
+ #ifdef __linux__
+ /* some conflict with _XOPEN_SOURCE */
++#ifdef ANDROID
++#include <stdlib.h>
++#else
+ extern int grantpt(int);
+ extern int unlockpt(int);
+ extern char *ptsname(int);
+ #endif
++#endif
+ 
+ #ifndef DO_NOT_DECLARE_CRYPT
+ extern char *crypt(const char*, const char *);
+@@ -1111,12 +1115,21 @@
+ 
+ 		if (db > 2) {
+ 			char nam[256];
++#ifdef ANDROID
++			unlink("/cache/isatty");
++			tfd = open("/cache/isatty", O_CREAT|O_WRONLY, 0600);
++#else
+ 			unlink("/tmp/isatty");
+ 			tfd = open("/tmp/isatty", O_CREAT|O_WRONLY, 0600);
++#endif
+ 			if (isatty(sfd)) {
+ 				close(tfd);
++#ifdef ANDROID
++				sprintf(nam, "stty -a < %s > /cache/isatty 2>&1", slave);
++#else
+ 				sprintf(nam, "stty -a < %s > /tmp/isatty 2>&1",
+ 				    slave);
++#endif
+ 				system(nam);
+ 			} else {
+ 				write(tfd, "NOTTTY\n", 7);
+@@ -1137,7 +1150,11 @@
+ 
+ 		set_env("LC_ALL", "C");
+ 		set_env("LANG", "C");
++#ifdef ANDROID
++		set_env("SHELL", "/system/bin/sh");
++#else
+ 		set_env("SHELL", "/bin/sh");
++#endif
+ 		if (nodisp) {
+ 			/* this will cause timeout problems with pam_xauth */
+ 			int k;
+--- x11vnc/user.c
++++ x11vnc/user.c
+@@ -48,6 +48,10 @@
+ #include "sslhelper.h"
+ #include "avahi.h"
+ 
++#ifdef ANDROID
++#include <grp.h>
++#endif
++
+ void check_switched_user(void);
+ void lurk_loop(char *str);
+ int switch_user(char *user, int fb_mode);
+@@ -1894,7 +1898,11 @@
+ 		clean_up_exit(0);
+ 	}
+ 	if (!strcmp(cmd, "FINDDISPLAY-run")) {
++#ifdef ANDROID
++		char tmp[] = "/cache/fd.XXXXXX";
++#else
+ 		char tmp[] = "/tmp/fd.XXXXXX";
++#endif
+ 		char com[100];
+ 		int fd = mkstemp(tmp);
+ 		if (fd >= 0) {
+@@ -1902,7 +1910,11 @@
+ 			write(fd, find_display, strlen(find_display));
+ 			close(fd);
+ 			set_env("FINDDISPLAY_run", "1");
++#ifdef ANDROID
++			sprintf(com, "/system/bin/sh %s -n", tmp);
++#else
+ 			sprintf(com, "/bin/sh %s -n", tmp);
++#endif
+ 			ret = system(com);
+ 			if (WIFEXITED(ret) && WEXITSTATUS(ret) != 0) {
+ 				if (got_findauth && !getenv("FD_XDM")) {
+@@ -2187,7 +2199,11 @@
+ 		    + strlen("FD_TAG='' ")
+ 		    + strlen("FD_XDMCP_IF='' ")
+ 		    + strlen("FD_XDUMMY_RUN_AS_ROOT='' ")
++#ifdef ANDROID
++		    + strlen("FD_SESS='' /system/bin/sh ")
++#else
+ 		    + strlen("FD_SESS='' /bin/sh ")
++#endif
+ 		    + strlen(uu) + 1
+ 		    + strlen(fdgeom) + 1
+ 		    + strlen(fdopts) + 1
+@@ -2207,13 +2223,22 @@
+ 		sprintf(create_cmd, "env USER='%s' FD_GEOM='%s' FD_SESS='%s' "
+ 		    "FD_OPTS='%s' FD_EXTRA='%s' FD_PROG='%s' FD_XSRV='%s' FD_CUPS='%s' "
+ 		    "FD_ESD='%s' FD_NAS='%s' FD_SMB='%s' FD_TAG='%s' FD_XDMCP_IF='%s' "
++#ifdef ANDROID
++		    "FD_XDUMMY_RUN_AS_ROOT='%s' %s /system/bin/sh %s %s",
++#else
+ 		    "FD_XDUMMY_RUN_AS_ROOT='%s' %s /bin/sh %s %s",
++#endif
+ 		    uu, fdgeom, fdsess, fdopts, fdextra, fdprog, fdxsrv,
+ 		    fdcups, fdesd, fdnas, fdsmb, fdtag, fdxdmcpif, fdxdum, cdout, tmp, opts);
+ 	} else {
++#ifdef ANDROID
++		create_cmd = (char *) malloc(strlen(tmp) + strlen("/system/bin/sh ") + 1 + strlen(opts) + 1);
++		sprintf(create_cmd, "/system/bin/sh %s %s", tmp, opts);
++#else
+ 		create_cmd = (char *) malloc(strlen(tmp)
+ 		    + strlen("/bin/sh ") + 1 + strlen(opts) + 1);
+ 		sprintf(create_cmd, "/bin/sh %s %s", tmp, opts);
++#endif
+ 	}
+ 	return create_cmd;
+ }
+@@ -2459,7 +2484,11 @@
+ }
+ 
+ static int do_run_cmd(char *cmd, char *create_cmd, char *users_list_save, int created_disp, int db) {
++#ifdef ANDROID
++	char tmp[] = "/cache/x11vnc-find_display.XXXXXX";
++#else
+ 	char tmp[] = "/tmp/x11vnc-find_display.XXXXXX";
++#endif
+ 	char line1[1024], line2[16384];
+ 	char *q, *usslpeer = NULL;
+ 	int n, nodisp = 0, saw_xdmcp = 0;
+@@ -2504,7 +2533,11 @@
+ 		}
+ 		chmod(tmp, 0644);
+ 		if (getenv("X11VNC_FINDDISPLAY_ALWAYS_FAILS")) {
++#ifdef ANDROID
++			char *s = "#!/system/bin/sh\necho _FAIL_\nexit 1\n";
++#else
+ 			char *s = "#!/bin/sh\necho _FAIL_\nexit 1\n";
++#endif
+ 			write(tmp_fd, s, strlen(s));
+ 		} else {
+ 			write(tmp_fd, find_display, strlen(find_display));
+@@ -2527,12 +2560,24 @@
+ 		}
+ 
+ 		cmd = (char *) malloc(strlen("env X11VNC_SKIP_DISPLAY='' ")
++#ifdef ANDROID
++		    + strlen(nd) + strlen(" FD_TAG='' ") + strlen(tag) + strlen(tmp) + strlen("/system/bin/sh ") + strlen(fdout) + 1);
++#else
+ 		    + strlen(nd) + strlen(" FD_TAG='' ") + strlen(tag) + strlen(tmp) + strlen("/bin/sh ") + strlen(fdout) + 1);
++#endif
+ 
+ 		if (strcmp(tag, "")) {
++#ifdef ANDROID
++			sprintf(cmd, "env X11VNC_SKIP_DISPLAY='%s' FD_TAG='%s' %s /system/bin/sh %s", nd, tag, fdout, tmp);
++#else
+ 			sprintf(cmd, "env X11VNC_SKIP_DISPLAY='%s' FD_TAG='%s' %s /bin/sh %s", nd, tag, fdout, tmp);
++#endif
+ 		} else {
++#ifdef ANDROID
++			sprintf(cmd, "env X11VNC_SKIP_DISPLAY='%s' %s /system/bin/sh %s", nd, fdout, tmp);
++#else
+ 			sprintf(cmd, "env X11VNC_SKIP_DISPLAY='%s' %s /bin/sh %s", nd, fdout, tmp);
++#endif
+ 		}
+ 	}
+ 
+--- x11vnc/util.c
++++ x11vnc/util.c
+@@ -306,7 +306,11 @@
+ 	if (home) {
+ 		return(strdup(home));
+ 	} else {
++#ifdef ANDROID
++		return(strdup("/mnt/sdcard"));
++#else
+ 		return(strdup("/"));
++#endif
+ 	}
+ }
+ 
+@@ -327,7 +331,11 @@
+ 	if (shell) {
+ 		return(strdup(shell));
+ 	} else {
++#ifdef ANDROID
++		return(strdup("/system/bin/sh"));
++#else
+ 		return(strdup("/bin/sh"));
++#endif
+ 	}
+ }
+ 
+--- x11vnc/v4l.c
++++ x11vnc/v4l.c
+@@ -1163,7 +1163,11 @@
+ 
+ static char *guess_via_v4l_info(char *dev, int *fd) {
+ 	char *atparms, *cmd;
++#ifdef ANDROID
++	char line[1024], tmp[] = "/cache/x11vnc-tmp.XXXXXX";
++#else
+ 	char line[1024], tmp[] = "/tmp/x11vnc-tmp.XXXXXX";
++#endif
+ 	FILE *out;
+ 	int tmp_fd, len, rc, curr = 0;
+ 	int g_w = 0, g_h = 0, g_b = 0, mask_rev = 0;
+--- x11vnc/x11vnc.c
++++ x11vnc/x11vnc.c
+@@ -1807,8 +1807,12 @@
+ 		
+ 		h = getenv("HOME");
+ 		if (! h) {
++#ifdef ANDROID
++			h = "/mnt/sdcard";
++#else
+ 			fprintf(stderr, "** $HOME not set.\n");
+ 			exit(1);
++#endif
+ 		}
+ 
+ 		f = (char *) malloc(strlen(h) + strlen("/.vnc/passwd") + 1);
+@@ -4499,8 +4503,12 @@
+ 		int found = 0, set_rfbauth = 0;
+ 
+ 		if (!h) {
++#ifdef ANDROID
++			h = "/mnt/sdcard";
++#else
+ 			rfbLog("HOME unset in -usepw mode.\n");
+ 			exit(1);
++#endif
+ 		}
+ 		f = (char *) malloc(strlen(h)+strlen("/.vnc/passwdfile") + 1);
+ 
+--- x11vnc/xevents.c
++++ x11vnc/xevents.c
+@@ -2012,7 +2012,11 @@
+ 	} else if (pid == 0) {
+ 		char *args[4];
+ 		int d;
++#ifdef ANDROID
++		args[0] = "/system/bin/sh";
++#else
+ 		args[0] = "/bin/sh";
++#endif
+ 		args[1] = "-c";
+ 		/* "ssvnc -cmd VNC://fd=0 -chatonly"; not working */
+ 		args[2] = cmd;
+--- x11vnc/xwrappers.c
++++ x11vnc/xwrappers.c
+@@ -1286,7 +1286,11 @@
+ }
+ 
+ int xauth_raw(int on) {
++#ifdef ANDROID
++	char tmp[] = "/cache/x11vnc-xauth.XXXXXX";
++#else
+ 	char tmp[] = "/tmp/x11vnc-xauth.XXXXXX";
++#endif
+ 	int tmp_fd = -1;
+ 	static char *old_xauthority = NULL;
+ 	static char *old_tmp = NULL;

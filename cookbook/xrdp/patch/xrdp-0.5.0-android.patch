@@ -1,0 +1,290 @@
+--- common/os_calls.c
++++ common/os_calls.c
+@@ -664,16 +664,28 @@
+   if ((name == 0) || (strlen(name) == 0))
+   {
+     g_random((char*)&i, sizeof(i));
++#ifdef ANDROID
++    sprintf(sa.sun_path, "/cache/auto%8.8x", i);
++#else
+     sprintf(sa.sun_path, "/tmp/auto%8.8x", i);
++#endif
+     while (g_file_exist(sa.sun_path))
+     {
+       g_random((char*)&i, sizeof(i));
++#ifdef ANDROID
++      sprintf(sa.sun_path, "/cache/auto%8.8x", i);
++#else
+       sprintf(sa.sun_path, "/tmp/auto%8.8x", i);
++#endif
+     }
+   }
+   else
+   {
++#ifdef ANDROID
++    sprintf(sa.sun_path, "/cache/%s", name);
++#else
+     sprintf(sa.sun_path, "/tmp/%s", name);
++#endif
+   }
+   unlink(sa.sun_path);
+   len = sizeof(sa);
+@@ -1985,7 +1997,7 @@
+ g_getuser_info(const char* username, int* gid, int* uid, char* shell,
+                char* dir, char* gecos)
+ {
+-#if defined(_WIN32)
++#if defined(_WIN32) || defined(ANDROID)
+   return 1;
+ #else
+   struct passwd* pwd_1;
+--- sesman/env.c
++++ sesman/env.c
+@@ -61,6 +61,17 @@
+ int DEFAULT_CC
+ env_set_user(char* username, char* passwd_file, int display)
+ {
++#ifdef ANDROID
++  char text[256];
++  if (1) { if(1) {
++      g_clearenv();
++      g_setenv("SHELL", "/system/bin/sh", 1);
++      g_setenv("PATH", "/sbin:/vendor/bin:/system/sbin:/system/bin:/system/xbin", 1);
++      g_setenv("USER", "root", 1);
++      g_setenv("UID", "0", 1);
++      g_setenv("HOME", "/mnt/sdcard", 1);
++      g_set_current_dir("/mnt/sdcard");
++#else
+   int error;
+   int pw_uid;
+   int pw_gid;
+@@ -94,6 +105,7 @@
+       g_setenv("UID", text, 1);
+       g_setenv("HOME", pw_dir, 1);
+       g_set_current_dir(pw_dir);
++#endif
+       g_sprintf(text, ":%d.0", display);
+       g_setenv("DISPLAY", text, 1);
+       if (passwd_file != 0)
+@@ -103,7 +115,11 @@
+           /* if no auth_file_path is set, then we go for
+              $HOME/.vnc/sesman_username_passwd */
+           g_mkdir(".vnc");
++#ifdef ANDROID
++          g_sprintf(passwd_file, "%s/.vnc/sesman_%s_passwd", "/mnt/sdcard", username);
++#else
+           g_sprintf(passwd_file, "%s/.vnc/sesman_%s_passwd", pw_dir, username);
++#endif
+         }
+ 	else
+ 	{
+@@ -119,5 +135,9 @@
+     log_message(&(g_cfg->log), LOG_LEVEL_ERROR,
+                 "error getting user info for user %s", username);
+   }
++#ifdef ANDROID
++  return 0;
++#else
+   return error;
++#endif
+ }
+--- sesman/sesman.c
++++ sesman/sesman.c
+@@ -320,11 +320,19 @@
+               "starting sesman with pid %d", g_pid);
+ 
+   /* make sure the /tmp/.X11-unix directory exist */
++#ifdef ANDROID
++  if (!g_directory_exist("/cache/.X11-unix"))
++  {
++    g_create_dir("/cache/.X11-unix");
++    g_chmod_hex("/cache/.X11-unix", 0x1777);
++  }
++#else
+   if (!g_directory_exist("/tmp/.X11-unix"))
+   {
+     g_create_dir("/tmp/.X11-unix");
+     g_chmod_hex("/tmp/.X11-unix", 0x1777);
+   }
++#endif
+ 
+   g_snprintf(text, 255, "xrdp_sesman_%8.8x_main_term", g_pid);
+   g_term_event = g_create_wait_obj(text);
+--- sesman/session.c
++++ sesman/session.c
+@@ -95,11 +95,19 @@
+   int x_running;
+   int sck;
+ 
++#ifdef ANDROID
++  g_sprintf(text, "/cache/.X11-unix/X%d", display);
++#else
+   g_sprintf(text, "/tmp/.X11-unix/X%d", display);
++#endif
+   x_running = g_file_exist(text);
+   if (!x_running)
+   {
++#ifdef ANDROID
++    g_sprintf(text, "/cache/.X%d-lock", display);
++#else
+     g_sprintf(text, "/tmp/.X%d-lock", display);
++#endif
+     x_running = g_file_exist(text);
+   }
+   if (!x_running) /* check 59xx */
+@@ -141,11 +149,19 @@
+   int x_running;
+   int sck;
+ 
++#ifdef ANDROID
++  g_sprintf(text, "/cache/.X11-unix/X%d", display);
++#else
+   g_sprintf(text, "/tmp/.X11-unix/X%d", display);
++#endif
+   x_running = g_file_exist(text);
+   if (!x_running)
+   {
++#ifdef ANDROID
++    g_sprintf(text, "/cache/.X%d-lock", display);
++#else
+     g_sprintf(text, "/tmp/.X%d-lock", display);
++#endif
+     x_running = g_file_exist(text);
+   }
+   return x_running;
+@@ -374,7 +390,12 @@
+         /* try to execute user window manager if enabled */
+         if (g_cfg->enable_user_wm)
+         {
++#ifdef ANDROID
++          const char *rawhome = g_getenv("HOME");
++          g_sprintf(text,"%s/%s", rawhome?rawhome:"/mnt/sdcard", g_cfg->user_wm);
++#else
+           g_sprintf(text,"%s/%s", g_getenv("HOME"), g_cfg->user_wm);
++#endif
+           if (g_file_exist(text))
+           {
+             g_execlp3(text, g_cfg->user_wm, 0);
+--- sesman/sessvc/sessvc.c
++++ sesman/sessvc/sessvc.c
+@@ -56,12 +56,20 @@
+ {
+   char text[256];
+ 
++#ifdef ANDROID
++  g_snprintf(text, 255, "/cache/xrdp_chansrv_%8.8x_main_term", pid);
++#else
+   g_snprintf(text, 255, "/tmp/xrdp_chansrv_%8.8x_main_term", pid);
++#endif
+   if (g_file_exist(text))
+   {
+     g_file_delete(text);
+   }
++#ifdef ANDROID
++  g_snprintf(text, 255, "/cache/xrdp_chansrv_%8.8x_thread_done", pid);
++#else
+   g_snprintf(text, 255, "/tmp/xrdp_chansrv_%8.8x_thread_done", pid);
++#endif
+   if (g_file_exist(text))
+   {
+     g_file_delete(text);
+--- sesman/verify_user.c
++++ sesman/verify_user.c
+@@ -30,8 +30,10 @@
+ #define _XOPEN_SOURCE
+ #include <stdio.h>
+ #include <sys/types.h>
++#ifndef ANDROID
+ #include <crypt.h>
+ #include <shadow.h>
++#endif
+ #include <pwd.h>
+ 
+ #ifndef SECS_PER_DAY
+@@ -40,17 +42,22 @@
+ 
+ extern struct config_sesman* g_cfg; /* in sesman.c */
+ 
++#ifndef ANDROID
+ static int DEFAULT_CC
+ auth_crypt_pwd(char* pwd, char* pln, char* crp);
+ 
+ static int DEFAULT_CC
+ auth_account_disabled(struct spwd* stp);
++#endif
+ 
+ /******************************************************************************/
+ /* returns boolean */
+ long DEFAULT_CC
+ auth_userpass(char* user, char* pass)
+ {
++#ifdef ANDROID
++  return (g_strcmp(user, "root") == 0)?1:0;
++#else
+   char salt[13] = "$1$";
+   char hash[35] = "";
+   char* encr = 0;
+@@ -109,6 +116,7 @@
+     return 0;
+   }
+   return 1;
++#endif
+ }
+ 
+ /******************************************************************************/
+@@ -137,6 +145,9 @@
+ int DEFAULT_CC
+ auth_check_pwd_chg(char* user)
+ {
++#ifdef ANDROID
++  return AUTH_PWD_CHG_OK;
++#else
+   struct passwd* spw;
+   struct spwd* stp;
+   int now;
+@@ -185,11 +196,15 @@
+   }
+ 
+   return AUTH_PWD_CHG_OK;
++#endif
+ }
+ 
+ int DEFAULT_CC
+ auth_change_pwd(char* user, char* newpwd)
+ {
++#ifdef ANDROID
++  return 1;
++#else
+   struct passwd* spw;
+   struct spwd* stp;
+   char hash[35] = "";
+@@ -248,8 +263,10 @@
+ 
+   ulckpwdf();
+   return 0;
++#endif
+ }
+ 
++#ifndef ANDROID
+ /**
+  *
+  * @brief Password encryption
+@@ -330,3 +347,4 @@
+ 
+   return 0;
+ }
++#endif
+--- xrdp/xrdp_mm.c
++++ xrdp/xrdp_mm.c
+@@ -661,7 +661,11 @@
+         {
+           /* unix socket */
+           self->chan_trans = trans_create(2, 8192, 8192);
++#ifdef ANDROID
++          g_snprintf(port, 255, "/cache/xrdp_chansrv_socket_%d", 7200 + display);
++#else
+           g_snprintf(port, 255, "/tmp/xrdp_chansrv_socket_%d", 7200 + display);
++#endif
+         }
+         else
+         {

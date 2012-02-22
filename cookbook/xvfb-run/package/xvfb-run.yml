@@ -1,0 +1,15 @@
+Package: xvfb-run
+Version: 0.0.1-0
+Architecture: all
+Section: x11
+Priority: optional
+Source: http://inportb.com/
+Description: |
+ run specified X client or command in a virtual X server environment
+ xvfb-run is a wrapper for the Xvfb(1x) command which simplifies the task of running commands (typically an X client, or a script containing a list of clients to be run) within a virtual X server environment.
+Depends: xvfb
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p $PACKAGE/system
+    cp -r $EXPORT/system/bin $PACKAGE/system/

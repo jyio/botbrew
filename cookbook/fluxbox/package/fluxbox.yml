@@ -1,0 +1,16 @@
+Package: fluxbox
+Version: 1.3.2-0
+Architecture: armeabi
+Section: x11
+Priority: optional
+Source: http://www.karlrunge.com/x11vnc/
+Description: |
+ Highly configurable and low resource X11 Window manager
+ Fairly similar to blackbox, from which it is derived, but has been extended with features such as pwm-style window tabs, configurable key bindings, toolbar, and an iconbar. It also includes some cosmetic fixes over blackbox.
+Depends: xdialog
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p $PACKAGE/system/share
+    cp -r $EXPORT/system/bin $PACKAGE/system/
+    cp -r $EXPORT/system/share/fluxbox $PACKAGE/system/share/

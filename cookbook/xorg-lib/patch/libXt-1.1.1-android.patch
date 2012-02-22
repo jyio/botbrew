@@ -1,0 +1,38 @@
+--- src/Initialize.c
++++ src/Initialize.c
+@@ -314,11 +314,16 @@
+ 	(void) strncpy (dest, ptr, len-1);
+ 	dest[len-1] = '\0';
+     } else {
++#ifdef ANDROID
++	(void) strncpy (dest, "root", len-1);
++	dest[len-1] = '\0';
++#else
+ 	if ((pw = _XGetpwuid(getuid(),pwparams)) != NULL) {
+ 	    (void) strncpy (dest, pw->pw_name, len-1);
+ 	    dest[len-1] = '\0';
+ 	} else
+ 	    *dest = '\0';
++#endif
+     }
+ #endif
+     return dest;
+@@ -361,6 +366,10 @@
+ 	(void) strncpy (dest, ptr, len-1);
+ 	dest[len-1] = '\0';
+     } else {
++#ifdef ANDROID
++	(void) strncpy (dest, "/mnt/sdcard", len-1);
++	dest[len-1] = '\0';
++#else
+ 	if ((ptr = getenv("USER")))
+ 	    pw = _XGetpwnam(ptr,pwparams);
+ 	else
+@@ -370,6 +379,7 @@
+ 	    dest[len-1] = '\0';
+ 	} else
+ 	    *dest = '\0';
++#endif
+     }
+ #endif
+     return dest;

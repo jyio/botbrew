@@ -1,0 +1,18 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=0.0.1
+PACKAGE_DEPEND=()
+
+botbrew_do_build() {
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		mkdir -p ${G_EXPORT}/system/bin
+		cp ${G_SOURCE}/* ${G_EXPORT}/system/bin/
+		touch ${G_EXPORT}/.d
+	fi
+}
+
+botbrew_do_clobber() {
+	rm -rf ${G_EXPORT}
+}

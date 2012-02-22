@@ -1,0 +1,13 @@
+--- pixman/pixman-utils.c
++++ pixman/pixman-utils.c
+@@ -28,6 +28,10 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ 
++#ifdef ANDROID
++#include <limits.h>
++#endif
++
+ #include "pixman-private.h"
+ 
+ #define N_CACHED_FAST_PATHS 8

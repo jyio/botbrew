@@ -1,0 +1,41 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=0.5.0
+PACKAGE_DEPEND=( openssl xorg-proto xorg-lib xcb xorg-lib-libxau libbotbrew )
+
+FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
+ARCHIVE=${FULLNAME}.tar.gz
+
+botbrew_do_build() {
+	botbrew_download http://downloads.sourceforge.net/project/${PACKAGE_NAME}/${PACKAGE_NAME}/${PACKAGE_VERSION}/${ARCHIVE} ${ARCHIVE}
+	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
+	botbrew_copytree ${FULLNAME}/${PACKAGE_NAME} ${G_SOURCE} || true
+	botbrew_patchtree -p0 ${G_SOURCE} patch/xrdp-0.5.0-android.patch
+	botbrew_import
+	if ! [ -e ${G_SOURCE}/configure ]; then
+		(cd ${G_SOURCE}; ./bootstrap)
+	fi
+	if ! [ -e ${G_OBJECT}/Makefile ]; then
+		(
+			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
+			cp -rlf ../${G_SOURCE}/* ./
+			sed -e 's/-lpthread//g' common/Makefile.am > temp
+			mv temp common/Makefile.am
+			sed -e 's/-lpthread//g' common/Makefile.in > temp
+			mv temp common/Makefile.in
+			CC="agcc.bash" CPPFLAGS="-I${G_INCDIR}" LD="agcc.bash" LDFLAGS="-L${G_LIBDIR}" LIBS="-lxcb -lXau -lbotbrew" \
+			./configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
+				--enable-nopam
+		)
+	fi
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		${G_MAKE} -C ${G_OBJECT} AUTH_LIB=
+		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
+		rm ${G_EXPORT}/system/lib/xrdp/*.la
+		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/* || true
+		botbrew_fix_shell_path $(grep -rlIF '/bin/sh' ${G_EXPORT})
+		touch ${G_EXPORT}/.d
+	fi
+}

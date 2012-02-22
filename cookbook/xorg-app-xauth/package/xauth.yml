@@ -1,0 +1,14 @@
+Package: xauth
+Version: 1.0.6-0
+Architecture: armeabi
+Section: x11
+Priority: optional
+Source: http://www.x.org/
+Description: |
+ X authority file utility
+ The xauth program is used to edit and display the authorization information used in connecting to the X server. This program is usually used to extract authorization records from one machine and merge them in on another (as is the case when using remote logins or granting access to other users). Commands (described below) may be entered interactively, on the xauth command line, or in scripts. Note that this program does not contact the X server except when the generate command is used. Normally xauth is not used to create the authority file entry in the first place; xdm does that.
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p $PACKAGE/system
+    cp -r $EXPORT/system/bin $PACKAGE/system/

@@ -1,0 +1,15 @@
+Package: xkb-data
+Version: 2.5-0
+Architecture: all
+Section: x11
+Priority: optional
+Source: http://www.x.org/
+Description: |
+ X Keyboard Extension (XKB) configuration data
+ This package contains configuration data used by the X Keyboard Extension (XKB), which allows selection of keyboard layouts when using a graphical interface. Every X11 vendor provides its own XKB data files, so keyboard layout designers have to send their layouts to several places. The xkeyboard-config project has been launched at FreeDesktop in order to provide a central repository that could be used by all vendors.
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p $PACKAGE/system/share
+    cp -r $EXPORT/system/lib $PACKAGE/system/
+    cp -r $EXPORT/system/share/X11 $PACKAGE/system/share/

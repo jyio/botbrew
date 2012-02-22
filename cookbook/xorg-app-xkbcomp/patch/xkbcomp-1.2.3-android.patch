@@ -1,0 +1,15 @@
+--- xkbpath.c
++++ xkbpath.c
+@@ -34,8 +34,12 @@
+ #include "xkbpath.h"
+ 
+ #ifndef DFLT_XKB_CONFIG_ROOT
++#ifdef ANDROID
++#define DFLT_XKB_CONFIG_ROOT	"/system/share/X11/xkb"
++#else
+ #define DFLT_XKB_CONFIG_ROOT	"/usr/lib/X11/xkb"
+ #endif
++#endif
+ 
+ #ifndef PATH_MAX
+ #define	PATH_MAX 1024

@@ -1,0 +1,14 @@
+Package: xserver-doc
+Version: 1.11.99.903-0
+Architecture: all
+Section: doc
+Priority: optional
+Source: http://www.x.org/
+Description: |
+ documentation for various X servers
+ This package provides documentation for X.Org based X servers.
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p $PACKAGE/system/share
+    cp -r $EXPORT/system/share/man $PACKAGE/system/share/

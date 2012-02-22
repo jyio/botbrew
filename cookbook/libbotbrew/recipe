@@ -5,9 +5,6 @@ PACKAGE_NAME=$(basename $(pwd))
 PACKAGE_VERSION=0.0.1
 PACKAGE_DEPEND=()
 
-FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
-ARCHIVE=${FULLNAME}.tar.gz
-
 botbrew_do_build() {
 	if ! [ -e ${G_OBJECT} ]; then
 		mkdir -p ${G_OBJECT}
@@ -18,7 +15,7 @@ botbrew_do_build() {
 			set -x
 			cd ${G_OBJECT}
 			rm -f *.o *.a
-			agcc.bash -c glob.c regexec.c regcomp.c regerror.c regfree.c openpty.c getpass.c \
+			agcc.bash -c glob.c regexec.c regcomp.c regerror.c regfree.c openpty.c getpass.c wchar.c \
 				-I../${G_SOURCE} -I../${G_SOURCE}/include
 			${G_AR} -r ${PACKAGE_NAME}.a *.o
 		)

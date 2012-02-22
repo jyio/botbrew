@@ -9,7 +9,7 @@ FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
 ARCHIVE=${FULLNAME}.tar.xz
 
 botbrew_do_build() {
-	botbrew_download http://ftp.gnome.org/pub/gnome/sources/${PACKAGE_NAME}/2.30/${ARCHIVE} ${ARCHIVE}
+	botbrew_download http://ftp.gnome.org/pub/gnome/sources/${PACKAGE_NAME}/${PACKAGE_VERSION%.*}/${ARCHIVE} ${ARCHIVE}
 	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
 	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
 	botbrew_fix_config ${G_SOURCE}
