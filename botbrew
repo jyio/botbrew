@@ -155,6 +155,8 @@ botbrew_copytree() {
 	fi
 }
 
+# patch
+
 botbrew_patchtree() {
 	if [ "$1" != "" ] && [ -d "$2" ] && [ -f "$3" ]; then
 		local PATCHNAME=$(basename "$3")
@@ -167,6 +169,8 @@ botbrew_patchtree() {
 		return 1
 	fi
 }
+
+# import
 
 botbrew_import() {
 	if [ "$1" = "" ]; then
@@ -186,6 +190,24 @@ botbrew_import() {
 				touch ${DST}/.import.${item} || return 1
 		fi
 	done
+}
+
+# pkg-config
+
+botbrew_pkgconfig() {
+	if [ "$1" = "" ]; then
+		local CWD=$(pwd)
+		local RET=(
+			PKG_CONFIG_LIBDIR="${CWD}/${G_IMPORT}/system/lib/pkgconfig"
+			PKG_CONFIG_SYSROOT_DIR="${CWD}/${G_IMPORT}"
+		)
+	else
+		local RET=(
+			PKG_CONFIG_LIBDIR="$(readlink -m "$1")"
+			PKG_CONFIG_SYSROOT_DIR="$(readlink -m "$2")"
+		)
+	fi
+	echo "${RET[@]}"
 }
 
 botbrew_recipe() {
