@@ -1,0 +1,32 @@
+--- builtin/help.c
++++ builtin/help.c
+@@ -165,7 +165,11 @@
+ {
+ 	struct strbuf shell_cmd = STRBUF_INIT;
+ 	strbuf_addf(&shell_cmd, "%s %s", cmd, page);
++#ifdef ANDROID
++	execl("/system/bin/sh", "sh", "-c", shell_cmd.buf, (char *)NULL);
++#else
+ 	execl("/bin/sh", "sh", "-c", shell_cmd.buf, (char *)NULL);
++#endif
+ 	warning("failed to exec '%s': %s", cmd, strerror(errno));
+ }
+ 
+--- git-compat-util.h
++++ git-compat-util.h
+@@ -556,10 +556,15 @@
+ #define ST_CTIME_NSEC(st) ((unsigned int)((st).st_ctimespec.tv_nsec))
+ #define ST_MTIME_NSEC(st) ((unsigned int)((st).st_mtimespec.tv_nsec))
+ #else
++#ifdef ANDROID
++#define ST_CTIME_NSEC(st) ((unsigned int)((st).st_ctime_nsec))
++#define ST_MTIME_NSEC(st) ((unsigned int)((st).st_mtime_nsec))
++#else
+ #define ST_CTIME_NSEC(st) ((unsigned int)((st).st_ctim.tv_nsec))
+ #define ST_MTIME_NSEC(st) ((unsigned int)((st).st_mtim.tv_nsec))
+ #endif
+ #endif
++#endif
+ 
+ #ifdef UNRELIABLE_FSTAT
+ #define fstat_is_reliable() 0

@@ -15,7 +15,7 @@ botbrew_do_build() {
 	sed -E 's/as_fn_error (\$\? "cannot run test program)/$as_echo \1/g' ${G_SOURCE}/configure > temp
 	cat temp > ${G_SOURCE}/configure
 	rm temp
-#	botbrew_patchtree -p0 ${G_SOURCE} patch/binutils-2.22-android.patch
+	botbrew_patchtree -p0 ${G_SOURCE} patch/git-1.7.10.rc0.patch
 	botbrew_import
 	if ! [ -e ${G_OBJECT}/Makefile ]; then
 		(
