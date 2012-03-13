@@ -1,0 +1,67 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=0.8.6
+PACKAGE_DEPEND=()
+
+FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
+ARCHIVE=${FULLNAME}.tar.gz
+
+botbrew_do_build() {
+	botbrew_download http://www.etalabs.net/${PACKAGE_NAME}/releases/${ARCHIVE} ${ARCHIVE}
+	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
+	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
+	botbrew_patchtree -p0 ${G_SOURCE} patch/musl-0.8.6-android.patch
+	if ! [ -e ${G_OBJECT}/.do.config.mak ]; then
+		(
+			REMOVE=$(cat patch/musl-0.8.6-android.remove)
+			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
+			cp -rlf ../${G_SOURCE}/* ./
+			for item in ${REMOVE}; do
+				case "${item}" in
+					'')
+						;;
+					/*)
+						echo 1>&2 "Cowardly refusing to remove \`${item}'!"
+						;;
+					*)
+						if [ -e ${item} ]; then
+							echo "removing file ${item}"
+							rm -rf ${item}
+						fi
+						;;
+				esac
+			done
+			cat > config.mak <<-EOF
+				ARCH		:= arm
+				CC		:= agcc.bash
+				LD		:= agcc.bash
+				CFLAGS		:= -Os -std=c99 -D_XOPEN_SOURCE=700 -pipe
+				LDFLAGS		:= -shared
+				AR		:= ${G_AR}
+				RANLIB		:= ${G_RANLIB}
+				OBJCOPY		:= ${G_OBJCOPY}
+				LIBNAME		:= musl
+			EOF
+			echo "LIBNAME := c" > temp
+			cat Makefile \
+				| sed -e 's/libc.so/lib${LIBNAME}.so/g' \
+				| sed -e 's/libc.a/lib${LIBNAME}.a/g' \
+				>> temp
+			mv temp Makefile
+			touch .do.config.mak
+		)
+	fi
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		${G_MAKE} -C ${G_OBJECT} lib/libmusl.a lib/libmusl.so
+		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
+		rm -rf ${G_EXPORT}/system
+		mkdir -p ${G_EXPORT}/system/lib ${G_EXPORT}/system/include/musl
+		mv ${G_EXPORT}/usr/local/musl/lib/libmusl.* ${G_EXPORT}/system/lib/
+		mv ${G_EXPORT}/usr/local/musl/include/* ${G_EXPORT}/system/include/musl/
+		rm -rf ${G_EXPORT}/usr ${G_EXPORT}/lib
+		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/lib/*.so || true
+		touch ${G_EXPORT}/.d
+	fi
+}
