@@ -24,6 +24,8 @@ botbrew_do_build() {
 	fi
 	if ! [ -e ${G_EXPORT}/.d ]; then
 		${G_MAKE} -C ${G_OBJECT} \
+			CC=${G_TRIPLET}-gcc \
+			CPPFLAGS='-DTMPDIR=\"/cache\"' \
 			PREFIX=/system \
 			SBINDIR=/system/bin \
 			MANDIR=/system/share/man \
