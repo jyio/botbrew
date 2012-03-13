@@ -1,0 +1,75 @@
+--- src/files.c
++++ src/files.c
+@@ -1271,7 +1271,11 @@
+ 
+     /* if P_tmpdir is NULL, use /tmp. */
+     if (full_tempdir == NULL)
++#ifdef __ANDROID__
++	full_tempdir = mallocstrcpy(NULL, "/cache/");
++#else
+ 	full_tempdir = mallocstrcpy(NULL, "/tmp/");
++#endif
+ 
+     full_tempdir = charealloc(full_tempdir, strlen(full_tempdir) + 12);
+     strcat(full_tempdir, "nano.XXXXXX");
+@@ -2237,11 +2241,15 @@
+ 	    tilde_dir = mallocstrncpy(NULL, buf, i + 1);
+ 	    tilde_dir[i] = '\0';
+ 
++#ifdef __ANDROID__
++	    userdata = NULL;
++#else
+ 	    do {
+ 		userdata = getpwent();
+ 	    } while (userdata != NULL && strcmp(userdata->pw_name,
+ 		tilde_dir + 1) != 0);
+ 	    endpwent();
++#endif
+ 	    if (userdata != NULL)
+ 		tilde_dir = mallocstrcpy(tilde_dir, userdata->pw_dir);
+ 	}
+@@ -2341,6 +2349,7 @@
+ 
+     *num_matches = 0;
+ 
++#ifndef __ANDROID__
+     while ((userdata = getpwent()) != NULL) {
+ 	if (strncmp(userdata->pw_name, buf + 1, buf_len - 1) == 0) {
+ 	    /* Cool, found a match.  Add it to the list.  This makes a
+@@ -2362,6 +2371,7 @@
+ 	}
+     }
+     endpwent();
++#endif
+ 
+     return matches;
+ }
+--- src/nano.c
++++ src/nano.c
+@@ -1517,6 +1517,9 @@
+ 
+     /* Read in a character. */
+     input = get_kbinput(edit, meta_key, func_key);
++#ifdef __ANDROID__
++    if(input == NANO_JUSTIFY_KEY) input = NANO_ENTER_KEY;
++#endif
+ 
+ #ifndef DISABLE_MOUSE
+     if (allow_funcs) {
+--- src/utils.c
++++ src/utils.c
+@@ -53,10 +53,14 @@
+ 	const char *homenv = getenv("HOME");
+ 
+ 	if (homenv == NULL) {
++#ifdef __ANDROID__
++	    homenv = "/mnt/sdcard";
++#else
+ 	    const struct passwd *userage = getpwuid(geteuid());
+ 
+ 	    if (userage != NULL)
+ 		homenv = userage->pw_dir;
++#endif
+ 	}
+ 	homedir = mallocstrcpy(NULL, homenv);
+     }

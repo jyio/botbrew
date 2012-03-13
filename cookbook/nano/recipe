@@ -1,0 +1,33 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=2.2.6
+PACKAGE_DEPEND=( ncursesw libiconv )
+
+FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
+ARCHIVE=${FULLNAME}.tar.gz
+
+botbrew_do_build() {
+	botbrew_download http://www.nano-editor.org/dist/v${PACKAGE_VERSION%.*}/${ARCHIVE} ${ARCHIVE}
+	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
+	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
+	botbrew_fix_config ${G_SOURCE}
+	botbrew_import
+	botbrew_patchtree -p0 ${G_SOURCE} patch/nano-2.2.6-android.patch
+	if ! [ -e ${G_OBJECT}/Makefile ]; then
+		(
+			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
+			CPPFLAGS="-I${G_INCDIR} -I${G_INCDIR}/ncursesw" LDFLAGS="-L${G_LIBDIR}" \
+			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
+				--enable-all \
+				--disable-justify
+		)
+	fi
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		${G_MAKE} -C ${G_OBJECT}
+		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
+		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/* || true
+		touch ${G_EXPORT}/.d
+	fi
+}

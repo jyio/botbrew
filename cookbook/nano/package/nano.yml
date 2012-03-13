@@ -1,0 +1,16 @@
+Package: nano
+Version: 2.2.6-1
+Architecture: armeabi
+Section: editors
+Priority: optional
+Source: http://www.nano-editor.org/
+Description: |
+ small, friendly text editor inspired by Pico
+ GNU nano is an easy-to-use text editor originally designed as a replacement for Pico, the ncurses-based editor from the non-free mailer package Pine (itself now available under the Apache License as Alpine).
+Depends: libncursesw, ncurses-common
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p $PACKAGE/system/share
+    cp -r $EXPORT/system/bin $PACKAGE/system/
+    cp -r $EXPORT/system/share/nano $PACKAGE/system/share/
