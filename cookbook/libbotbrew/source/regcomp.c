@@ -90,7 +90,7 @@ __RCSID("$NetBSD: regcomp.c,v 1.28.22.1 2009/05/13 19:18:25 jym Exp $");
 #include <string.h>
 #include <regex.h>
 
-#if ANDROID
+#if __ANDROID__
 #include <assert.h>
 #define _DIAGASSERT(...) assert(...)
 #endif

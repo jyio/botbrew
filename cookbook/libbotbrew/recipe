@@ -15,8 +15,8 @@ botbrew_do_build() {
 			set -x
 			cd ${G_OBJECT}
 			rm -f *.o *.a
-			agcc.bash -c glob.c regexec.c regcomp.c regerror.c regfree.c openpty.c getpass.c wchar.c \
-				-I../${G_SOURCE} -I../${G_SOURCE}/include
+			${G_CC} -c glob.c regexec.c regcomp.c regerror.c regfree.c openpty.c getpass.c wchar.c \
+				-I../${G_SOURCE} -I../${G_SOURCE}/include ${G_CFLAGS} ${G_OFLAGS}
 			${G_AR} -r ${PACKAGE_NAME}.a *.o
 		)
 		mkdir -p ${G_EXPORT}/system/lib ${G_EXPORT}/system/include

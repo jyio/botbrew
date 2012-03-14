@@ -21,7 +21,7 @@
 
 #include <sys/cdefs.h>
 
-#if ANDROID
+#if __ANDROID__
 #define __UCLIBC_HAS_GNU_GLOB__
 #endif
 
@@ -57,7 +57,7 @@ typedef __SIZE_TYPE__ size_t;
 #define	GLOB_NOESCAPE	(1 << 6)/* Backslashes don't quote metacharacters.  */
 #define	GLOB_PERIOD	(1 << 7)/* Leading `.' can be matched by metachars.  */
 
-#if ( !defined __USE_POSIX2 || defined __USE_BSD || defined __USE_GNU ) && defined __UCLIBC_HAS_GNU_GLOB__ || ANDROID
+#if ( !defined __USE_POSIX2 || defined __USE_BSD || defined __USE_GNU ) && defined __UCLIBC_HAS_GNU_GLOB__ || __ANDROID__
 # define GLOB_MAGCHAR	 (1 << 8)/* Set in gl_flags if any metachars seen.  */
 #if 1 /* uClibc gnu glob does not support these */
 # define GLOB_ALTDIRFUNC (1 << 9)/* Use gl_opendir et al functions.  */
@@ -173,7 +173,7 @@ typedef struct
    `glob' returns GLOB_ABEND; if it returns zero, the error is ignored.
    If memory cannot be allocated for PGLOB, GLOB_NOSPACE is returned.
    Otherwise, `glob' returns zero.  */
-#if !ANDROID && !defined __USE_FILE_OFFSET64 || __GNUC__ < 2
+#if !__ANDROID__ && !defined __USE_FILE_OFFSET64 || __GNUC__ < 2
 extern int glob (__const char *__restrict __pattern, int __flags,
 		 int (*__errfunc) (__const char *, int),
 		 glob_t *__restrict __pglob) __THROW;

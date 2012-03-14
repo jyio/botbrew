@@ -94,7 +94,7 @@ __weak_alias(regfree,_regfree)
 #include "utils.h"
 #include "regex2.h"
 
-#if ANDROID
+#if __ANDROID__
 #include <assert.h>
 #define _DIAGASSERT(...) assert(...)
 #endif

@@ -51,7 +51,7 @@
 /* libc_hidden_proto(getpwnam_r) */
 #endif
 
-#if ANDROID
+#if __ANDROID__
 #define libc_hidden_def(x)
 
 #define true 1
