@@ -32,6 +32,7 @@ fi
 
 G_ROOT=$(dirname ${G_SELF})
 
+G_TOOLCHAIN=toolchain
 G_ARCHIVE=archive
 G_COOKBOOK=cookbook
 G_RECIPE=recipe
@@ -320,6 +321,10 @@ botbrew_make_repo_index() {
 	(cd ${G_ROOT}/${G_REPO}; opkg-make-index . > Packages; gzip -c9 Packages > Packages.gz)
 }
 
+botbrew_toolchain() {
+	${G_NDKPATH}/build/tools/make-standalone-toolchain.sh --arch=arm --platform=android-8 --install-dir=${G_ROOT}/${G_TOOLCHAIN}
+}
+
 botbrew_makefile() {
 	(
 		BUILDALL=()
@@ -427,6 +432,31 @@ botbrew_fix_shell_path() {
 	rm -f temp
 }
 
+botbrew_fix_interpreter_path() {
+	local target="$1"
+	local query="$2"
+	local operation="$3"
+	if ! [ -e "$target" ]; then
+		echo 1>&2 "No target specified."
+		return 1
+	fi
+	if [ "$query" = "" ]; then
+		botbrew_fix_interpreter_path "$target" '/bin/sh' 's/\/bin\/sh/\/system\/bin\/sh/g'
+		botbrew_fix_interpreter_path "$target" '/usr/bin/python' 's/\/usr\/bin\/python/\/system\/bin\/python/g'
+		botbrew_fix_interpreter_path "$target" '/usr/bin/perl' 's/\/usr\/bin\/perl/\/system\/bin\/perl/g'
+	elif [ "$operation" = "" ]; then
+		echo 1>&2 "No operation specified."
+		return 1
+	else
+		local file
+		for file in $(grep -rlIF "$query" "$target"); do
+			sed -e "$operation" "$file" > temp
+			cat temp > "$file"
+		done
+		rm -f temp
+	fi
+}
+
 # configuration
 if [ -f ${G_ROOT}/config.sh ]; then
 	. ${G_ROOT}/config.sh || true
@@ -445,6 +475,7 @@ G_NDKPLATFORM=${G_NDKPLATFORM:-${G_NDKPATH}/platforms/android-${G_NDKAPI}/arch-a
 G_NDKTOOLCHAIN=${G_NDKTOOLCHAIN:-${G_NDKPATH}/toolchains/${G_TRIPLET}-${G_NDKGCC}}
 G_NDKPREBUILT=${G_NDKPREBUILT:-${G_NDKTOOLCHAIN}/prebuilt/linux-x86}
 G_NDKLDSCRIPTS=${G_NDKLDSCRIPTS:-${G_NDKPREBUILT}/${G_TRIPLET}/lib/ldscripts}
+G_AS=${G_AS:-${G_TRIPLET}-as}
 G_CC=${G_CC:-${G_TRIPLET}-gcc}
 G_CXX=${G_CXX:-${G_TRIPLET}-g++}
 G_LD=${G_LD:-${G_TRIPLET}-ld}
@@ -456,7 +487,38 @@ G_OBJCOPY=${G_OBJCOPY:-${G_TRIPLET}-objcopy}
 G_OBJDUMP=${G_OBJDUMP:-${G_TRIPLET}-objdump}
 G_MAKE=${G_MAKE:-"make -j$((${G_NCPU}+1))"}
 
-export PATH=${G_ROOT}/bin:${G_ROOT}/bin/opkg-utils:${G_NDKPREBUILT}/bin:${G_NDKPATH}:${G_PATH}
+G_SYSROOT="${G_ROOT}/${G_TOOLCHAIN}/sysroot"
+G_INCCXX="-I$AGCC_NDK/sources/cxx-stl/gnu-libstdc++/libs/armeabi/include -I$AGCC_NDK/sources/cxx-stl/gnu-libstdc++/include"
+G_LIBCXX="$AGCC_NDK/sources/cxx-stl/gnu-libstdc++/libs/armeabi/libgnustl_static.a"
+
+G_CPPFLAGS=(
+	-D__ARM_ARCH_5__ -D__ARM_ARCH_5T__ -D__ARM_ARCH_5E__
+	-D__ARM_ARCH_5TE__ -DSK_RELEASE -DNDEBUG -UDEBUG
+)
+export G_CPPFLAGS="${G_CPPFLAGS[@]}"
+G_WFLAGS=(
+	-Wall -Wno-unused -Wno-multichar -Wstrict-aliasing=2
+)
+export G_WFLAGS="${G_WFLAGS[@]}"
+G_CFLAGS=(
+	-march=armv5te -mtune=xscale -msoft-float -mthumb-interwork -fpic
+	-fno-exceptions -ffunction-sections -funwind-tables -fmessage-length=0
+)
+export G_CFLAGS="${G_CFLAGS[@]}"
+G_CXXFLAGS=(
+	-march=armv5te -mtune=xscale -msoft-float -mthumb-interwork -fpic
+	-frtti -fexceptions -ffunction-sections -funwind-tables -fmessage-length=0
+)
+export G_CXXFLAGS="${G_CXXFLAGS[@]}"
+G_OFLAGS=(
+	-O2 -finline-functions -finline-limit=300 -fno-inline-functions-called-once
+	-fgcse-after-reload -frerun-cse-after-loop -frename-registers
+	-fomit-frame-pointer -fstrict-aliasing -funswitch-loops
+)
+export G_OFLAGS="${G_OFLAGS[@]}"
+
+#export PATH=${G_ROOT}/bin:${G_ROOT}/bin/opkg-utils:${G_NDKPREBUILT}/bin:${G_NDKPATH}:${G_PATH}
+export PATH=${G_ROOT}/bin:${G_ROOT}/bin/opkg-utils:${G_ROOT}/${G_TOOLCHAIN}/bin:${G_NDKPATH}:${G_PATH}
 export AGCC_NDK=${G_NDKPATH}
 export AGCC_REL=${G_NDKREL}
 export AGCC_CXC=${G_TRIPLET}
@@ -465,7 +527,7 @@ export AGCC_GCC=${G_NDKGCC}
 export OPKG_MAINTAINER=${G_MAINTAINER}
 
 if [ $# -gt 0 ]; then case "$1" in
-	download|unpack|svn|git|hg|copytree|recipe|makefile)
+	download|unpack|svn|git|hg|copytree|recipe|toolchain|makefile)
 		CMD="$1"
 		shift
 		botbrew_${CMD} "$@"
