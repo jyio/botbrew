@@ -1,5 +1,5 @@
 Package: openssl-dev
-Version: 1.0.0f-1
+Version: 1.0.0h-0
 Architecture: armeabi
 Section: utils
 Priority: optional
@@ -7,9 +7,10 @@ Source: http://www.openssl.org/
 Description: |
  Secure Socket Layer (SSL) binary and related cryptographic tools
  This package contains the openssl binary and related tools. It is part of the OpenSSL implementation of SSL. You need it to perform certain cryptographic actions like: creation of RSA, DH and DSA key parameters; creation of X.509 certificates, CSRs and CRLs; calculation of message digests; encryption and decryption with ciphers; SSL/TLS client and server tests; and handling of S/MIME signed or encrypted mail.
+Depends: openssl
 Data:
  /CONTROL/init: |
     #!/bin/sh
     mkdir -p $PACKAGE/system/lib
     cp -r $EXPORT/system/include $PACKAGE/system/
-    cp -r $EXPORT/system/lib/lib*.a $PACKAGE/system/lib/
+    cp -r $EXPORT/system/lib/lib*.a $EXPORT/system/lib/pkgconfig $PACKAGE/system/lib/
