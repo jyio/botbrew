@@ -4,7 +4,7 @@
  #include <glob.h>
  #include <unistd.h>
  
-+#ifdef ANDROID
++#ifdef __ANDROID__
 +#include <lockf.h>
 +#endif
 +
@@ -17,7 +17,7 @@
  */
  
  #include <ctype.h>
-+#ifdef ANDROID
++#ifdef __ANDROID__
 +#include <sys/statfs.h>
 +#define statvfs statfs
 +#else
