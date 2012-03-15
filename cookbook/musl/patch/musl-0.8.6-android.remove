@@ -70,7 +70,6 @@ include/syslog.h
 include/time.h
 include/ucontext.h
 include/utime.h
-include/utmp.h
 include/wctype.h
 include/wordexp.h
 src/conf/fpathconf.c
@@ -107,11 +106,7 @@ src/ctype/toupper.c
 src/ctype/wcswidth.c
 src/ctype/wcwidth.c
 src/dirent
-src/env/clearenv.c
-src/env/getenv.c
-src/env/putenv.c
-src/env/setenv.c
-src/env/unsetenv.c
+src/env
 src/errno
 src/exit
 src/fcntl/creat.c

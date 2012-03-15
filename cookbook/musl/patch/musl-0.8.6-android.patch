@@ -1,12 +1,14 @@
 --- arch/arm/bits/limits.h
 +++ arch/arm/bits/limits.h
-@@ -1,6 +1,5 @@
+@@ -1,8 +1,4 @@
  #if defined(_POSIX_SOURCE) || defined(_POSIX_C_SOURCE) \
   || defined(_XOPEN_SOURCE) || defined(_GNU_SOURCE)
 -#define PAGE_SIZE 4096
  #define LONG_BIT 32
  #endif
- 
+-
+-#define LONG_MAX  0x7fffffffL
+-#define LLONG_MAX  0x7fffffffffffffffLL
 --- arch/arm/bits/mman.h
 +++ arch/arm/bits/mman.h
 @@ -1,20 +1,3 @@
@@ -1196,10 +1198,10 @@
 -# Uncomment if you want to disable building the shared library.
 -#SHARED_LIBS = 
 +ARCH		:= arm
-+CC		:= agcc.bash
-+LD		:= agcc.bash
-+CFLAGS		:= -Os -std=c99 -D_XOPEN_SOURCE=700 -pipe
-+LDFLAGS		:= -shared
++CC		:= arm-linux-androideabi-gcc
++LD		:= arm-linux-androideabi-gcc
++CFLAGS		:= -Os -std=c99 -D_XOPEN_SOURCE=700 -pipe -march=armv5te -mtune=xscale -msoft-float -mthumb-interwork -fpic -fno-exceptions -ffunction-sections -funwind-tables -fmessage-length=0 -O2 -finline-functions -finline-limit=300 -fno-inline-functions-called-once -fgcse-after-reload -frerun-cse-after-loop -frename-registers -fomit-frame-pointer -fstrict-aliasing -funswitch-loops
++LDFLAGS		:= -shared -lm
 +AR		:= arm-linux-androideabi-ar
 +RANLIB		:= arm-linux-androideabi-ranlib
 +OBJCOPY		:= arm-linux-androideabi-objcopy
@@ -1649,7 +1651,7 @@
  #endif
 --- include/limits.h
 +++ include/limits.h
-@@ -1,6 +1,8 @@
+@@ -1,31 +1,14 @@
  #ifndef _LIMITS_H
  #define _LIMITS_H
  
@@ -1658,31 +1660,32 @@
  /* Most limits are system-specific */
  
  #include <bits/limits.h>
-@@ -8,23 +10,9 @@
+ 
  /* Some universal constants... */
  
- #define CHAR_BIT 8
+-#define CHAR_BIT 8
 -#define SCHAR_MIN (-128)
 -#define SCHAR_MAX 127
 -#define UCHAR_MAX 255
 -#define CHAR_MIN (-128)
 -#define CHAR_MAX 127
 -#define SHRT_MIN  (-1-0x7fff)
- #define SHRT_MAX  0x7fff
+-#define SHRT_MAX  0x7fff
 -#define USHRT_MAX 0xffff
 -#define INT_MIN  (-1-0x7fffffff)
- #define INT_MAX  0x7fffffff
- #define UINT_MAX 0xffffffffU
+-#define INT_MAX  0x7fffffff
+-#define UINT_MAX 0xffffffffU
 -#define LONG_MIN (-LONG_MAX-1)
 -#define ULONG_MAX (2UL*LONG_MAX+1)
 -#define LLONG_MIN (-LLONG_MAX-1)
 -#define ULLONG_MAX (2ULL*LLONG_MAX+1)
 -
 -#define MB_LEN_MAX 4
- 
+-
  #if defined(_POSIX_SOURCE) || defined(_POSIX_C_SOURCE) \
   || defined(_XOPEN_SOURCE) || defined(_GNU_SOURCE)
-@@ -36,12 +24,10 @@
+ 
+@@ -36,12 +19,10 @@
  #define SYMLINK_MAX 255
  #define PATH_MAX 4096
  #define NZERO 20
@@ -1695,7 +1698,7 @@
  #define TZNAME_MAX 6
  #define TTY_NAME_MAX 20
  #define HOST_NAME_MAX 255
-@@ -49,7 +35,6 @@
+@@ -49,7 +30,6 @@
  /* Implementation choices... */
  
  #define PTHREAD_KEYS_MAX  1024
@@ -1703,7 +1706,7 @@
  #define PTHREAD_DESTRUCTOR_ITERATIONS 4
  #define SEM_VALUE_MAX 0x7fffffff
  #define SEM_NSEMS_MAX 256
-@@ -69,11 +54,8 @@
+@@ -69,11 +49,8 @@
  #define RE_DUP_MAX 255
  
  #define NL_ARGMAX 9
@@ -1715,7 +1718,7 @@
  
  #endif
  
-@@ -94,8 +76,6 @@
+@@ -94,8 +71,6 @@
  #define _POSIX_MQ_OPEN_MAX      8
  #define _POSIX_MQ_PRIO_MAX      32
  #define _POSIX_NAME_MAX         14
@@ -1724,7 +1727,7 @@
  #define _POSIX_PATH_MAX         256
  #define _POSIX_PIPE_BUF         512
  #define _POSIX_RE_DUP_MAX       255
-@@ -117,7 +97,6 @@
+@@ -117,7 +92,6 @@
  #define _POSIX_TRACE_SYS_MAX    8
  #define _POSIX_TRACE_USER_EVENT_MAX 32
  #define _POSIX_TTY_NAME_MAX     9
@@ -1732,7 +1735,7 @@
  #define _POSIX2_BC_BASE_MAX     99
  #define _POSIX2_BC_DIM_MAX      2048
  #define _POSIX2_BC_SCALE_MAX    99
-@@ -126,7 +105,6 @@
+@@ -126,7 +100,6 @@
  #define _POSIX2_COLL_WEIGHTS_MAX 2
  #define _POSIX2_EXPR_NEST_MAX   32
  #define _POSIX2_LINE_MAX        2048
@@ -1778,6 +1781,56 @@
  struct mntent *getmntent_r(FILE *, struct mntent *, char *, int);
  int addmntent(FILE *, const struct mntent *);
  char *hasmntopt(const struct mntent *, const char *);
+--- include/net/ethernet.h
++++ include/net/ethernet.h
+@@ -8,46 +8,25 @@
+ #include <stdint.h>
+ #include <sys/types.h>
+ #include <netinet/if_ether.h>
+-
+-struct ether_addr {
+-	uint8_t ether_addr_octet[ETH_ALEN];
+-};
+-
+-struct ether_header {
+-	uint8_t  ether_dhost[ETH_ALEN];
+-	uint8_t  ether_shost[ETH_ALEN];
+-	uint16_t ether_type;
+-};
++#include <net/if_ether.h>
+ 
+ #define	ETHERTYPE_PUP		0x0200
+ #define ETHERTYPE_SPRITE	0x0500
+ #define	ETHERTYPE_IP		0x0800
+ #define	ETHERTYPE_ARP		0x0806
+ #define	ETHERTYPE_REVARP	0x8035
+-#define ETHERTYPE_AT		0x809B
+ #define ETHERTYPE_AARP		0x80F3
+ #define	ETHERTYPE_VLAN		0x8100
+ #define ETHERTYPE_IPX		0x8137
+-#define	ETHERTYPE_IPV6		0x86dd
+ #define ETHERTYPE_LOOPBACK	0x9000
+ 
+ 
+-#define	ETHER_ADDR_LEN	ETH_ALEN
+-#define	ETHER_TYPE_LEN	2
+-#define	ETHER_CRC_LEN	4
+-#define	ETHER_HDR_LEN	ETH_HLEN
+-#define	ETHER_MIN_LEN	(ETH_ZLEN + ETHER_CRC_LEN)
+-#define	ETHER_MAX_LEN	(ETH_FRAME_LEN + ETHER_CRC_LEN)
+-
+ #define	ETHER_IS_VALID_LEN(foo)	\
+ 	((foo) >= ETHER_MIN_LEN && (foo) <= ETHER_MAX_LEN)
+ 
+ #define	ETHERTYPE_TRAIL		0x1000
+ #define	ETHERTYPE_NTRAILER	16
+ 
+-#define	ETHERMTU	ETH_DATA_LEN
+-#define	ETHERMIN	(ETHER_MIN_LEN - ETHER_HDR_LEN - ETHER_CRC_LEN)
+-
+ #ifdef __cplusplus
+ }
+ #endif
 --- include/net/if_arp.h
 +++ include/net/if_arp.h
 @@ -1,6 +1,9 @@
@@ -1790,6 +1843,53 @@
  #ifdef __cplusplus
  extern "C" {
  #endif
+@@ -9,8 +12,6 @@
+ #include <sys/types.h>
+ #include <sys/socket.h>
+ 
+-#define MAX_ADDR_LEN	7
+-
+ #define	ARPOP_REQUEST	1
+ #define	ARPOP_REPLY	2
+ #define	ARPOP_RREQUEST	3
+@@ -19,15 +20,6 @@
+ #define	ARPOP_InREPLY	9
+ #define	ARPOP_NAK	10
+ 
+-struct arphdr {
+-	uint16_t ar_hrd;
+-	uint16_t ar_pro;
+-	uint8_t ar_hln;
+-	uint8_t ar_pln;
+-	uint16_t ar_op;
+-};
+-
+-
+ #define ARPHRD_NETROM	0
+ #define ARPHRD_ETHER 	1
+ #define	ARPHRD_EETHER	2
+@@ -89,21 +81,6 @@
+ #define ARPHRD_VOID	  0xFFFF
+ #define ARPHRD_NONE	  0xFFFE
+ 
+-struct arpreq {
+-	struct sockaddr arp_pa;
+-	struct sockaddr arp_ha;
+-	int arp_flags;
+-	struct sockaddr arp_netmask;
+-	char arp_dev[16];
+-};
+-
+-struct arpreq_old {
+-	struct sockaddr arp_pa;
+-	struct sockaddr arp_ha;
+-	int arp_flags;
+-	struct sockaddr arp_netmask;
+-};
+-
+ #define ATF_COM		0x02
+ #define	ATF_PERM	0x04
+ #define	ATF_PUBL	0x08
 --- include/net/if.h
 +++ include/net/if.h
 @@ -1,12 +1,12 @@
@@ -1871,6 +1971,34 @@
  #ifdef __cplusplus
  extern "C" {
  #endif
+@@ -11,27 +13,6 @@
+ #include <netinet/in.h>
+ 
+ 
+-struct rtentry {
+-	unsigned long int rt_pad1;
+-	struct sockaddr rt_dst;
+-	struct sockaddr rt_gateway;
+-	struct sockaddr rt_genmask;
+-	unsigned short int rt_flags;
+-	short int rt_pad2;
+-	unsigned long int rt_pad3;
+-	unsigned char rt_tos;
+-	unsigned char rt_class;
+-	short int rt_pad4[sizeof(long)/2-1];
+-	short int rt_metric;
+-	char *rt_dev;
+-	unsigned long int rt_mtu;
+-	unsigned long int rt_window;
+-	unsigned short int rt_irtt;
+-};
+-
+-#define rt_mss	rt_mtu
+-
+-
+ struct in6_rtmsg {
+ 	struct in6_addr rtmsg_dst;
+ 	struct in6_addr rtmsg_src;
 --- include/netdb.h
 +++ include/netdb.h
 @@ -1,140 +1,33 @@
@@ -2026,6 +2154,19 @@
 +
  #include <stdint.h>
  #include <sys/types.h>
+ 
+@@ -72,12 +74,6 @@
+ #define ETH_P_TRAILER	0x001C
+ #define ETH_P_PHONET	0x00F5
+ 
+-struct ethhdr {
+-	uint8_t h_dest[ETH_ALEN];
+-	uint8_t h_source[ETH_ALEN];
+-	uint16_t h_proto;
+-};
+-
+ #include <net/ethernet.h>
+ #include <net/if_arp.h>
  
 --- include/netinet/in.h
 +++ include/netinet/in.h
@@ -2300,29 +2441,61 @@
  
  #ifdef __cplusplus
  extern "C" {
+@@ -7,13 +11,6 @@
+ 
+ #include <stdint.h>
+ 
+-struct udphdr {
+-	uint16_t source;
+-	uint16_t dest;
+-	uint16_t len;
+-	uint16_t check;
+-};
+-
+ #define uh_sport source
+ #define uh_dport dest
+ #define uh_ulen len
 --- include/paths.h
 +++ include/paths.h
-@@ -1,40 +1,8 @@
- #ifndef _PATHS_H_
- #define	_PATHS_H_
+@@ -1,40 +1,49 @@
+-#ifndef _PATHS_H_
+-#define	_PATHS_H_
++#ifndef _PATHS_H
++#define _PATHS_H
  
 -#define	_PATH_DEFPATH "/usr/local/bin:/bin:/usr/bin"
 -#define	_PATH_STDPATH "/bin:/usr/bin:/sbin:/usr/sbin"
-+#include_next <paths.h>
++/*
++ * #include_next <paths.h>
++ * // this file entirely supersedes the NDK's header of the same name
++ */
++#define _PATHS_H_
  
 -#define	_PATH_BSHELL	"/bin/sh"
--#define	_PATH_CONSOLE	"/dev/console"
++/* Default search path. */
++#define	_PATH_DEFPATH	"/system/bin:/data/system/bin:/sd-ext/system/bin:/system/xbin"
++/* All standard utilities path. */
++#define	_PATH_STDPATH	"/sbin:/vendor/bin:/system/sbin:/system/bin:/data/system/bin:/sd-ext/system/bin:/system/xbin"
++
++#define	_PATH_BSHELL	"/system/bin/sh"
+ #define	_PATH_CONSOLE	"/dev/console"
 -#define	_PATH_CSHELL	"/bin/csh"
 -#define	_PATH_DEVDB	"/var/run/dev.db"
--#define	_PATH_DEVNULL	"/dev/null"
--#define	_PATH_DRUM	"/dev/drum"
- #define	_PATH_GSHADOW	"/etc/gshadow"
--#define	_PATH_KLOG	"/proc/kmsg"
--#define	_PATH_KMEM	"/dev/kmem"
++#define	_PATH_CSHELL	"/system/bin/csh"
++#define	_PATH_DEVDB	"/data/run/dev.db"
+ #define	_PATH_DEVNULL	"/dev/null"
+ #define	_PATH_DRUM	"/dev/drum"
+-#define	_PATH_GSHADOW	"/etc/gshadow"
++#define _PATH_GSHADOW	"/system/etc/gshadow"
+ #define	_PATH_KLOG	"/proc/kmsg"
+ #define	_PATH_KMEM	"/dev/kmem"
 -#define	_PATH_LASTLOG	"/var/log/lastlog"
 -#define	_PATH_MAILDIR	"/var/mail"
 -#define	_PATH_MAN	"/usr/share/man"
--#define	_PATH_MEM	"/dev/mem"
++#define	_PATH_LASTLOG	"/data/log/lastlog"
++#define	_PATH_MAILDIR	"/data/mail"
++#define	_PATH_MAN	"/system/share/man"
+ #define	_PATH_MEM	"/dev/mem"
 -#define	_PATH_MNTTAB	"/etc/fstab"
 -#define	_PATH_MOUNTED	"/etc/mtab"
 -#define	_PATH_NOLOGIN	"/etc/nologin"
@@ -2331,17 +2504,33 @@
 -#define	_PATH_SENDMAIL	"/usr/sbin/sendmail"
 -#define	_PATH_SHADOW	"/etc/shadow"
 -#define	_PATH_SHELLS	"/etc/shells"
--#define	_PATH_TTY	"/dev/tty"
--#define	_PATH_UNIX	"/boot/vmlinux"
++#define	_PATH_MNTTAB	"/system/etc/fstab"
++#define	_PATH_MOUNTED	"/system/etc/mtab"
++#define	_PATH_NOLOGIN	"/system/etc/nologin"
++#define	_PATH_PRESERVE	"/data/lib"
++#define	_PATH_RWHODIR	"/data/spool/rwho"
++#define	_PATH_SENDMAIL	"/system/bin/sendmail"
++#define	_PATH_SHADOW	"/system/etc/shadow"
++#define	_PATH_SHELLS	"/system/etc/shells"
+ #define	_PATH_TTY	"/dev/tty"
+ #define	_PATH_UNIX	"/boot/vmlinux"
 -#define _PATH_UTMP	"/var/run/utmp"
 -#define	_PATH_VI	"/usr/bin/vi"
 -#define _PATH_WTMP	"/var/log/wtmp"
--
--#define	_PATH_DEV	"/dev/"
++#define _PATH_UTMP	"/data/run/utmp"
++#define	_PATH_VI	"/system/bin/vi"
++#define _PATH_WTMP	"/data/log/wtmp"
+ 
++/* Provide trailing slash, since mostly used for building pathnames. */
+ #define	_PATH_DEV	"/dev/"
 -#define	_PATH_TMP	"/tmp/"
 -#define	_PATH_VARDB	"/var/lib/misc/"
 -#define	_PATH_VARRUN	"/var/run/"
 -#define	_PATH_VARTMP	"/var/tmp/"
++#define	_PATH_TMP	"/data/vtmp/"
++#define	_PATH_VARDB	"/data/db/"
++#define	_PATH_VARRUN	"/data/run/"
++#define	_PATH_VARTMP	"/data/tmp/"
  
  #endif
 --- include/pwd.h
@@ -2489,6 +2678,28 @@
  
  struct sched_param;
  
+--- include/stdarg.h
++++ include/stdarg.h
+@@ -1,6 +1,8 @@
+ #ifndef _STDARG_H
+ #define _STDARG_H
+ 
++#include_next <stdarg.h>
++
+ #ifdef __cplusplus
+ extern "C" {
+ #endif
+@@ -9,6 +11,10 @@
+ 
+ #include <bits/alltypes.h>
+ 
++#ifndef __gnuc_va_list
++#define __gnuc_va_list va_list
++#endif
++
+ #if __GNUC__ >= 3
+ #define va_start(v,l)   __builtin_va_start(v,l)
+ #define va_end(v)       __builtin_va_end(v)
 --- include/stdint.h
 +++ include/stdint.h
 @@ -1,103 +1,17 @@
@@ -3472,7 +3683,7 @@
  }
 --- include/sys/sysinfo.h
 +++ include/sys/sysinfo.h
-@@ -1,6 +1,8 @@
+@@ -1,29 +1,12 @@
  #ifndef _SYS_SYSINFO_H
  #define _SYS_SYSINFO_H
  
@@ -3481,6 +3692,29 @@
  #ifdef __cplusplus
  extern "C" {
  #endif
+ 
+-/* ?? */
+-#define SI_LOAD_SHIFT 16
+-
+-struct sysinfo {
+-	unsigned long long uptime;
+-	unsigned long loads[3];
+-	unsigned long procs;
+-	unsigned long long totalram;
+-	unsigned long long freeram;
+-	unsigned long long sharedram;
+-	unsigned long long bufferram;
+-	unsigned long long totalswap;
+-	unsigned long long freeswap;
+-	unsigned long long totalhigh;
+-	unsigned long long freehigh;
+-	unsigned long mem_unit;
+-	char __reserved[256];
+-};
+-
+ int sysinfo (struct sysinfo *);
+ int get_nprocs_conf (void);
+ int get_nprocs (void);
 --- include/sys/time.h
 +++ include/sys/time.h
 @@ -1,50 +1,24 @@
@@ -4124,29 +4358,76 @@
  
  #define _CS_PATH	0
  #define _CS_POSIX_V6_WIDTH_RESTRICTED_ENVS	1
+--- include/utmp.h
++++ include/utmp.h
+@@ -1,38 +1,13 @@
+ #ifndef _UTMP_H
+ #define _UTMP_H
+ 
+-#ifdef __cplusplus
+-extern "C" {
+-#endif
+-
+-#include <utmpx.h>
+-
+-#define ACCOUNTING 9
+-#define UT_NAMESIZE 32
+-#define UT_HOSTSIZE 256
+-
+-#define ut_time ut_tv.tv_sec
+-#define ut_name ut_user
+-#define ut_exit __ut_exit
+-#define e_termination __e_termination
+-#define e_exit __e_exit
+-#define utmp utmpx
+-#define utmpname(x) (-1)
++#include_next <utmp.h>
+ 
+-void         endutent(void);
+-struct utmp *getutent(void);
+-struct utmp *getutid(const struct utmp *);
+-struct utmp *getutline(const struct utmp *);
+-struct utmp *pututline(const struct utmp *);
+-void         setutent(void);
+-
+-void updwtmp(const char *, const struct utmp *);
+-
+-#define _PATH_UTMP "/dev/null"
+-#define _PATH_WTMP "/dev/null"
+-
+-#ifdef __cplusplus
+-}
+-#endif
++#undef _PATH_UTMP
++#define _PATH_UTMP	"/data/run/utmp"
++#undef _PATH_WTMP
++#define _PATH_WTMP	"/data/log/wtmp"
++#undef _PATH_LASTLOG
++#define _PATH_LASTLOG	"/data/log/lastlog"
+ 
+ #endif
 --- include/utmpx.h
 +++ include/utmpx.h
-@@ -5,14 +5,15 @@
+@@ -5,13 +5,13 @@
  extern "C" {
  #endif
  
 -#define __NEED_pid_t
 -#define __NEED_time_t
 -#define __NEED_struct_timeval
--
--#include <bits/alltypes.h>
 +#include <signal.h>
 +#include <time.h>
++#include <utmp.h>
  
- #define UT_LINESIZE 32
- 
+-#include <bits/alltypes.h>
+-
+-#define UT_LINESIZE 32
 +#ifdef __unused
 +#undef __unused
 +#endif
-+
+ 
  struct utmpx
  {
- 	short ut_type;
 --- include/wchar.h
 +++ include/wchar.h
 @@ -1,24 +1,12 @@
@@ -4314,14 +4595,21 @@
  #ifdef __cplusplus
 --- Makefile
 +++ Makefile
-@@ -1,3 +1,6 @@
+@@ -1,3 +1,13 @@
++LIBNAME := c
++LIBNAME := c
++LIBNAME := c
++LIBNAME := c
++LIBNAME := c
++LIBNAME := c
++LIBNAME := c
 +LIBNAME := c
 +LIBNAME := c
 +LIBNAME := c
  #
  # Makefile for musl (requires GNU make)
  #
-@@ -34,8 +37,8 @@
+@@ -34,8 +44,8 @@
  EMPTY_LIB_NAMES = m rt pthread crypt util xnet resolv dl
  EMPTY_LIBS = $(EMPTY_LIB_NAMES:%=lib/lib%.a)
  CRT_LIBS = lib/crt1.o lib/crti.o lib/crtn.o
@@ -4332,7 +4620,7 @@
  ALL_LIBS = $(CRT_LIBS) $(STATIC_LIBS) $(SHARED_LIBS)
  ALL_TOOLS = tools/musl-gcc
  
-@@ -77,11 +80,11 @@
+@@ -77,11 +87,11 @@
  %.lo: %.c $(GENH)
  	$(CC) $(CFLAGS) $(INC) $(PIC) -c -o $@ $<
  
@@ -4347,7 +4635,7 @@
  	rm -f $@
  	$(AR) rc $@ $(OBJS)
  	$(RANLIB) $@
-@@ -109,9 +112,9 @@
+@@ -109,9 +119,9 @@
  $(DESTDIR)$(includedir)/%: include/%
  	install -D -m 644 $< $@
  
