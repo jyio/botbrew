@@ -1,0 +1,47 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=1.19.4
+PACKAGE_DEPEND=( musl )
+
+FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
+ARCHIVE=${FULLNAME}.tar.bz2
+
+botbrew_do_build() {
+	botbrew_download http://busybox.net/downloads/${ARCHIVE} ${ARCHIVE}
+	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
+	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
+	botbrew_patchtree -p0 ${G_SOURCE} patch/busybox-1.19.4-android.patch
+	botbrew_import
+	if ! [ -e ${G_IMPORT}/.do.private ]; then
+		cp patch/*.h ${G_IMPORT}/system/include/
+		touch ${G_IMPORT}/.do.private
+	fi
+	sed -e 's/crypt//g' ${G_SOURCE}/Makefile.flags > temp
+	mv temp ${G_SOURCE}/Makefile.flags
+	if ! [ -e ${G_OBJECT}/.config ]; then
+		(
+			local SRC=$(pwd)/${G_SOURCE}
+			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
+			make KBUILD_SRC="${SRC}" -f "${SRC}/Makefile" defconfig
+			sleep 1
+			cp ../patch/musl.config .config
+		)
+	fi
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		echo ${G_CFLAGS} ${G_OFLAGS}
+		${G_MAKE} -C ${G_OBJECT} install CONFIG_PREFIX=$(pwd)/${G_EXPORT} \
+			CROSS_COMPILE="${G_TRIPLET}-" \
+			CONFIG_EXTRA_CFLAGS="-I${G_INCDIR} -I${G_INCDIR}/musl -L${G_LIBDIR} ${G_CFLAGS} ${G_OFLAGS}" \
+			LDLIBS="musl m"
+		mkdir -p ${G_EXPORT}/system/bin ${G_EXPORT}/system/libexec/busybox
+		mv ${G_EXPORT}/bin/busybox ${G_EXPORT}/system/bin/
+		for item in ${G_EXPORT}/bin/* ${G_EXPORT}/sbin/* ${G_EXPORT}/usr/*/*; do
+			ln -s /system/bin/busybox "${G_EXPORT}/system/libexec/busybox/${item##*/}"
+		done
+		rm -rf ${G_EXPORT}/bin ${G_EXPORT}/sbin ${G_EXPORT}/usr ${G_EXPORT}/linuxrc
+		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/* || true
+		touch ${G_EXPORT}/.d
+	fi
+}
