@@ -13,8 +13,10 @@ Data:
  /system/libexec/.opkg-new: ""
  /system/include/.opkg-new: ""
  /system/share/.opkg-new: ""
+ /data/cache/.opkg-new: ""
  /data/lib/.opkg-new: ""
  /data/local/.opkg-new: ""
+ /data/lock/.opkg-new: ""
  /data/log/.opkg-new: ""
  /data/mail/.opkg-new: ""
  /data/run/.opkg-new: ""
@@ -41,8 +43,10 @@ Data:
     	${PKG_ROOT}/system/lib/.opkg-new \
     	${PKG_ROOT}/system/include/.opkg-new \
     	${PKG_ROOT}/system/share/.opkg-new \
+    	${PKG_ROOT}/data/cache/.opkg-new \
     	${PKG_ROOT}/data/lib/.opkg-new \
     	${PKG_ROOT}/data/local/.opkg-new \
+    	${PKG_ROOT}/data/lock/.opkg-new \
     	${PKG_ROOT}/data/log/.opkg-new \
     	${PKG_ROOT}/data/mail/.opkg-new \
     	${PKG_ROOT}/data/run/.opkg-new \
