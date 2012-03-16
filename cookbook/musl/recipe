@@ -35,10 +35,10 @@ botbrew_do_build() {
 			done
 			cat > config.mak <<-EOF
 				ARCH		:= arm
-				CC		:= agcc.bash
-				LD		:= agcc.bash
-				CFLAGS		:= -Os -std=c99 -D_XOPEN_SOURCE=700 -pipe
-				LDFLAGS		:= -shared
+				CC		:= ${G_CC}
+				LD		:= ${G_CC}
+				CFLAGS		:= -Os -std=c99 -D_XOPEN_SOURCE=700 -pipe ${G_CFLAGS} ${G_OFLAGS}
+				LDFLAGS		:= -shared -lm
 				AR		:= ${G_AR}
 				RANLIB		:= ${G_RANLIB}
 				OBJCOPY		:= ${G_OBJCOPY}

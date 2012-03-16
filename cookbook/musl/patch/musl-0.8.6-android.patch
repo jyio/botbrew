@@ -1406,6 +1406,58 @@
  
  typedef struct {
  	size_t gl_pathc;
+--- include/grp.h
++++ include/grp.h
+@@ -1,25 +1,19 @@
+-#ifndef	_GRP_H
+-#define	_GRP_H
++#ifndef _GRP_H
++#define _GRP_H
++
++#include_next <grp.h>
+ 
+ #ifdef __cplusplus
+ extern "C" {
+ #endif
+ 
+-#define __NEED_size_t
+-#define __NEED_gid_t
+-
+-#include <bits/alltypes.h>
+-
+-struct group
+-{
+-	char *gr_name;
+-	char *gr_passwd;
+-	gid_t gr_gid;
+-	char **gr_mem;
+-};
++#ifdef _PATH_GROUP
++#undef _PATH_GROUP
++#endif
++#define _PATH_GROUP		"/system/etc/group"
+ 
+-struct group  *getgrgid(gid_t);
+-struct group  *getgrnam(const char *);
++struct group  *__musl_getgrgid(gid_t);
++struct group  *__musl_getgrnam(const char *);
+ 
+ int getgrgid_r(gid_t, struct group *, char *, size_t, struct group **);
+ int getgrnam_r(const char *, struct group *, char *, size_t, struct group **);
+@@ -28,11 +22,8 @@
+ void           endgrent(void);
+ void           setgrent(void);
+ 
+-#ifdef _GNU_SOURCE
+-int getgrouplist(const char *, gid_t, gid_t *, int *);
+-int setgroups(size_t, const gid_t *);
+-int initgroups(const char *, gid_t);
+-#endif
++#define getgrgid	__musl_getgrgid
++#define getgrnam	__musl_getgrnam
+ 
+ #ifdef __cplusplus
+ }
 --- include/iconv.h
 +++ include/iconv.h
 @@ -5,9 +5,7 @@
@@ -2535,7 +2587,7 @@
  #endif
 --- include/pwd.h
 +++ include/pwd.h
-@@ -1,43 +1,14 @@
+@@ -1,21 +1,32 @@
  #ifndef _PWD_H
  #define _PWD_H
  
@@ -2554,33 +2606,59 @@
 -#endif
 -
 -#include <bits/alltypes.h>
--
++#undef _PATH_PASSWD
++#define _PATH_PASSWD		"/system/etc/passwd"
++#undef _PATH_MASTERPASSWD
++#define _PATH_MASTERPASSWD	"/system/etc/master.passwd"
++#undef _PATH_MASTERPASSWD_LOCK
++#define _PATH_MASTERPASSWD_LOCK	"/system/etc/ptmp"
++#undef _PATH_PASSWD_CONF
++#define _PATH_PASSWD_CONF	"/system/etc/passwd.conf"
++#undef _PATH_PASSWDCONF
++#define _PATH_PASSWDCONF	_PATH_PASSWD_CONF
++#undef _PATH_USERMGMT_CONF
++#define _PATH_USERMGMT_CONF	"/system/etc/usermgmt.conf"
++#undef _PATH_MP_DB
++#define _PATH_MP_DB		"/system/etc/pwd.db"
++#undef _PATH_SMP_DB
++#define _PATH_SMP_DB		"/system/etc/spwd.db"
++#undef _PATH_PWD_MKDB
++#define _PATH_PWD_MKDB		"/system/bin/pwd_mkdb"
+ 
 -struct passwd
--{
--	char *pw_name;
--	char *pw_passwd;
--	uid_t pw_uid;
--	gid_t pw_gid;
--	char *pw_gecos;
--	char *pw_dir;
--	char *pw_shell;
--};
--
--void setpwent (void);
--void endpwent (void);
++struct __musl_passwd
+ {
+ 	char *pw_name;
+ 	char *pw_passwd;
+@@ -28,18 +39,22 @@
+ 
+ void setpwent (void);
+ void endpwent (void);
 -struct passwd *getpwent (void);
--
++struct __musl_passwd *getpwent (void);
+ 
 -struct passwd *getpwuid (uid_t);
 -struct passwd *getpwnam (const char *);
 -int getpwuid_r (uid_t, struct passwd *, char *, size_t, struct passwd **);
 -int getpwnam_r (const char *, struct passwd *, char *, size_t, struct passwd **);
--
++struct __musl_passwd *__musl_getpwuid (uid_t);
++struct __musl_passwd *__musl_getpwnam (const char *);
++int getpwuid_r (uid_t, struct __musl_passwd *, char *, size_t, struct __musl_passwd **);
++int getpwnam_r (const char *, struct __musl_passwd *, char *, size_t, struct __musl_passwd **);
+ 
  #ifdef _GNU_SOURCE
  char *getpass(const char *);
 -struct passwd *fgetpwent(FILE *);
++struct __musl_passwd *fgetpwent(FILE *);
  #endif
  
++#define passwd		__musl_passwd
++#define getpwuid	__musl_getpwuid
++#define getpwnam	__musl_getpwnam
++
  #ifdef __cplusplus
+ }
+ #endif
 --- include/sched.h
 +++ include/sched.h
 @@ -1,61 +1,22 @@
@@ -2651,18 +2729,22 @@
  #ifdef __cplusplus
 --- include/shadow.h
 +++ include/shadow.h
-@@ -5,10 +5,7 @@
+@@ -5,12 +5,10 @@
  extern "C" {
  #endif
  
 -#define	__NEED_FILE
 -#define __NEED_size_t
--
--#include <bits/alltypes.h>
 +#include <stdio.h>
  
- #define	SHADOW "/etc/shadow"
+-#include <bits/alltypes.h>
+-
+-#define	SHADOW "/etc/shadow"
++#define	SHADOW "/system/etc/shadow"
++#define _PATH_SHADOW SHADOW
  
+ struct spwd {
+ 	char *sp_namp;
 --- include/spawn.h
 +++ include/spawn.h
 @@ -5,11 +5,7 @@
@@ -2810,6 +2892,181 @@
 -#endif
 -
  #endif
+--- include/stdio.h
++++ include/stdio.h
+@@ -1,170 +1,15 @@
+ #ifndef _STDIO_H
+ #define _STDIO_H
+ 
+-#ifdef __cplusplus
+-extern "C" {
+-#endif
+-
+-#define __NEED_FILE
+-#define __NEED_va_list
+-#define __NEED_size_t
+-
+-#if defined(_POSIX_SOURCE) || defined(_POSIX_C_SOURCE) \
+- || defined(_XOPEN_SOURCE) || defined(_GNU_SOURCE)
+-#define __NEED_ssize_t
+-#define __NEED_off_t
+-#endif
++#include_next <stdio.h>
+ 
+-#include <bits/alltypes.h>
+-
+-#undef NULL
+ #ifdef __cplusplus
+-#define NULL 0
+-#else
+-#define NULL ((void*)0)
++extern "C" {
+ #endif
+ 
+-#undef EOF
+-#define EOF (-1)
+-
+-#undef SEEK_SET
+-#undef SEEK_CUR
+-#undef SEEK_END
+-#define SEEK_SET 0
+-#define SEEK_CUR 1
+-#define SEEK_END 2
+-
+-#define _IOFBF 0
+-#define _IOLBF 1
+-#define _IONBF 2
+-
+-#define BUFSIZ 1024
+-#define FILENAME_MAX 4095
+-#define FOPEN_MAX 1000
+-#define TMP_MAX 10000
+-#define L_tmpnam 20
+-
+-typedef union {
+-	char __opaque[16];
+-	double __align;
+-} fpos_t;
+-
+-extern FILE *const stdin;
+-extern FILE *const stdout;
+-extern FILE *const stderr;
+-
+-#define stdin  (stdin)
+-#define stdout (stdout)
+-#define stderr (stderr)
+-
+-FILE *fopen(const char *, const char *);
+-FILE *freopen(const char *, const char *, FILE *);
+-int fclose(FILE *);
+-
+-int remove(const char *);
+-int rename(const char *, const char *);
+-
+-int feof(FILE *);
+-int ferror(FILE *);
+-int fflush(FILE *);
+-void clearerr(FILE *);
+-
+-int fseek(FILE *, long, int);
+-long ftell(FILE *);
+-void rewind(FILE *);
+-
+-int fgetpos(FILE *, fpos_t *);
+-int fsetpos(FILE *, const fpos_t *);
+-
+-size_t fread(void *, size_t, size_t, FILE *);
+-size_t fwrite(const void *, size_t, size_t, FILE *);
+-
+-int fgetc(FILE *);
+-int getc(FILE *);
+-int getchar(void);
+-int ungetc(int, FILE *);
+-
+-int fputc(int, FILE *);
+-int putc(int, FILE *);
+-int putchar(int);
+-
+-char *fgets(char *, int, FILE *);
+-char *gets(char *);
+-
+-int fputs(const char *, FILE *);
+-int puts(const char *);
+-
+-int printf(const char *, ...);
+-int fprintf(FILE *, const char *, ...);
+-int sprintf(char *, const char *, ...);
+-int snprintf(char *, size_t, const char *, ...);
+-
+-int vprintf(const char *, va_list);
+-int vfprintf(FILE *, const char *, va_list);
+-int vsprintf(char *, const char *, va_list);
+-int vsnprintf(char *, size_t, const char *, va_list);
+-
+-int scanf(const char *, ...);
+-int fscanf(FILE *, const char *, ...);
+-int sscanf(const char *, const char *, ...);
+-int vscanf(const char *, va_list);
+-int vfscanf(FILE *, const char *, va_list);
+-int vsscanf(const char *, const char *, va_list);
+-
+-void perror(const char *);
+-
+-int setvbuf(FILE *, char *, int, size_t);
+-void setbuf(FILE *, char *);
+-
+-char *tmpnam(char *);
+-FILE *tmpfile(void);
+-
+ #if defined(_POSIX_SOURCE) || defined(_POSIX_C_SOURCE) \
+  || defined(_XOPEN_SOURCE) || defined(_GNU_SOURCE)
+-FILE *fmemopen(void *, size_t, const char *);
+-FILE *open_memstream(char **, size_t *);
+-FILE *fdopen(int, const char *);
+-FILE *popen(const char *, const char *);
+-int pclose(FILE *);
+-int fileno(FILE *);
+-int fseeko(FILE *, off_t, int);
+-off_t ftello(FILE *);
+-int dprintf(int, const char *, ...);
+-int vdprintf(int, const char *, va_list);
+-void flockfile(FILE *);
+-int ftrylockfile(FILE *);
+-void funlockfile(FILE *);
+-int getc_unlocked(FILE *);
+-int getchar_unlocked(void);
+-int putc_unlocked(int, FILE *);
+-int putchar_unlocked(int);
+-ssize_t getdelim(char **, size_t *, int, FILE *);
+ ssize_t getline(char **, size_t *, FILE *);
+-int renameat(int, const char *, int, const char *);
+-char *ctermid(char *);
+-#define L_ctermid 20
+-#endif
+-
+-
+-#if defined(_XOPEN_SOURCE) || defined(_GNU_SOURCE)
+-#define P_tmpdir "/tmp"
+-char *tempnam(const char *, const char *);
+-#endif
+-
+-#if defined(_GNU_SOURCE)
+-#define L_cuserid 20
+-char *cuserid(char *);
+-#undef off64_t
+-#define off64_t off_t
+-int asprintf(char **, const char *, ...);
+-int vasprintf(char **, const char *, va_list);
+-void setlinebuf(FILE *);
+-void setbuffer(FILE *, char *, size_t);
+-int fpurge(FILE *);
+-int fgetc_unlocked(FILE *);
+-int fputc_unlocked(int, FILE *);
+-char *fgets_unlocked(char *, int, FILE *);
+-int fputs_unlocked(const char *, FILE *);
+ #endif
+ 
+ #ifdef __cplusplus
 --- include/stdlib.h
 +++ include/stdlib.h
 @@ -1,6 +1,8 @@
@@ -4711,10 +4968,19 @@
  
 --- src/internal/stdio_impl.h
 +++ src/internal/stdio_impl.h
-@@ -96,8 +96,4 @@
- #define putc_unlocked(c, f) ( ((c)!=(f)->lbf && (f)->wpos<(f)->wend) \
- 	? *(f)->wpos++ = (c) : __overflow((f),(c)) )
+@@ -87,17 +87,4 @@
+ #define OFLLOCK() LOCK(&libc.ofl_lock)
+ #define OFLUNLOCK() UNLOCK(&libc.ofl_lock)
  
+-#define feof(f) ((f)->flags & F_EOF)
+-#define ferror(f) ((f)->flags & F_ERR)
+-
+-#define getc_unlocked(f) \
+-	( ((f)->rpos < (f)->rend) ? *(f)->rpos++ : __uflow((f)) )
+-
+-#define putc_unlocked(c, f) ( ((c)!=(f)->lbf && (f)->wpos<(f)->wend) \
+-	? *(f)->wpos++ = (c) : __overflow((f),(c)) )
+-
 -/* Caller-allocated FILE * operations */
 -FILE *__fopen_rb_ca(const char *, FILE *, unsigned char *, size_t);
 -int __fclose_ca(FILE *);
@@ -4799,6 +5065,233 @@
 -}
 -
 -weak_alias(__ptsname_r, ptsname_r);
+--- src/passwd/fgetpwent.c
++++ src/passwd/fgetpwent.c
+@@ -1,9 +1,9 @@
+ #include "pwf.h"
+ 
+-struct passwd *fgetpwent(FILE *f)
++struct __musl_passwd *fgetpwent(FILE *f)
+ {
+ 	static char *line;
+-	static struct passwd pw;
++	static struct __musl_passwd pw;
+ 	size_t size=0;
+ 	return __getpwent_a(f, &pw, &line, &size);
+ }
+--- src/passwd/getgrent_a.c
++++ src/passwd/getgrent_a.c
+@@ -6,8 +6,6 @@
+ 	ssize_t l;
+ 	char *s, *mems;
+ 	size_t i;
+-	int cs;
+-	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &cs);
+ 	for (;;) {
+ 		if ((l=getline(line, size, f)) < 0) {
+ 			free(*line);
+@@ -50,6 +48,5 @@
+ 	}
+ 	gr->gr_mem = *mem;
+ end:
+-	pthread_setcancelstate(cs, 0);
+ 	return gr;
+ }
+--- src/passwd/getgrent.c
++++ src/passwd/getgrent.c
+@@ -15,12 +15,12 @@
+ 	static char *line, **mem;
+ 	static struct group gr;
+ 	size_t size=0, nmem=0;
+-	if (!f) f = fopen("/etc/group", "rb");
++	if (!f) f = fopen("/system/etc/group", "rb");
+ 	if (!f) return 0;
+ 	return __getgrent_a(f, &gr, &line, &size, &mem, &nmem);
+ }
+ 
+-struct group *getgrgid(gid_t gid)
++struct group *__musl_getgrgid(gid_t gid)
+ {
+ 	struct group *gr;
+ 	int errno_saved;
+@@ -29,10 +29,11 @@
+ 	errno_saved = errno;
+ 	endgrent();
+ 	errno = errno_saved;
+-	return gr;
++	if((gr)&&(gr->gr_gid == gid)) return gr;
++	else return getgrgid(gid);
+ }
+ 
+-struct group *getgrnam(const char *name)
++struct group *__musl_getgrnam(const char *name)
+ {
+ 	struct group *gr;
+ 	int errno_saved;
+@@ -41,5 +42,6 @@
+ 	errno_saved = errno;
+ 	endgrent();
+ 	errno = errno_saved;
+-	return gr;
++	if((gr)&&(strcmp(gr->gr_name,name) == 0)) return gr;
++	else return getgrnam(name);
+ }
+--- src/passwd/getgr_r.c
++++ src/passwd/getgr_r.c
+@@ -12,11 +12,8 @@
+ 	size_t nmem = 0;
+ 	int rv = 0;
+ 	size_t i;
+-	int cs;
+ 
+-	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &cs);
+-
+-	f = fopen("/etc/group", "rb");
++	f = fopen("/system/etc/group", "rb");
+ 	if (!f) {
+ 		rv = errno;
+ 		goto done;
+@@ -47,7 +44,6 @@
+  	free(line);
+ 	fclose(f);
+ done:
+-	pthread_setcancelstate(cs, 0);
+ 	return rv;
+ }
+ 
+--- src/passwd/getpwent_a.c
++++ src/passwd/getpwent_a.c
+@@ -1,12 +1,10 @@
+ #include "pwf.h"
+ #include <pthread.h>
+ 
+-struct passwd *__getpwent_a(FILE *f, struct passwd *pw, char **line, size_t *size)
++struct __musl_passwd *__getpwent_a(FILE *f, struct __musl_passwd *pw, char **line, size_t *size)
+ {
+ 	ssize_t l;
+ 	char *s;
+-	int cs;
+-	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &cs);
+ 	for (;;) {
+ 		if ((l=getline(line, size, f)) < 0) {
+ 			free(*line);
+@@ -38,6 +36,16 @@
+ 		*s++ = 0; pw->pw_shell = s;
+ 		break;
+ 	}
+-	pthread_setcancelstate(cs, 0);
+ 	return pw;
+ }
++
++void __musl_getpwandroid_a(struct __musl_passwd *_pw, struct passwd *apw)
++{
++	_pw->pw_name = apw->pw_name;
++	_pw->pw_passwd = apw->pw_passwd;
++	_pw->pw_uid = apw->pw_uid;
++	_pw->pw_gid = apw->pw_gid;
++	_pw->pw_gecos = apw->pw_name;
++	_pw->pw_dir = apw->pw_dir;
++	_pw->pw_shell = apw->pw_shell;
++}
+--- src/passwd/getpwent.c
++++ src/passwd/getpwent.c
+@@ -10,36 +10,46 @@
+ 
+ weak_alias(setpwent, endpwent);
+ 
+-struct passwd *getpwent()
++struct __musl_passwd *getpwent()
+ {
+ 	static char *line;
+-	static struct passwd pw;
++	static struct __musl_passwd pw;
+ 	size_t size=0;
+-	if (!f) f = fopen("/etc/passwd", "rb");
++	if (!f) f = fopen("/system/etc/passwd", "rb");
+ 	if (!f) return 0;
+ 	return __getpwent_a(f, &pw, &line, &size);
+ }
+ 
+-struct passwd *getpwuid(uid_t uid)
++static struct __musl_passwd *__musl_getpwandroid(struct passwd *apw)
+ {
+-	struct passwd *pw;
++	if(!apw) return 0;
++	static struct __musl_passwd _pw;
++	__musl_getpwandroid_a(&_pw,apw);
++	return &_pw;
++}
++
++struct __musl_passwd *__musl_getpwuid(uid_t uid)
++{
++	struct __musl_passwd *pw;
+ 	int errno_saved;
+ 	setpwent();
+ 	while ((pw=getpwent()) && pw->pw_uid != uid);
+ 	errno_saved = errno;
+ 	endpwent();
+ 	errno = errno_saved;
+-	return pw;
++	if((pw)&&(pw->pw_uid == uid)) return pw;
++	else return __musl_getpwandroid(getpwuid(uid));
+ }
+ 
+-struct passwd *getpwnam(const char *name)
++struct __musl_passwd *__musl_getpwnam(const char *name)
+ {
+-	struct passwd *pw;
++	struct __musl_passwd *pw;
+ 	int errno_saved;
+ 	setpwent();
+ 	while ((pw=getpwent()) && strcmp(pw->pw_name, name));
+ 	errno_saved = errno;
+ 	endpwent();
+ 	errno = errno_saved;
+-	return pw;
++	if((pw)&&(strcmp(pw->pw_name,name) == 0)) return pw;
++	else return __musl_getpwandroid(getpwnam(name));
+ }
+--- src/passwd/getpw_r.c
++++ src/passwd/getpw_r.c
+@@ -3,17 +3,14 @@
+ 
+ #define FIX(x) (pw->pw_##x = pw->pw_##x-line+buf)
+ 
+-static int getpw_r(const char *name, uid_t uid, struct passwd *pw, char *buf, size_t size, struct passwd **res)
++static int getpw_r(const char *name, uid_t uid, struct __musl_passwd *pw, char *buf, size_t size, struct __musl_passwd **res)
+ {
+ 	FILE *f;
+ 	char *line = 0;
+ 	size_t len = 0;
+ 	int rv = 0;
+-	int cs;
+ 
+-	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &cs);
+-
+-	f = fopen("/etc/passwd", "rb");
++	f = fopen("/system/etc/passwd", "rb");
+ 	if (!f) {
+ 		rv = errno;
+ 		goto done;
+@@ -40,16 +37,15 @@
+  	free(line);
+ 	fclose(f);
+ done:
+-	pthread_setcancelstate(cs, 0);
+ 	return rv;
+ }
+ 
+-int getpwnam_r(const char *name, struct passwd *pw, char *buf, size_t size, struct passwd **res)
++int getpwnam_r(const char *name, struct __musl_passwd *pw, char *buf, size_t size, struct __musl_passwd **res)
+ {
+ 	return getpw_r(name, 0, pw, buf, size, res);
+ }
+ 
+-int getpwuid_r(uid_t uid, struct passwd *pw, char *buf, size_t size, struct passwd **res)
++int getpwuid_r(uid_t uid, struct __musl_passwd *pw, char *buf, size_t size, struct __musl_passwd **res)
+ {
+ 	return getpw_r(0, uid, pw, buf, size, res);
+ }
 --- src/passwd/getspnam_r.c
 +++ src/passwd/getspnam_r.c
 @@ -31,7 +31,6 @@
@@ -4819,6 +5312,24 @@
  			return errno;
  		}
  	} else {
+--- src/passwd/pwf.h
++++ src/passwd/pwf.h
+@@ -8,6 +8,14 @@
+ #include <limits.h>
+ #include "libc.h"
+ 
+-struct passwd *__getpwent_a(FILE *f, struct passwd *pw, char **line, size_t *size);
++#undef passwd
++#undef getpwuid
++#undef getpwnam
++#undef getgrgid
++#undef getgrnam
++
++struct __musl_passwd *__getpwent_a(FILE *f, struct __musl_passwd *pw, char **line, size_t *size);
+ struct spwd *__getspent_a(FILE *f, struct spwd *sp, char **line, size_t *size);
+ struct group *__getgrent_a(FILE *f, struct group *gr, char **line, size_t *size, char ***mem, size_t *nmem);
++
++void __musl_getpwandroid_a(struct __musl_passwd *_pw, struct passwd *apw);
 --- src/stat/statvfs.c
 +++ src/stat/statvfs.c
 @@ -3,27 +3,6 @@
@@ -4880,6 +5391,30 @@
 -LFS64(statfs);
  LFS64(fstatvfs);
 -LFS64(fstatfs);
+--- src/stdio/getline.c
++++ src/stdio/getline.c
+@@ -1,6 +1,20 @@
+ #include <stdio.h>
++#include <malloc.h>
++#include <string.h>
+ 
+ ssize_t getline(char **s, size_t *n, FILE *f)
+ {
+-	return getdelim(s, n, '\n', f);
++	size_t len;
++	char *start = fgetln(f,&len);
++	char *line = *s;
++	if(!line) {
++		*s = line = malloc(len+1);
++		*n = len+1;
++	} else if(*n <= len) {
++		*s = line = realloc(*s,len+1);
++		*n = len+1;
++	}
++	memcpy(line,start,len);
++	line[len] = 0;
++	return len;
+ }
 --- src/stub/utmpx.c
 +++ src/stub/utmpx.c
 @@ -33,11 +33,3 @@

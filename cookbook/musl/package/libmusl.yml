@@ -1,0 +1,14 @@
+Package: libmusl
+Version: 0.8.6-0
+Architecture: armeabi
+Section: libs
+Priority: optional
+Source: http://www.etalabs.net/musl/
+Description: |
+ wrapper library for Bionic
+ libmusl is a wrapper library for Bionic, Android's C library. Based on musl, libmusl provides many functions that Bionic lacks. musl, pronounced like "mussel" or "muscle", is an implementation of the C/POSIX standard library intended for use on Linux-based systems, licensed under the GNU LGPL version 2.1 or later. musl is a new general-purpose implementation of the C library. It is lightweight, fast, simple, free, and hopefully correct in the sense of standards-conformance and safety.
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p $PACKAGE/system/lib
+    cp -r $EXPORT/system/lib/*.so $PACKAGE/system/lib/

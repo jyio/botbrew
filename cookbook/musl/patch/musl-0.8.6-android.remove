@@ -19,7 +19,6 @@ include/features.h
 include/fenv.h
 include/fnmatch.h
 include/getopt.h
-include/grp.h
 include/libgen.h
 include/linux/fb.h
 include/linux/kd.h
@@ -42,7 +41,6 @@ include/setjmp.h
 include/signal.h
 include/stddef.h
 include/stdio_ext.h
-include/stdio.h
 include/sys/epoll.h
 include/sys/eventfd.h
 include/sys/file.h
@@ -244,13 +242,6 @@ src/network/setsockopt.c
 src/network/shutdown.c
 src/network/socket.c
 src/network/socketpair.c
-src/passwd/fgetpwent.c
-src/passwd/getgrent_a.c
-src/passwd/getgrent.c
-src/passwd/getgr_r.c
-src/passwd/getpwent_a.c
-src/passwd/getpwent.c
-src/passwd/getpw_r.c
 src/prng/drand48.c
 src/prng/lcong48.c
 src/prng/lrand48.c
@@ -336,7 +327,6 @@ src/stdio/getchar.c
 src/stdio/getchar_unlocked.c
 src/stdio/getc_unlocked.c
 src/stdio/getdelim.c
-src/stdio/getline.c
 src/stdio/gets.c
 src/stdio/getwc.c
 src/stdio/getwchar.c
@@ -682,8 +672,6 @@ src/unistd/sync.c
 src/unistd/tcgetpgrp.c
 src/unistd/tcsetpgrp.c
 src/unistd/truncate.c
-src/unistd/ttyname.c
-src/unistd/ttyname_r.c
 src/unistd/unlinkat.c
 src/unistd/unlink.c
 src/unistd/usleep.c
