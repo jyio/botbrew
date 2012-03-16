@@ -1,0 +1,72 @@
+Package: botbrew-foundation
+Version: 0.0.1-0
+Architecture: all
+Section: admin
+Priority: required
+Source: http://inportb.com/
+Description: |
+ GNU/Linux-like foundation
+ Sets up a basic filesystem hierarchy.
+Data:
+ /system/bin/.opkg-new: ""
+ /system/lib/.opkg-new: ""
+ /system/libexec/.opkg-new: ""
+ /system/include/.opkg-new: ""
+ /system/share/.opkg-new: ""
+ /data/lib/.opkg-new: ""
+ /data/local/.opkg-new: ""
+ /data/log/.opkg-new: ""
+ /data/mail/.opkg-new: ""
+ /data/run/.opkg-new: ""
+ /data/spool/.opkg-new: ""
+ /data/tmp/.opkg-new: ""
+ /data/vtmp/.opkg-new: ""
+ /data/root/.opkg-new: ""
+ /data/home/.opkg-new: ""
+ /system/etc/lsb-release: |
+    DISTRIB_ID=BotBrew
+    DISTRIB_RELEASE=2012.03.15
+    DISTRIB_CODENAME=bender
+    DISTRIB_DESCRIPTION="BotBrew bender (development branch)"
+ /system/etc/passwd.opkg-new: |
+    root:x:0:0:root:/data/root:/system/bin/sh
+ /system/etc/group.opkg-new: |
+    root:x:0:
+ /system/etc/shadow.opkg-new: |
+    root:!:15414:0:99999:7:::
+ /system/etc/skel/.opkg-new: ""
+ /CONTROL/postinst: |
+    #!/system/bin/sh
+    rm	${PKG_ROOT}/system/bin/.opkg-new \
+    	${PKG_ROOT}/system/lib/.opkg-new \
+    	${PKG_ROOT}/system/include/.opkg-new \
+    	${PKG_ROOT}/system/share/.opkg-new \
+    	${PKG_ROOT}/data/lib/.opkg-new \
+    	${PKG_ROOT}/data/local/.opkg-new \
+    	${PKG_ROOT}/data/log/.opkg-new \
+    	${PKG_ROOT}/data/mail/.opkg-new \
+    	${PKG_ROOT}/data/run/.opkg-new \
+    	${PKG_ROOT}/data/spool/.opkg-new \
+    	${PKG_ROOT}/data/tmp/.opkg-new \
+    	${PKG_ROOT}/data/vtmp/.opkg-new \
+    	${PKG_ROOT}/data/root/.opkg-new \
+    	${PKG_ROOT}/data/home/.opkg-new \
+    	${PKG_ROOT}/system/etc/skel/.opkg-new
+    if [ -e ${PKG_ROOT}/system/etc/passwd ]; then
+    	rm ${PKG_ROOT}/system/etc/passwd.opkg-new
+    else
+    	mv ${PKG_ROOT}/system/etc/passwd.opkg-new ${PKG_ROOT}/system/etc/passwd
+    	chmod 0644 ${PKG_ROOT}/system/etc/passwd
+    fi
+    if [ -e ${PKG_ROOT}/system/etc/group ]; then
+    	rm ${PKG_ROOT}/system/etc/group.opkg-new
+    else
+    	mv ${PKG_ROOT}/system/etc/group.opkg-new ${PKG_ROOT}/system/etc/group
+    	chmod 0644 ${PKG_ROOT}/system/etc/group
+    fi
+    if [ -e ${PKG_ROOT}/system/etc/shadow ]; then
+    	rm ${PKG_ROOT}/system/etc/shadow.opkg-new
+    else
+    	mv ${PKG_ROOT}/system/etc/shadow.opkg-new ${PKG_ROOT}/system/etc/shadow
+    	chmod 0640 ${PKG_ROOT}/system/etc/shadow
+    fi
