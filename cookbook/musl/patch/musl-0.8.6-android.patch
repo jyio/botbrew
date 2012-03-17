@@ -2736,12 +2736,12 @@
 -#define	__NEED_FILE
 -#define __NEED_size_t
 +#include <stdio.h>
++#include <paths.h>
  
 -#include <bits/alltypes.h>
 -
 -#define	SHADOW "/etc/shadow"
-+#define	SHADOW "/system/etc/shadow"
-+#define _PATH_SHADOW SHADOW
++#define	SHADOW _PATH_SHADOW
  
  struct spwd {
  	char *sp_namp;
@@ -4852,7 +4852,8 @@
  #ifdef __cplusplus
 --- Makefile
 +++ Makefile
-@@ -1,3 +1,13 @@
+@@ -1,3 +1,14 @@
++LIBNAME := c
 +LIBNAME := c
 +LIBNAME := c
 +LIBNAME := c
@@ -4866,7 +4867,7 @@
  #
  # Makefile for musl (requires GNU make)
  #
-@@ -34,8 +44,8 @@
+@@ -34,8 +45,8 @@
  EMPTY_LIB_NAMES = m rt pthread crypt util xnet resolv dl
  EMPTY_LIBS = $(EMPTY_LIB_NAMES:%=lib/lib%.a)
  CRT_LIBS = lib/crt1.o lib/crti.o lib/crtn.o
@@ -4877,7 +4878,7 @@
  ALL_LIBS = $(CRT_LIBS) $(STATIC_LIBS) $(SHARED_LIBS)
  ALL_TOOLS = tools/musl-gcc
  
-@@ -77,11 +87,11 @@
+@@ -77,11 +88,11 @@
  %.lo: %.c $(GENH)
  	$(CC) $(CFLAGS) $(INC) $(PIC) -c -o $@ $<
  
@@ -4892,7 +4893,7 @@
  	rm -f $@
  	$(AR) rc $@ $(OBJS)
  	$(RANLIB) $@
-@@ -109,9 +119,9 @@
+@@ -109,9 +120,9 @@
  $(DESTDIR)$(includedir)/%: include/%
  	install -D -m 644 $< $@
  
@@ -5393,7 +5394,7 @@
 -LFS64(fstatfs);
 --- src/stdio/getline.c
 +++ src/stdio/getline.c
-@@ -1,6 +1,20 @@
+@@ -1,6 +1,21 @@
  #include <stdio.h>
 +#include <malloc.h>
 +#include <string.h>
@@ -5403,6 +5404,7 @@
 -	return getdelim(s, n, '\n', f);
 +	size_t len;
 +	char *start = fgetln(f,&len);
++	if(!start) return -1;
 +	char *line = *s;
 +	if(!line) {
 +		*s = line = malloc(len+1);
