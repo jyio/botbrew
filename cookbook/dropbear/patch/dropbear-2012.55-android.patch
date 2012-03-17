@@ -1,0 +1,215 @@
+--- common-session.c
++++ common-session.c
+@@ -428,7 +428,11 @@
+ const char* get_user_shell() {
+ 	/* an empty shell should be interpreted as "/bin/sh" */
+ 	if (ses.authstate.pw_shell[0] == '\0') {
++#ifdef __ANDROID__
++		return "/system/bin/sh";
++#else
+ 		return "/bin/sh";
++#endif
+ 	} else {
+ 		return ses.authstate.pw_shell;
+ 	}
+--- compat.c
++++ compat.c
+@@ -231,7 +231,11 @@
+ 
+ static char **initshells() {
+ 	/* don't touch this list. */
++#ifdef __ANDROID__
++	const char *okshells[] = { "/system/bin/sh", "/system/bin/csh", NULL };
++#else
+ 	const char *okshells[] = { "/bin/sh", "/bin/csh", NULL };
++#endif
+ 	register char **sp, *cp;
+ 	register FILE *fp;
+ 	struct stat statb;
+@@ -243,7 +247,11 @@
+ 	if (strings != NULL)
+ 		free(strings);
+ 	strings = NULL;
++#ifdef __ANDROID__
++	if ((fp = fopen("/system/etc/shells", "rc")) == NULL)
++#else
+ 	if ((fp = fopen("/etc/shells", "rc")) == NULL)
++#endif
+ 		return (char **) okshells;
+ 	if (fstat(fileno(fp), &statb) == -1) {
+ 		(void)fclose(fp);
+--- options.h
++++ options.h
+@@ -21,10 +21,10 @@
+ 
+ /* Default hostkey paths - these can be specified on the command line */
+ #ifndef DSS_PRIV_FILENAME
+-#define DSS_PRIV_FILENAME "/etc/dropbear/dropbear_dss_host_key"
++#define DSS_PRIV_FILENAME "/system/etc/dropbear/dropbear_dss_host_key"
+ #endif
+ #ifndef RSA_PRIV_FILENAME
+-#define RSA_PRIV_FILENAME "/etc/dropbear/dropbear_rsa_host_key"
++#define RSA_PRIV_FILENAME "/system/etc/dropbear/dropbear_rsa_host_key"
+ #endif
+ 
+ /* Set NON_INETD_MODE if you require daemon functionality (ie Dropbear listens
+@@ -52,7 +52,7 @@
+ /*#define DROPBEAR_SMALL_CODE*/
+ 
+ /* Enable X11 Forwarding - server only */
+-#define ENABLE_X11FWD
++/*#define ENABLE_X11FWD*/
+ 
+ /* Enable TCP Fowarding */
+ /* 'Local' is "-L" style (client listening port forwarded via server)
+@@ -144,7 +144,7 @@
+ #endif
+ 
+ /* Whether to do reverse DNS lookups. */
+-#define DO_HOST_LOOKUP
++/*#define DO_HOST_LOOKUP*/
+ 
+ /* Whether to print the message of the day (MOTD). This doesn't add much code
+  * size */
+@@ -152,7 +152,7 @@
+ 
+ /* The MOTD file path */
+ #ifndef MOTD_FILENAME
+-#define MOTD_FILENAME "/etc/motd"
++#define MOTD_FILENAME "/system/etc/motd"
+ #endif
+ 
+ /* Authentication Types - at least one required.
+@@ -220,24 +220,24 @@
+  * not yet authenticated. After this limit, connections are rejected */
+ /* The first setting is per-IP, to avoid denial of service */
+ #ifndef MAX_UNAUTH_PER_IP
+-#define MAX_UNAUTH_PER_IP 5
++#define MAX_UNAUTH_PER_IP 3
+ #endif
+ 
+ /* And then a global limit to avoid chewing memory if connections 
+  * come from many IPs */
+ #ifndef MAX_UNAUTH_CLIENTS
+-#define MAX_UNAUTH_CLIENTS 30
++#define MAX_UNAUTH_CLIENTS 10
+ #endif
+ 
+ /* Maximum number of failed authentication tries (server option) */
+ #ifndef MAX_AUTH_TRIES
+-#define MAX_AUTH_TRIES 10
++#define MAX_AUTH_TRIES 5
+ #endif
+ 
+ /* The default file to store the daemon's process ID, for shutdown
+    scripts etc. This can be overridden with the -P flag */
+ #ifndef DROPBEAR_PIDFILE
+-#define DROPBEAR_PIDFILE "/var/run/dropbear.pid"
++#define DROPBEAR_PIDFILE "/data/run/dropbear.pid"
+ #endif
+ 
+ /* The command to invoke for xauth when using X11 forwarding.
+@@ -250,12 +250,12 @@
+  * OpenSSH), set the path below. If the path isn't defined, sftp will not
+  * be enabled */
+ #ifndef SFTPSERVER_PATH
+-#define SFTPSERVER_PATH "/usr/libexec/sftp-server"
++#define SFTPSERVER_PATH "/system/libexec/sftp-server"
+ #endif
+ 
+ /* This is used by the scp binary when used as a client binary. If you're
+  * not using the Dropbear client, you'll need to change it */
+-#define _PATH_SSH_PROGRAM "/usr/bin/dbclient"
++#define _PATH_SSH_PROGRAM "/system/bin/dbclient"
+ 
+ /* Whether to log commands executed by a client. This only logs the 
+  * (single) command sent to the server, not what a user did in a 
+@@ -292,7 +292,7 @@
+ #define DEFAULT_IDLE_TIMEOUT 0
+ 
+ /* The default path. This will often get replaced by the shell */
+-#define DEFAULT_PATH "/usr/bin:/bin"
++#define DEFAULT_PATH "/sbin:/vendor/bin:/system/sbin:/system/bin:/data/system/bin:/sd-ext/system/bin:/system/xbin"
+ 
+ /* Some other defines (that mostly should be left alone) are defined
+  * in sysoptions.h */
+--- sshpty.c
++++ sshpty.c
+@@ -50,19 +50,19 @@
+ {
+ #if defined(HAVE_OPENPTY)
+ 	/* exists in recent (4.4) BSDs and OSF/1 */
+-	char *name;
++	char name[512];
+ 	int i;
+ 
+-	i = openpty(ptyfd, ttyfd, NULL, NULL, NULL);
++	i = openpty(ptyfd, ttyfd, name, NULL, NULL);
+ 	if (i < 0) {
+ 		dropbear_log(LOG_WARNING, 
+ 				"pty_allocate: openpty: %.100s", strerror(errno));
+ 		return 0;
+ 	}
+-	name = ttyname(*ttyfd);
++	/*name = ttyname(*ttyfd);
+ 	if (!name) {
+ 		dropbear_exit("ttyname fails for openpty device");
+-	}
++	}*/
+ 
+ 	strlcpy(namebuf, name, namebuflen);	/* possible truncation */
+ 	return 1;
+--- svr-agentfwd.c
++++ svr-agentfwd.c
+@@ -41,7 +41,7 @@
+ #include "listener.h"
+ #include "auth.h"
+ 
+-#define AGENTDIRPREFIX "/tmp/dropbear-"
++#define AGENTDIRPREFIX "/data/vtmp/dropbear-"
+ 
+ static int send_msg_channel_open_agent(int fd);
+ static int bindagent(int fd, struct ChanSess * chansess);
+--- svr-auth.c
++++ svr-auth.c
+@@ -255,7 +255,11 @@
+ 	usershell = ses.authstate.pw_shell;
+ 	if (usershell[0] == '\0') {
+ 		/* empty shell in /etc/passwd means /bin/sh according to passwd(5) */
++#ifdef __ANDROID__
++		usershell = "/system/bin/sh";
++#else
+ 		usershell = "/bin/sh";
++#endif
+ 	}
+ 
+ 	/* check the shell is valid. If /etc/shells doesn't exist, getusershell()
+--- svr-chansession.c
++++ svr-chansession.c
+@@ -903,6 +903,7 @@
+ 		/* ... but if the daemon is the same uid as the requested uid, we don't
+ 		 * need to */
+ 
++#ifndef __ANDROID__	/* XXX - getuid is broken on Android */
+ 		/* XXX - there is a minor issue here, in that if there are multiple
+ 		 * usernames with the same uid, but differing groups, then the
+ 		 * differing groups won't be set (as with initgroups()). The solution
+@@ -910,6 +911,7 @@
+ 		if (getuid() != ses.authstate.pw_uid) {
+ 			dropbear_exit("Couldn't	change user as non-root");
+ 		}
++#endif
+ 	}
+ 
+ 	/* set env vars */
+--- sysoptions.h
++++ sysoptions.h
+@@ -52,7 +52,7 @@
+ 
+ #define _PATH_TTY "/dev/tty"
+ 
+-#define _PATH_CP "/bin/cp"
++#define _PATH_CP "/system/xbin/cp"
+ 
+ /* success/failure defines */
+ #define DROPBEAR_SUCCESS 0

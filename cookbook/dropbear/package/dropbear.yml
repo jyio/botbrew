@@ -1,5 +1,5 @@
 Package: dropbear
-Version: 2011.54-1
+Version: 2012.55-0
 Architecture: armeabi
 Section: net
 Priority: optional
@@ -7,6 +7,7 @@ Source: https://matt.ucc.asn.au/dropbear/dropbear.html
 Description: |
  lightweight SSH2 server and client
  Dropbear is a relatively small SSH 2 server and client. It runs on a variety of POSIX-based platforms. Dropbear is open source software, distributed under a MIT-style license. Dropbear is particularly useful for "embedded"-type Linux (or other Unix) systems, such as wireless routers.
+Depends: busybox
 Data:
  /system/etc/service/dropbear/run: |
     #!/system/bin/sh
