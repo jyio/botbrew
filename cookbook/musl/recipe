@@ -2,7 +2,7 @@
 if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
 
 PACKAGE_NAME=$(basename $(pwd))
-PACKAGE_VERSION=0.8.6
+PACKAGE_VERSION=0.8.7
 PACKAGE_DEPEND=()
 
 FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
@@ -12,10 +12,10 @@ botbrew_do_build() {
 	botbrew_download http://www.etalabs.net/${PACKAGE_NAME}/releases/${ARCHIVE} ${ARCHIVE}
 	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
 	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
-	botbrew_patchtree -p0 ${G_SOURCE} patch/musl-0.8.6-android.patch
+	botbrew_patchtree -p0 ${G_SOURCE} patch/musl-0.8.7-android.patch
 	if ! [ -e ${G_OBJECT}/.do.config.mak ]; then
 		(
-			REMOVE=$(cat patch/musl-0.8.6-android.remove)
+			REMOVE=$(cat patch/musl-0.8.7-android.remove)
 			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
 			cp -rlf ../${G_SOURCE}/* ./
 			for item in ${REMOVE}; do

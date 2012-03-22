@@ -66,7 +66,6 @@ include/sys/un.h
 include/sys/utsname.h
 include/sys/vfs.h
 include/syslog.h
-include/time.h
 include/ucontext.h
 include/utime.h
 include/wctype.h
@@ -400,8 +399,6 @@ src/stdlib/atol.c
 src/stdlib/atoll.c
 src/stdlib/bsearch.c
 src/stdlib/div.c
-src/stdlib/frexp.c
-src/stdlib/frexpf.c
 src/stdlib/imaxabs.c
 src/stdlib/imaxdiv.c
 src/stdlib/labs.c
