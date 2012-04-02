@@ -35,7 +35,7 @@ The following Debian packages are required for using BotBrew. Actually, there ma
 - gettext
 - intltool
 
-In addition, the Android NDK (r7 recommended) is required.
+In addition, the Android NDK (r7b recommended) is required.
 
 ## Cookbook
 
