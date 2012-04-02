@@ -248,7 +248,7 @@ botbrew_recipe() {
 				echo "% [D] $i"
 			done
 			echo "--------->8---------[ ======= ]--------->8---------"
-			case ${PACKAGE_ACTION} in
+			case "${PACKAGE_ACTION}" in
 				query|build|package|clean|distclean|clobber)
 					if [ "${PACKAGE_ACTION}" = build ]; then
 						if type botbrew_do_isbuilt &> /dev/null; then
@@ -268,6 +268,7 @@ botbrew_recipe() {
 					else
 						"_botbrew_do_${PACKAGE_ACTION}" "$@"
 					fi
+					echo "Finished building ${PACKAGE_NAME}!"
 					;;
 				"")
 					;;
