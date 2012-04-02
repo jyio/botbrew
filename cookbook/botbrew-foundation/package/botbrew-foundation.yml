@@ -34,6 +34,45 @@ Data:
     root:x:0:0:root:%(PREFIX)s/root:/system/bin/sh
  '%(PREFIX)s/etc/group.opkg-new': |
     root:x:0:
+    system:x:1000:
+    radio:x:1001:
+    bluetooth:x:1002:
+    graphics:x:1003:
+    input:x:1004:
+    audio:x:1005:
+    camera:x:1006:
+    log:x:1007:
+    compass:x:1008:
+    mount:x:1009:
+    wifi:x:1010:
+    adb:x:1011:
+    install:x:1012:
+    media:x:1013:
+    dhcp:x:1014:
+    sdcard_rw:x:1015:
+    vpn:x:1016:
+    keystore:x:1017:
+    usb:x:1018:
+    drm:x:1019:
+    available:x:1020:
+    gps:x:1021:
+    media_rw:x:1023:
+    mtp:x:1024:
+    drmrpc:x:1026:
+    nfc:x:1027:
+    shell:x:2000:
+    cache:x:2001:
+    diag:x:2002:
+    net_bt_admin:x:3001:
+    net_bt:x:3002:
+    inet:x:3003:
+    net_raw:x:3004:
+    net_admin:x:3005:
+    net_bw_stats:x:3006:
+    net_bw_acct:x:3007:
+    qcom_oncrpc:x:3008:
+    misc:x:9998:
+    nobody:x:9999:
  '%(PREFIX)s/etc/shadow.opkg-new': |
     root:!:15414:0:99999:7:::
  '%(PREFIX)s/etc/skel/.opkg-new': ''
