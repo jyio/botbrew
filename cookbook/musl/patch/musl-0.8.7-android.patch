@@ -2190,7 +2190,7 @@
  
 --- include/netinet/in.h
 +++ include/netinet/in.h
-@@ -1,236 +1,23 @@
+@@ -1,248 +1,23 @@
  #ifndef	_NETINET_IN_H
  #define	_NETINET_IN_H
  
@@ -2428,10 +2428,22 @@
 -	struct in_addr ipi_addr;
 -};
 -
- struct in6_pktinfo
- {
- 	struct in6_addr ipi6_addr;
-@@ -258,8 +45,6 @@
+-struct in6_pktinfo
+-{
+-	struct in6_addr ipi6_addr;
+-	unsigned ipi6_ifindex;
+-};
+-
+-struct ip6_mtuinfo
+-{
+-	struct sockaddr_in6 ip6m_addr;
+-	uint32_t ip6m_mtu;
+-};
+-
+ #define IPV6_ADDRFORM           1
+ #define IPV6_2292PKTINFO        2
+ #define IPV6_2292HOPOPTS        3
+@@ -258,8 +33,6 @@
  #define IPV6_MULTICAST_IF       17
  #define IPV6_MULTICAST_HOPS     18
  #define IPV6_MULTICAST_LOOP     19
@@ -2440,7 +2452,7 @@
  #define IPV6_ROUTER_ALERT       22
  #define IPV6_MTU_DISCOVER       23
  #define IPV6_MTU                24
-@@ -285,8 +70,6 @@
+@@ -285,8 +58,6 @@
  #define IPV6_RECVTCLASS         66
  #define IPV6_TCLASS             67
  
@@ -4917,7 +4929,8 @@
  #ifdef __cplusplus
 --- Makefile
 +++ Makefile
-@@ -1,3 +1,10 @@
+@@ -1,3 +1,11 @@
++LIBNAME := c
 +LIBNAME := c
 +LIBNAME := c
 +LIBNAME := c
@@ -4928,7 +4941,7 @@
  #
  # Makefile for musl (requires GNU make)
  #
-@@ -34,8 +41,8 @@
+@@ -34,8 +42,8 @@
  EMPTY_LIB_NAMES = m rt pthread crypt util xnet resolv dl
  EMPTY_LIBS = $(EMPTY_LIB_NAMES:%=lib/lib%.a)
  CRT_LIBS = lib/crt1.o lib/crti.o lib/crtn.o
@@ -4939,7 +4952,7 @@
  ALL_LIBS = $(CRT_LIBS) $(STATIC_LIBS) $(SHARED_LIBS)
  ALL_TOOLS = tools/musl-gcc
  
-@@ -77,11 +84,11 @@
+@@ -77,11 +85,11 @@
  %.lo: %.c $(GENH)
  	$(CC) $(CFLAGS) $(INC) $(PIC) -c -o $@ $<
  
@@ -4954,7 +4967,7 @@
  	rm -f $@
  	$(AR) rc $@ $(OBJS)
  	$(RANLIB) $@
-@@ -109,9 +116,9 @@
+@@ -109,9 +117,9 @@
  $(DESTDIR)$(includedir)/%: include/%
  	install -D -m 644 $< $@
  
