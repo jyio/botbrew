@@ -268,7 +268,7 @@ botbrew_recipe() {
 					else
 						"_botbrew_do_${PACKAGE_ACTION}" "$@"
 					fi
-					echo "Finished building ${PACKAGE_NAME}!"
+					echo "${PACKAGE_ACTION} ${PACKAGE_NAME}: success"
 					;;
 				"")
 					;;
