@@ -1,0 +1,34 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=1.1-20120215
+PACKAGE_DEPEND=( ncursesw libiconv )
+
+FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
+ARCHIVE=${PACKAGE_NAME}.tar.gz
+
+botbrew_do_build() {
+	botbrew_download http://invisible-island.net/datafiles/release/${ARCHIVE} ${ARCHIVE}
+	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
+	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
+	botbrew_import
+	if ! [ -e ${G_OBJECT}/makefile ]; then
+		(
+			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
+			cp -lf ${G_LIBDIR}/libncursesw.so ${G_LIBDIR}/libtinfo.so
+			CPPFLAGS="${G_CPPFLAGS}" CFLAGS="${G_ALL_CFLAGS}" \
+			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
+				--with-libiconv-prefix=${G_SYSDIR} \
+				--with-curses-dir=${G_SYSDIR} \
+				--with-ncursesw \
+				--enable-widec
+		)
+	fi
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		${G_MAKE} -C ${G_OBJECT} LIBS="-lncursesw -lm"
+		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
+		${G_STRIP} --strip-unneeded ${G_EXP_BINDIR}/* || true
+		touch ${G_EXPORT}/.d
+	fi
+}

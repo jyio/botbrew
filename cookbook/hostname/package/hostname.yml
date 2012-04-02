@@ -1,0 +1,16 @@
+Package: hostname
+Version: 0.0.1-0
+Architecture: all
+Section: admin
+Priority: required
+Source: http://inportb.com/
+Description: |
+ (busybox) utility to set/show the host name or domain name
+ This package provides commands which can be used to display the system's DNS name, and to display or set its hostname.
+Depends: busybox
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/bin
+    ln -s busybox ${PACKAGE}${PREFIX}/bin/dnsdomainname
+    ln -s busybox ${PACKAGE}${PREFIX}/bin/hostname

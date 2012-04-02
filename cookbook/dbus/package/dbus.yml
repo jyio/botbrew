@@ -1,0 +1,30 @@
+Package: dbus
+Version: 1.5.12-0
+Architecture: armeabi
+Section: admin
+Priority: optional
+Source: http://www.freedesktop.org/wiki/Software/dbus
+Description: |
+ simple interprocess messaging system (daemon and utilities)
+ D-Bus is a message bus, used for sending messages between applications. Conceptually, it fits somewhere in between raw sockets and CORBA in terms of complexity. D-Bus supports broadcast messages, asynchronous messages (thus decreasing latency), authentication, and more. It is designed to be low-overhead; messages are sent using a binary protocol, not using XML. D-Bus also supports a method call mapping for its messages, but it is not required; this makes using the system quite simple.
+Depends: libdbus-1, libexpat
+Data:
+ '%(PREFIX)s/etc/dbus-1/session.d/.opkg-new': ''
+ '%(PREFIX)s/etc/dbus-1/system.d/.opkg-new': ''
+ '%(PREFIX)s/share/dbus-1/services/.opkg-new': ''
+ '%(PREFIX)s/share/dbus-1/system-services/.opkg-new': ''
+ '%(PREFIX)s/var/lib/dbus/.opkg-new': ''
+ '%(PREFIX)s/var/run/dbus/.opkg-new': ''
+ /CONTROL/postinst: |
+    #!/system/bin/sh
+    rm \
+    	${PKG_ROOT}%(PREFIX)s/etc/dbus-1/session.d/.opkg-new \
+    	${PKG_ROOT}%(PREFIX)s/etc/dbus-1/system.d/.opkg-new \
+    	${PKG_ROOT}%(PREFIX)s/share/dbus-1/services/.opkg-new \
+    	${PKG_ROOT}%(PREFIX)s/share/dbus-1/system-services/.opkg-new \
+    	${PKG_ROOT}%(PREFIX)s/var/lib/dbus/.opkg-new \
+    	${PKG_ROOT}%(PREFIX)s/var/run/dbus/.opkg-new
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}
+    cp -r ${EXPORT}${PREFIX}/bin ${EXPORT}${PREFIX}/etc ${EXPORT}${PREFIX}/libexec ${PACKAGE}${PREFIX}/

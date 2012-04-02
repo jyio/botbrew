@@ -1,0 +1,14 @@
+Package: libexpat
+Version: 2.1.0-0
+Architecture: armeabi
+Section: libs
+Priority: optional
+Source: http://expat.sourceforge.net/
+Description: |
+ XML parsing C library - runtime library
+ This package contains the runtime, shared library of expat, the C library for parsing XML. Expat is a stream-oriented parser in which an application registers handlers for things the parser might find in the XML document (like start tags).
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/lib
+    cp ${EXPORT}${PREFIX}/lib/*.so* ${PACKAGE}${PREFIX}/lib/

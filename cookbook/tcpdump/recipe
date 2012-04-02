@@ -3,7 +3,7 @@ if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
 
 PACKAGE_NAME=$(basename $(pwd))
 PACKAGE_VERSION=4.2.1
-PACKAGE_DEPEND=( openssl libpcap )
+PACKAGE_DEPEND=( openssl libpcap musl )
 
 FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
 ARCHIVE=${FULLNAME}.tar.gz
@@ -13,13 +13,14 @@ botbrew_do_build() {
 	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
 	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
 	botbrew_import
-	botbrew_fix_crosslibconfig ${G_IMPORT}/system/bin/pcap-config
+	botbrew_fix_crosslibconfig ${G_IMPORT}${G_INSTALLPREFIX}/bin/pcap-config
 	if ! [ -e ${G_OBJECT}/Makefile ]; then
 		(
 			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
 			# does not support arm-linux-androideabi "cannot determine linux version when cross-compiling"
 			PCAP_CONFIG=${G_SYSDIR}/bin/pcap-config \
-			CC="agcc.bash" LD="agcc.bash" \
+			CC="${G_TRIPLET}-gcc" CPPFLAGS="-I${G_INCDIR} -I${G_INCDIR}/musl ${G_CPPFLAGS}" CFLAGS="-DNBBY=8 ${G_ALL_CFLAGS}" \
+			LD="${G_TRIPLET}-gcc" LDFLAGS="-L${G_LIBDIR}" LIBS="-lmusl" \
 			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=arm-android-eabi \
 				--with-crypto=${G_SYSDIR}
 		)
@@ -27,8 +28,8 @@ botbrew_do_build() {
 	if ! [ -e ${G_EXPORT}/.d ]; then
 		${G_MAKE} -C ${G_OBJECT}
 		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
-		mv ${G_EXPORT}/system/bin/${PACKAGE_NAME}.${PACKAGE_VERSION} ${G_EXPORT}/system/bin/${PACKAGE_NAME}
-		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/* || true
+		mv ${G_EXP_BINDIR}/${PACKAGE_NAME}.${PACKAGE_VERSION} ${G_EXP_BINDIR}/${PACKAGE_NAME}
+		${G_STRIP} --strip-unneeded ${G_EXP_BINDIR}/* || true
 		touch ${G_EXPORT}/.d
 	fi
 }

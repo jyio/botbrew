@@ -22,11 +22,11 @@ botbrew_do_build() {
 	fi
 	botbrew_patchtree -p0 ${G_SOURCE} patch/readline-6.2-android.patch
 	botbrew_import
-	botbrew_fix_crosslibconfig ${G_IMPORT}/system/bin/ncursesw5-config
+	botbrew_fix_crosslibconfig ${G_IMPORT}${G_INSTALLPREFIX}/bin/ncursesw5-config
 	if ! [ -e ${G_OBJECT}/Makefile ]; then
 		(
 			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
-			CC="agcc.bash" CPPFLAGS="-I${G_INCDIR}" LD="agcc.bash" LDFLAGS="-L${G_LIBDIR}" \
+			CPPFLAGS="-I${G_INCDIR} ${G_CPPFLAGS} ${G_ALL_CFLAGS}" LDFLAGS="-L${G_LIBDIR}" \
 			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
 				--with-shared
 		)
@@ -34,12 +34,8 @@ botbrew_do_build() {
 	if ! [ -e ${G_EXPORT}/.d ]; then
 		${G_MAKE} -C ${G_OBJECT} SHLIB_LIBS="-lncursesw"
 		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
-		for file in ${G_EXPORT}/system/lib/*.so.${PACKAGE_VERSION}; do
-			mv -T "${file}" "${file%.${PACKAGE_VERSION}}"
-		done
-		rm -f ${G_EXPORT}/system/lib/*.so.*
-		chmod 0755 ${G_EXPORT}/system/lib/*.so
-		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/lib/*.so || true
+		chmod 0755 ${G_EXP_LIBDIR}/*.so*
+		${G_STRIP} --strip-unneeded ${G_EXP_LIBDIR}/*.so* || true
 		touch ${G_EXPORT}/.d
 	fi
 }

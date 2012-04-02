@@ -14,8 +14,9 @@ botbrew_do_build() {
 	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
 	botbrew_patchtree -p0 ${G_SOURCE} patch/busybox-1.19.4-android.patch
 	botbrew_import
+	rm -f ${G_LIBDIR}/libmusl.so*
 	if ! [ -e ${G_IMPORT}/.do.private ]; then
-		cp patch/*.h ${G_IMPORT}/system/include/
+		cp patch/*.h ${G_IMPORT_PREFIX}/include/
 		touch ${G_IMPORT}/.do.private
 	fi
 	sed -e 's/crypt//g' ${G_SOURCE}/Makefile.flags > temp
@@ -33,15 +34,18 @@ botbrew_do_build() {
 		echo ${G_CFLAGS} ${G_OFLAGS}
 		${G_MAKE} -C ${G_OBJECT} install CONFIG_PREFIX=$(pwd)/${G_EXPORT} \
 			CROSS_COMPILE="${G_TRIPLET}-" \
-			CONFIG_EXTRA_CFLAGS="-I${G_INCDIR} -I${G_INCDIR}/musl -L${G_LIBDIR} ${G_CFLAGS} ${G_OFLAGS}" \
+			CONFIG_EXTRA_CFLAGS="${G_CPPFLAGS} ${G_CFLAGS} ${G_OFLAGS} -I${G_INCDIR} -I${G_INCDIR}/musl -L${G_LIBDIR}" \
 			LDLIBS="musl m"
-		mkdir -p ${G_EXPORT}/system/bin ${G_EXPORT}/system/libexec/busybox
-		mv ${G_EXPORT}/bin/busybox ${G_EXPORT}/system/bin/
+		mkdir -p ${G_EXP_BINDIR} ${G_EXP_LIBDIR} ${G_EXP_SYSDIR}/libexec/busybox
+		mv ${G_EXPORT}/bin/busybox ${G_EXP_BINDIR}/
 		for item in ${G_EXPORT}/bin/* ${G_EXPORT}/sbin/* ${G_EXPORT}/usr/*/*; do
-			ln -s /system/bin/busybox "${G_EXPORT}/system/libexec/busybox/${item##*/}"
+			ln -s ../bin/busybox "${G_EXP_SYSDIR}/libexec/busybox/${item##*/}" || true
 		done
 		rm -rf ${G_EXPORT}/bin ${G_EXPORT}/sbin ${G_EXPORT}/usr ${G_EXPORT}/linuxrc
-		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/* || true
+		cp ${G_OBJECT}/0_lib/busybox ${G_EXP_BINDIR}/
+		cp ${G_OBJECT}/0_lib/libbusybox.so.${PACKAGE_VERSION} ${G_EXP_LIBDIR}/
+		ln -s libbusybox.so.${PACKAGE_VERSION} ${G_EXP_LIBDIR}/libbusybox.so
+		${G_STRIP} --strip-unneeded ${G_EXP_BINDIR}/* ${G_EXP_LIBDIR}/*.so* || true
 		touch ${G_EXPORT}/.d
 	fi
 }

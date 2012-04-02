@@ -1,5 +1,5 @@
 Package: libbz2-dev
-Version: 1.0.6-1
+Version: 1.0.6-2
 Architecture: armeabi
 Section: libdevel
 Priority: optional
@@ -11,6 +11,6 @@ Depends: libbz2
 Data:
  /CONTROL/init: |
     #!/bin/sh
-    mkdir -p $PACKAGE/system/lib
-    cp -r $EXPORT/system/include $PACKAGE/system/
-    cp $EXPORT/system/lib/*.a $PACKAGE/system/lib/
+    mkdir -p ${PACKAGE}${PREFIX}/lib
+    cp -r ${EXPORT}${PREFIX}/include ${PACKAGE}${PREFIX}/
+    cp ${EXPORT}${PREFIX}/lib/*.a ${PACKAGE}${PREFIX}/lib/

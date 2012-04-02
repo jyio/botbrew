@@ -2,8 +2,8 @@
 if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
 
 PACKAGE_NAME=$(basename $(pwd))
-PACKAGE_VERSION=1.9.3-rc1
-PACKAGE_DEPEND=( readline ncurses libiconv openssl libffi libyaml )
+PACKAGE_VERSION=1.9.3-p125
+PACKAGE_DEPEND=( readline ncurses libiconv openssl gdbm libffi libyaml )
 
 FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
 ARCHIVE=${FULLNAME}.tar.gz
@@ -15,25 +15,19 @@ botbrew_do_build() {
 	botbrew_fix_config ${G_SOURCE}/tool
 	botbrew_patchtree -p0 ${G_SOURCE} patch/ruby-1.9.3-android.patch
 	botbrew_import
-	botbrew_fix_crosslibconfig ${G_IMPORT}/system/bin/ncurses5-config
+	botbrew_fix_crosslibconfig ${G_IMPORT}${G_INSTALLPREFIX}/bin/ncurses5-config
 	if ! [ -e ${G_OBJECT}/Makefile ]; then
 		(
 			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
-			CC="agcc.bash" CPPFLAGS="-I${G_INCDIR}" \
-			LD="agcc.bash" LDFLAGS="-L${G_LIBDIR}" LDSHARED="agcc.bash -shared -lgcc" \
+			CPPFLAGS="-I${G_INCDIR} ${G_CPPFLAGS}" CFLAGS="${G_ALL_CFLAGS}" LDFLAGS="-L${G_LIBDIR}" \
 			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
-				--enable-shared --disable-ipv6 --disable-wide-getaddrinfo
+				--enable-shared --disable-ipv6 --disable-wide-getaddrinfo --disable-install-rdoc
 		)
 	fi
 	if ! [ -e ${G_EXPORT}/.d ]; then
-		${G_MAKE} -C ${G_OBJECT} -j1
-		${G_MAKE} -C ${G_OBJECT} -j1 install DESTDIR=$(pwd)/${G_EXPORT}
-		mv ${G_EXPORT}/system/lib/libruby.so.1.9.1 ${G_EXPORT}/system/lib/libruby.so
-		rm -r ${G_EXPORT}/system/lib/libruby.so.* ${G_EXPORT}/system/lib/pkgconfig
-		mkdir -p ${G_EXPORT}/data
-		mv ${G_EXPORT}/var/* ${G_EXPORT}/data/
-		rm -r ${G_EXPORT}/var
-		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/* $(find ${G_EXPORT} -type f -name '*.so') || true
+		${G_MAKE} -C ${G_OBJECT}
+		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
+		${G_STRIP} --strip-unneeded ${G_EXP_BINDIR}/* $(find ${G_EXPORT} -type f -name '*.so*') || true
 		touch ${G_EXPORT}/.d
 	fi
 }

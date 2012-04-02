@@ -1,0 +1,16 @@
+Package: libtasn1-dev
+Version: 2.12-0
+Architecture: armeabi
+Section: libdevel
+Priority: optional
+Source: http://www.gnu.org/software/libtasn1/
+Description: |
+ Manage ASN.1 structures (development)
+ Manage ASN1 (Abstract Syntax Notation One) structures.
+Depends: libtasn1
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/lib
+    cp -r ${EXPORT}${PREFIX}/include ${PACKAGE}${PREFIX}/
+    cp -r ${EXPORT}${PREFIX}/lib/*.a ${EXPORT}${PREFIX}/lib/*.la ${EXPORT}${PREFIX}/lib/pkgconfig ${PACKAGE}${PREFIX}/lib/

@@ -1,5 +1,5 @@
 Package: libmusl-dev
-Version: 0.8.6-0
+Version: 0.8.7-0
 Architecture: armeabi
 Section: libdevel
 Priority: optional
@@ -11,6 +11,6 @@ Depends: libmusl
 Data:
  /CONTROL/init: |
     #!/bin/sh
-    mkdir -p $PACKAGE/system/lib
-    cp -r $EXPORT/system/include $PACKAGE/system/
-    cp -r $EXPORT/system/lib/*.a $PACKAGE/system/lib/
+    mkdir -p ${PACKAGE}${PREFIX}/lib
+    cp -r ${EXPORT}${PREFIX}/include ${PACKAGE}${PREFIX}/
+    cp -r ${EXPORT}${PREFIX}/lib/*.a ${PACKAGE}${PREFIX}/lib/

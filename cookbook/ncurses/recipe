@@ -12,11 +12,10 @@ botbrew_do_build() {
 	botbrew_download http://ftp.gnu.org/gnu/${PACKAGE_NAME}/${ARCHIVE} ${ARCHIVE}
 	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
 	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
-	botbrew_patchtree -p0 ${G_SOURCE} patch/ncurses-5.9-android.patch
 	if ! [ -e ${G_OBJECT}/Makefile ]; then
 		(
 			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
-			CC="agcc.bash" CXX="agcc-bash-g++" LD="agcc.bash" \
+			CPPFLAGS="${G_CPPFLAGS}" CFLAGS="${G_ALL_CFLAGS}" CXXFLAGS="${G_ALL_CXXFLAGS}" \
 			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
 				--with-shared --enable-termcap
 			# nb: Android's broken locale implementation results in errors such as
@@ -29,12 +28,8 @@ botbrew_do_build() {
 	if ! [ -e ${G_EXPORT}/.d ]; then
 		${G_MAKE} -C ${G_OBJECT}
 		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
-		for file in ${G_EXPORT}/system/lib/*.so.${PACKAGE_VERSION}; do
-			mv -T "${file}" "${file%.${PACKAGE_VERSION}}"
-		done
-		rm -f ${G_EXPORT}/system/lib/*.so.*
-		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/* ${G_EXPORT}/system/lib/*.so || true
-		botbrew_fix_shell_path $(grep -rlIF '/bin/sh' ${G_EXPORT})
+		${G_STRIP} --strip-unneeded ${G_EXP_BINDIR}/* ${G_EXP_LIBDIR}/*.so* || true
+		botbrew_fix_interpreter_path ${G_EXPORT}
 		touch ${G_EXPORT}/.d
 	fi
 }

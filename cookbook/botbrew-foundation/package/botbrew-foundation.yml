@@ -1,5 +1,5 @@
 Package: botbrew-foundation
-Version: 0.0.1-0
+Version: 0.0.1-4
 Architecture: all
 Section: admin
 Priority: required
@@ -7,70 +7,190 @@ Source: http://inportb.com/
 Description: |
  GNU/Linux-like foundation
  Sets up a basic filesystem hierarchy.
+Depends: busybox
 Data:
- /system/bin/.opkg-new: ""
- /system/lib/.opkg-new: ""
- /system/libexec/.opkg-new: ""
- /system/include/.opkg-new: ""
- /system/share/.opkg-new: ""
- /data/cache/.opkg-new: ""
- /data/lib/.opkg-new: ""
- /data/local/.opkg-new: ""
- /data/lock/.opkg-new: ""
- /data/log/.opkg-new: ""
- /data/mail/.opkg-new: ""
- /data/run/.opkg-new: ""
- /data/spool/.opkg-new: ""
- /data/tmp/.opkg-new: ""
- /data/vtmp/.opkg-new: ""
- /data/root/.opkg-new: ""
- /data/home/.opkg-new: ""
- /system/etc/lsb-release: |
+ '%(PREFIX)s/bin/.opkg-new': ''
+ '%(PREFIX)s/lib/.opkg-new': ''
+ '%(PREFIX)s/libexec/.opkg-new': ''
+ '%(PREFIX)s/include/.opkg-new': ''
+ '%(PREFIX)s/share/.opkg-new': ''
+ '%(PREFIX)s/var/cache/.opkg-new': ''
+ '%(PREFIX)s/var/lib/.opkg-new': ''
+ '%(PREFIX)s/var/local/.opkg-new': ''
+ '%(PREFIX)s/var/log/.opkg-new': ''
+ '%(PREFIX)s/var/mail/.opkg-new': ''
+ '%(PREFIX)s/var/spool/.opkg-new': ''
+ '%(PREFIX)s/var/tmp/.opkg-new': ''
+ '%(PREFIX)s/run/.opkg-new': ''
+ '%(PREFIX)s/root/.opkg-new': ''
+ '%(PREFIX)s/home/.opkg-new': ''
+ '%(PREFIX)s/service/enabled/.opkg-new': ''
+ '%(PREFIX)s/etc/lsb-release': |
     DISTRIB_ID=BotBrew
-    DISTRIB_RELEASE=2012.03.15
-    DISTRIB_CODENAME=bender
-    DISTRIB_DESCRIPTION="BotBrew bender (development branch)"
- /system/etc/passwd.opkg-new: |
-    root:x:0:0:root:/data/root:/system/bin/sh
- /system/etc/group.opkg-new: |
+    DISTRIB_RELEASE=2012.04.01
+    DISTRIB_CODENAME=anise
+    DISTRIB_DESCRIPTION="BotBrew anise (development branch)"
+ '%(PREFIX)s/etc/passwd.opkg-new': |
+    root:x:0:0:root:%(PREFIX)s/root:/system/bin/sh
+ '%(PREFIX)s/etc/group.opkg-new': |
     root:x:0:
- /system/etc/shadow.opkg-new: |
+ '%(PREFIX)s/etc/shadow.opkg-new': |
     root:!:15414:0:99999:7:::
- /system/etc/skel/.opkg-new: ""
+ '%(PREFIX)s/etc/skel/.opkg-new': ''
+ '%(PREFIX)s/init.sh': |
+    #!/system/bin/sh
+    set -e
+    ls %(PREFIX)s/init.sh > /dev/null 2>&1 && exit
+    export PATH=/data%(PREFIX)s/bin:${PATH}
+    export LD_LIBRARY_PATH=/data%(PREFIX)s/lib:${LD_LIBRARY_PATH}
+    busybox mount -o rw,remount rootfs /
+    busybox mkdir -p %(PREFIX)s
+    busybox mount -o bind,suid /data%(PREFIX)s %(PREFIX)s
+    busybox mount -o remount,suid %(PREFIX)s
+    busybox mount -o ro,remount rootfs /
+    busybox mkdir -p %(PREFIX)s/run
+    busybox rm -rf %(PREFIX)s/run/* %(PREFIX)s/tmp %(PREFIX)s/var/run %(PREFIX)s/var/lock
+    busybox mount -o nosuid,noexec -t tmpfs tmpfs %(PREFIX)s/run
+    busybox mkdir -p %(PREFIX)s/var %(PREFIX)s/run/tmp %(PREFIX)s/run/lock
+    busybox chmod 0777 %(PREFIX)s/run/tmp
+    busybox ln -s %(PREFIX)s/run %(PREFIX)s/var/run
+    busybox ln -s %(PREFIX)s/run/tmp %(PREFIX)s/tmp
+    busybox ln -s %(PREFIX)s/run/lock %(PREFIX)s/var/lock
+ '%(PREFIX)s/fini.sh': |
+    #!/system/bin/sh
+    ls %(PREFIX)s/fini.sh > /dev/null 2>&1 || exit
+    export PATH=/data%(PREFIX)s/bin:${PATH}
+    export LD_LIBRARY_PATH=/data%(PREFIX)s/lib:${LD_LIBRARY_PATH}
+    busybox umount -fl %(PREFIX)s/run || true
+    busybox umount -fl %(PREFIX)s || true
+    busybox mount -o rw,remount rootfs /
+    busybox rmdir %(PREFIX)s || true
+    busybox mount -o ro,remount rootfs /
+ '%(PREFIX)s/restore.sh': |
+    #!/system/bin/sh
+    /data%(PREFIX)s/init.sh
+    /data%(PREFIX)s/bin/ldimport
+    ln -s /data%(PREFIX)s/bin/bbsh /system/bin/bbsh || echo 2>&1 "not linking \`/system/bin/bbsh'"
+    ln -s /data%(PREFIX)s/bin/botbrew /system/bin/botbrew || echo 2>&1 "not linking \`/system/bin/botbrew'"
+    ln -s /data%(PREFIX)s/bin/ldimport /system/bin/ldimport || echo 2>&1 "not linking \`/system/bin/ldimport'"
+    true
+ '%(PREFIX)s/bin/bbsh': |
+    #!/system/bin/sh
+    ls %(PREFIX)s/ > /dev/null 2>&1 || /data%(PREFIX)s/init.sh
+    export TERM=xterm
+    export PATH=%(PREFIX)s/bin:${PATH}
+    export LD_LIBRARY_PATH=%(PREFIX)s/lib:${LD_LIBRARY_PATH}
+    exec /system/bin/sh "$@"
+ '%(PREFIX)s/bin/botbrew': |
+    #!/system/bin/sh
+    ls %(PREFIX)s/ > /dev/null 2>&1 || /data%(PREFIX)s/init.sh
+    export TERM=xterm
+    export PATH=%(PREFIX)s/bin:${PATH}
+    export LD_LIBRARY_PATH=%(PREFIX)s/lib:${LD_LIBRARY_PATH}
+    if [ "$1" = "" ]; then
+    	exec /system/bin/sh
+    else
+    	exec "$@"
+    fi
+ '%(PREFIX)s/bin/ldimport': |
+    #!/system/bin/sh
+    export PATH=/data%(PREFIX)s/bin:${PATH}
+    export LD_LIBRARY_PATH=/data%(PREFIX)s/lib:${LD_LIBRARY_PATH}
+    SRC="%(PREFIX)s/lib"
+    if ! [ -e "${SRC}" ]; then
+    	echo 2>&1 "cannot find \`${SRC}'... trying harder"
+    	SRC="/data%(PREFIX)s/lib"
+    	if ! [ -e "${SRC}" ]; then
+    		echo 2>&1 "cannot find \`${SRC}'... exiting"
+    		exit 1
+    	fi
+    fi
+    echo "checking for stale links..."
+    for item in /system/lib/*; do
+    	if ! [ -e "${item}" ]; then
+    		LINK=`busybox readlink -f "${item}"`
+    		case "${LINK}" in
+    			"%(PREFIX)s/lib/"*)
+    				if ! [ -e "/data${LINK}" ]; then
+    					rm "${item}" > /dev/null 2>&1 && echo "unlinked \`${item}'" || true
+    				fi
+    				;;
+    			*);;
+    		esac
+    	fi
+    done
+    echo "checking for fresh links..."
+    cd "${SRC}"
+    for item in *; do
+    	ln -s "%(PREFIX)s/lib/${item}" "/system/lib/${item}" > /dev/null 2>&1 && echo "linked \`/system/lib/${item}'" || true
+    done
+    echo "done"
+ /CONTROL/preinst: |
+    #!/system/bin/sh
+    export PATH=/data%(PREFIX)s/bin:${PATH}
+    export LD_LIBRARY_PATH=/data%(PREFIX)s/lib:${LD_LIBRARY_PATH}
+    if ! [ -e "%(PREFIX)s" ]; then
+    	busybox mount -o remount,rw /
+    	ln -s "/data%(PREFIX)s" "%(PREFIX)s" || true
+    	busybox mount -o remount,ro /
+    fi
  /CONTROL/postinst: |
     #!/system/bin/sh
-    rm	${PKG_ROOT}/system/bin/.opkg-new \
-    	${PKG_ROOT}/system/lib/.opkg-new \
-    	${PKG_ROOT}/system/include/.opkg-new \
-    	${PKG_ROOT}/system/share/.opkg-new \
-    	${PKG_ROOT}/data/cache/.opkg-new \
-    	${PKG_ROOT}/data/lib/.opkg-new \
-    	${PKG_ROOT}/data/local/.opkg-new \
-    	${PKG_ROOT}/data/lock/.opkg-new \
-    	${PKG_ROOT}/data/log/.opkg-new \
-    	${PKG_ROOT}/data/mail/.opkg-new \
-    	${PKG_ROOT}/data/run/.opkg-new \
-    	${PKG_ROOT}/data/spool/.opkg-new \
-    	${PKG_ROOT}/data/tmp/.opkg-new \
-    	${PKG_ROOT}/data/vtmp/.opkg-new \
-    	${PKG_ROOT}/data/root/.opkg-new \
-    	${PKG_ROOT}/data/home/.opkg-new \
-    	${PKG_ROOT}/system/etc/skel/.opkg-new
-    if [ -e ${PKG_ROOT}/system/etc/passwd ]; then
-    	rm ${PKG_ROOT}/system/etc/passwd.opkg-new
+    export PATH=/data%(PREFIX)s/bin:${PATH}
+    export LD_LIBRARY_PATH=/data%(PREFIX)s/lib:${LD_LIBRARY_PATH}
+    rm	${PKG_ROOT}%(PREFIX)s/bin/.opkg-new \
+    	${PKG_ROOT}%(PREFIX)s/lib/.opkg-new \
+    	${PKG_ROOT}%(PREFIX)s/libexec/.opkg-new \
+    	${PKG_ROOT}%(PREFIX)s/include/.opkg-new \
+    	${PKG_ROOT}%(PREFIX)s/share/.opkg-new \
+    	${PKG_ROOT}%(PREFIX)s/var/cache/.opkg-new \
+    	${PKG_ROOT}%(PREFIX)s/var/lib/.opkg-new \
+    	${PKG_ROOT}%(PREFIX)s/var/local/.opkg-new \
+    	${PKG_ROOT}%(PREFIX)s/var/log/.opkg-new \
+    	${PKG_ROOT}%(PREFIX)s/var/mail/.opkg-new \
+    	${PKG_ROOT}%(PREFIX)s/var/spool/.opkg-new \
+    	${PKG_ROOT}%(PREFIX)s/var/tmp/.opkg-new \
+    	${PKG_ROOT}%(PREFIX)s/run/.opkg-new \
+    	${PKG_ROOT}%(PREFIX)s/root/.opkg-new \
+    	${PKG_ROOT}%(PREFIX)s/home/.opkg-new \
+    	${PKG_ROOT}%(PREFIX)s/service/enabled/.opkg-new \
+    	${PKG_ROOT}%(PREFIX)s/etc/skel/.opkg-new
+    if [ -e ${PKG_ROOT}%(PREFIX)s/etc/passwd ]; then
+    	rm ${PKG_ROOT}%(PREFIX)s/etc/passwd.opkg-new
     else
-    	mv ${PKG_ROOT}/system/etc/passwd.opkg-new ${PKG_ROOT}/system/etc/passwd
-    	chmod 0644 ${PKG_ROOT}/system/etc/passwd
+    	mv ${PKG_ROOT}%(PREFIX)s/etc/passwd.opkg-new ${PKG_ROOT}%(PREFIX)s/etc/passwd
+    	chmod 0644 ${PKG_ROOT}%(PREFIX)s/etc/passwd
     fi
-    if [ -e ${PKG_ROOT}/system/etc/group ]; then
-    	rm ${PKG_ROOT}/system/etc/group.opkg-new
+    if [ -e ${PKG_ROOT}%(PREFIX)s/etc/group ]; then
+    	rm ${PKG_ROOT}%(PREFIX)s/etc/group.opkg-new
     else
-    	mv ${PKG_ROOT}/system/etc/group.opkg-new ${PKG_ROOT}/system/etc/group
-    	chmod 0644 ${PKG_ROOT}/system/etc/group
+    	mv ${PKG_ROOT}%(PREFIX)s/etc/group.opkg-new ${PKG_ROOT}%(PREFIX)s/etc/group
+    	chmod 0644 ${PKG_ROOT}%(PREFIX)s/etc/group
     fi
-    if [ -e ${PKG_ROOT}/system/etc/shadow ]; then
-    	rm ${PKG_ROOT}/system/etc/shadow.opkg-new
+    if [ -e ${PKG_ROOT}%(PREFIX)s/etc/shadow ]; then
+    	rm ${PKG_ROOT}%(PREFIX)s/etc/shadow.opkg-new
     else
-    	mv ${PKG_ROOT}/system/etc/shadow.opkg-new ${PKG_ROOT}/system/etc/shadow
-    	chmod 0640 ${PKG_ROOT}/system/etc/shadow
+    	mv ${PKG_ROOT}%(PREFIX)s/etc/shadow.opkg-new ${PKG_ROOT}%(PREFIX)s/etc/shadow
+    	chmod 0640 ${PKG_ROOT}%(PREFIX)s/etc/shadow
     fi
+    if [ -L "%(PREFIX)s" ]; then
+    	busybox mount -o remount,rw /
+    	rm "%(PREFIX)s" || true
+    	busybox mount -o remount,ro /
+    fi
+    /data%(PREFIX)s/init.sh
+ /CONTROL/prerm: |
+    #!/system/bin/sh
+    export PATH=/data%(PREFIX)s/bin:${PATH}
+    export LD_LIBRARY_PATH=/data%(PREFIX)s/lib:${LD_LIBRARY_PATH}
+    /data%(PREFIX)s/fini.sh || true
+    if ! [ -e "%(PREFIX)s" ]; then
+    	busybox mount -o remount,rw /
+    	ln -s "/data%(PREFIX)s" "%(PREFIX)s" || true
+    	busybox mount -o remount,ro /
+    fi
+ /CONTROL/init: |
+    #!/bin/sh
+    chmod +x ${PACKAGE}${PREFIX}/bin/* ${PACKAGE}${PREFIX}/init.sh ${PACKAGE}${PREFIX}/fini.sh ${PACKAGE}${PREFIX}/restore.sh
+    mkdir -p ${PACKAGE}/system/bin
+    ln -s /data${PREFIX}/bin/bbsh /data${PREFIX}/bin/botbrew /data${PREFIX}/bin/ldimport ${PACKAGE}/system/bin/

@@ -1,5 +1,5 @@
 Package: ncursesw
-Version: 5.9-1
+Version: 5.9-2
 Architecture: armeabi
 Section: utils
 Priority: optional
@@ -12,6 +12,6 @@ Conflicts: ncurses
 Data:
  /CONTROL/init: |
     #!/bin/sh
-    mkdir -p $PACKAGE/system/share
-    cp -r $EXPORT/system/bin $PACKAGE/system/
-    rm $PACKAGE/system/bin/*-config
+    mkdir -p ${PACKAGE}${PREFIX}/share
+    cp -r ${EXPORT}${PREFIX}/bin ${PACKAGE}${PREFIX}/
+    rm ${PACKAGE}${PREFIX}/bin/*-config

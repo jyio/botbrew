@@ -1,0 +1,35 @@
+Package: haveged
+Version: 1.4-0
+Architecture: armeabi
+Section: misc
+Priority: optional
+Source: http://www.issihosts.com/haveged/
+Description: |
+ Linux entropy source using the HAVEGE algorithm
+ haveged is a userspace entropy daemon which is not dependent upon the standard mechanisms for harvesting randomness for the system entropy pool. This is important in systems with high entropy needs or limited user interaction (e.g. headless servers). haveged uses HAVEGE (HArdware Volatile Entropy Gathering and Expansion) to maintain a 1M pool of random bytes used to fill /dev/random whenever the supply of random bits in dev/random falls below the low water mark of the device. More information about HAVAGE is available at http://www.irisa.fr/caps/projects/hipsor/
+Data:
+ '%(PREFIX)s/var/log/haveged/.opkg-new': ''
+ '%(PREFIX)s/service/haveged/run': |
+    #!/system/bin/sh
+    exec 2>&1
+    exec haveged -F 1 -w 1024 -v 1
+ '%(PREFIX)s/service/haveged/log/run': |
+    #!/system/bin/sh
+    exec svlogd -tt %(PREFIX)s/var/log/haveged
+ /CONTROL/postinst: |
+    #!/system/bin/sh
+    rm ${PKG_ROOT}%(PREFIX)s/var/log/haveged/.opkg-new
+    if ! [ -e ${PKG_ROOT}%(PREFIX)s/service/enabled/haveged ]; then
+    	ln -s ${PKG_ROOT}%(PREFIX)s/service/haveged ${PKG_ROOT}%(PREFIX)s/service/enabled/haveged
+    fi
+ /CONTROL/prerm: |
+    #!/system/bin/sh
+    busybox rm -rf ${PKG_ROOT}%(PREFIX)s/service/enabled/haveged
+ /CONTROL/postrm: |
+    #!/system/bin/sh
+    busybox rm -rf ${PKG_ROOT}%(PREFIX)s/service/haveged
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}
+    cp -r ${EXPORT}${PREFIX}/bin ${PACKAGE}${PREFIX}/
+    chmod +x ${PACKAGE}${PREFIX}/service/haveged/run ${PACKAGE}${PREFIX}/service/haveged/log/run

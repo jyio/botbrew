@@ -16,7 +16,7 @@ botbrew_do_build() {
 		(
 			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
 			# arm-linux-androideabi not supported, even with recent config
-			CC="agcc.bash" LD="agcc.bash" \
+			CC="${G_TRIPLET}-gcc" LD="${G_TRIPLET}-gcc" \
 			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=arm-android-eabi
 			sed -e 's/\bsys\/signal\.h\b/asm\/signal.h/' pth.h > temp
 			mv temp pth.h
@@ -26,8 +26,7 @@ botbrew_do_build() {
 		${G_MAKE} -C ${G_OBJECT} -j1 pth_p.h	# dependency for concurrent builds
 		${G_MAKE} -C ${G_OBJECT}
 		${G_MAKE} -C ${G_OBJECT} -j1 install DESTDIR=$(pwd)/${G_EXPORT}
-		rm ${G_EXPORT}/system/lib/*.la
-		botbrew_fix_shell_path $(grep -rlIF '/bin/sh' ${G_EXPORT})
+		botbrew_fix_interpreter_path ${G_EXPORT}
 		touch ${G_EXPORT}/.d
 	fi
 }

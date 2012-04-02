@@ -1,5 +1,5 @@
 Package: gnupg2-doc
-Version: 2.0.18-0
+Version: 2.0.19-0
 Architecture: all
 Section: doc
 Priority: optional
@@ -10,5 +10,5 @@ Description: |
 Data:
  /CONTROL/init: |
     #!/bin/sh
-    mkdir -p $PACKAGE/system/share
-    cp -r $EXPORT/system/share/doc $EXPORT/system/share/info $EXPORT/system/share/man $PACKAGE/system/share/
+    mkdir -p ${PACKAGE}${PREFIX}/share
+    cp -r ${EXPORT}${PREFIX}/share/doc ${EXPORT}${PREFIX}/share/info ${EXPORT}${PREFIX}/share/man ${PACKAGE}${PREFIX}/share/

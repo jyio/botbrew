@@ -1,5 +1,5 @@
 Package: curl
-Version: 7.24.0-3
+Version: 7.25.1-0
 Architecture: armeabi
 Section: web
 Priority: optional
@@ -11,6 +11,6 @@ Depends: libcurl
 Data:
  /CONTROL/init: |
     #!/bin/sh
-    mkdir -p $PACKAGE/system
-    cp -r $EXPORT/system/bin $PACKAGE/system/
-    rm $PACKAGE/system/bin/*-config
+    mkdir -p ${PACKAGE}${PREFIX}
+    cp -r ${EXPORT}${PREFIX}/bin ${PACKAGE}${PREFIX}/
+    rm ${PACKAGE}${PREFIX}/bin/*-config

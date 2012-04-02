@@ -1,5 +1,5 @@
 Package: libpcap-doc
-Version: 1.2.1-0
+Version: 1.2.1-1
 Architecture: all
 Section: doc
 Priority: optional
@@ -11,5 +11,5 @@ Depends: libpcap
 Data:
  /CONTROL/init: |
     #!/bin/sh
-    mkdir -p $PACKAGE/system
-    cp -r $EXPORT/system/share $PACKAGE/system/
+    mkdir -p ${PACKAGE}${PREFIX}
+    cp -r ${EXPORT}${PREFIX}/share ${PACKAGE}${PREFIX}/

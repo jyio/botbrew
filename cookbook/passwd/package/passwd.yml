@@ -1,0 +1,16 @@
+Package: passwd
+Version: 0.0.1-0
+Architecture: all
+Section: admin
+Priority: optional
+Source: http://inportb.com/
+Description: |
+ (busybox) change and administer password data
+ This package includes passwd and chpasswd. Shadow passwords are supported.
+Depends: busybox
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/bin
+    ln -s busybox ${PACKAGE}${PREFIX}/bin/passwd
+    ln -s busybox ${PACKAGE}${PREFIX}/bin/chpasswd

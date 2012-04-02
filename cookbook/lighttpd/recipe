@@ -1,0 +1,34 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=1.4.30
+PACKAGE_DEPEND=( openssl pcre bzip2 )
+
+FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
+ARCHIVE=${FULLNAME}.tar.gz
+
+botbrew_do_build() {
+	botbrew_download http://download.lighttpd.net/${PACKAGE_NAME}/releases-${PACKAGE_VERSION%.*}.x/${ARCHIVE} ${ARCHIVE}
+	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
+	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
+	botbrew_fix_config ${G_SOURCE}
+	botbrew_import
+	botbrew_fix_crosslibconfig ${G_BINDIR}/pcre-config
+	if ! [ -e ${G_OBJECT}/Makefile ]; then
+		(
+			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
+			CPPFLAGS="-I${G_INCDIR} ${G_CPPFLAGS} ${G_ALL_CFLAGS} -DHAVE_SYS_UN_H" \
+			LDFLAGS="-L${G_LIBDIR}" \
+			PCRECONFIG="${G_BINDIR}/pcre-config" \
+			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
+				--with-openssl=${G_SYSDIR}
+		)
+	fi
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		${G_MAKE} -C ${G_OBJECT}
+		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
+		${G_STRIP} --strip-unneeded ${G_EXP_BINDIR}/*  ${G_EXP_LIBDIR}/*.so* || true
+		touch ${G_EXPORT}/.d
+	fi
+}

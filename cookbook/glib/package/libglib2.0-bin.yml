@@ -1,0 +1,17 @@
+Package: libglib2.0-bin
+Version: 2.32.0-0
+Architecture: armeabi
+Section: misc
+Priority: optional
+Source: http://www.gtk.org/
+Description: |
+ Programs for the GLib library
+ GLib is a library containing many useful C routines for things such as trees, hashes, lists, and strings. It is a useful general-purpose C library used by projects such as GTK+, GIMP, and GNOME. This package contains the program files which is used for the libraries and others.
+Depends: libglib2.0
+Data:
+ /CONTROL/init: |
+    #!/bin/bash
+    mkdir -p ${PACKAGE}${PREFIX}/share
+    cp -r ${EXPORT}${PREFIX}/bin ${EXPORT}${PREFIX}/etc ${PACKAGE}${PREFIX}/
+    cp -r ${EXPORT}${PREFIX}/lib/locale ${PACKAGE}${PREFIX}/share/
+    rm ${PACKAGE}${PREFIX}/bin/{gdbus-codegen,glib-genmarshal,glib-gettextize,glib-mkenums,gobject-query,gtester,gtester-report}

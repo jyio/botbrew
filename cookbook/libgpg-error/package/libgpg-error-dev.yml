@@ -1,0 +1,15 @@
+Package: libgpg-error-dev
+Version: 1.10-0
+Architecture: armeabi
+Section: libdevel
+Priority: optional
+Source: http://www.gnupg.org/
+Description: |
+ library for common error values and messages in GnuPG components (development)
+ Library that defines common error values for all GnuPG components. Among these are GPG, GPGSM, GPGME, GPG-Agent, libgcrypt, pinentry, SmartCard Daemon and possibly more in the future.
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}
+    cp -r ${EXPORT}${PREFIX}/* ${PACKAGE}${PREFIX}/
+    rm ${PACKAGE}${PREFIX}/lib/*.so*

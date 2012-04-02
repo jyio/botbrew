@@ -1,0 +1,20 @@
+Package: net-tools
+Version: 0.0.1-0
+Architecture: all
+Section: net
+Priority: optional
+Source: http://inportb.com/
+Description: |
+ (busybox) The NET-3 networking toolkit
+ This package includes the important tools for controlling the network subsystem of the Linux kernel. This includes arp, ifconfig, netstat, and route. Additionally, this package contains utilities relating to particular network hardware types (slattach) and advanced aspects of IP configuration (iptunnel). In the upstream package 'hostname' and friends are included. Those are not installed by this package, since there is a special "hostname*.opk".
+Depends: busybox
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/bin
+    ln -s busybox ${PACKAGE}${PREFIX}/bin/arp
+    ln -s busybox ${PACKAGE}${PREFIX}/bin/ifconfig
+    ln -s busybox ${PACKAGE}${PREFIX}/bin/iptunnel
+    ln -s busybox ${PACKAGE}${PREFIX}/bin/netstat
+    ln -s busybox ${PACKAGE}${PREFIX}/bin/route
+    ln -s busybox ${PACKAGE}${PREFIX}/bin/slattach

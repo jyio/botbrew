@@ -16,7 +16,6 @@ botbrew_do_build() {
 	if ! [ -e ${G_OBJECT}/Makefile ]; then
 		(
 			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
-			CC="agcc.bash" LD="agcc.bash" \
 			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
 				--with-pcap=linux
 		)
@@ -24,10 +23,8 @@ botbrew_do_build() {
 	if ! [ -e ${G_EXPORT}/.d ]; then
 		${G_MAKE} -C ${G_OBJECT}
 		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
-		mv ${G_EXPORT}/system/lib/libpcap.so.${PACKAGE_VERSION} ${G_EXPORT}/system/lib/libpcap.so
-		rm ${G_EXPORT}/system/lib/libpcap.so.*
-		botbrew_fix_shell_path $(grep -rlIF '/bin/sh' ${G_EXPORT})
-		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/lib/*.so || true
+		botbrew_fix_interpreter_path ${G_EXPORT}
+		${G_STRIP} --strip-unneeded ${G_EXP_LIBDIR}/*.so* || true
 		touch ${G_EXPORT}/.d
 	fi
 }

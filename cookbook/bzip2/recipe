@@ -15,30 +15,27 @@ botbrew_do_build() {
 	if ! [ -e ${G_OBJECT}/Makefile ]; then
 		mkdir -p ${G_OBJECT}
 		cp -rlf ${G_SOURCE}/* ${G_OBJECT}/
-		cat ${G_OBJECT}/Makefile-libbz2_so \
-			| sed -e 's/\blibbz2\.so[0123456789\.]*/libbz2.so/g' \
-			| sed -e 's/rm \-f libbz2\.so//g' \
-			| sed -e 's/ln \-s libbz2\.so libbz2\.so//g' \
-			> temp
-		mv temp ${G_OBJECT}/Makefile-libbz2_so
 	fi
 	if ! [ -e ${G_EXPORT}/.d ]; then
-		${G_MAKE} -C ${G_OBJECT} CC="agcc.bash" LD="agcc.bash" PREFIX=$(pwd)/${G_EXPORT} install
-		${G_MAKE} -C ${G_OBJECT} -f Makefile-libbz2_so CC="agcc.bash" all
+		${G_MAKE} -C ${G_OBJECT} install \
+			CC="${G_TRIPLET}-gcc" CFLAGS="${G_CPPFLAGS} ${G_ALL_CFLAGS}" PREFIX=$(pwd)/${G_EXPORT}
+		${G_MAKE} -C ${G_OBJECT} -f Makefile-libbz2_so all \
+			CC="${G_TRIPLET}-gcc" CFLAGS="${G_CPPFLAGS} ${G_ALL_CFLAGS}"
 		cp -lf ${G_OBJECT}/bzip2-shared ${G_EXPORT}/bin/
-		cp -lf ${G_OBJECT}/libbz2.so ${G_EXPORT}/lib/
-		mkdir -p ${G_EXPORT}/system/share
-		mv ${G_EXPORT}/bin ${G_EXPORT}/include ${G_EXPORT}/lib ${G_EXPORT}/system/
-		mv ${G_EXPORT}/man ${G_EXPORT}/system/share/
-		botbrew_fix_shell_path $(grep -rlIF '/bin/sh' ${G_EXPORT}) || true
+		cp -lf ${G_OBJECT}/libbz2.so* ${G_EXPORT}/lib/
+		ln -s libbz2.so.${PACKAGE_VERSION} ${G_EXPORT}/lib/libbz2.so
+		mkdir -p ${G_EXP_SYSDIR}/share
+		mv ${G_EXPORT}/bin ${G_EXPORT}/include ${G_EXPORT}/lib ${G_EXP_SYSDIR}/
+		mv ${G_EXPORT}/man ${G_EXP_SYSDIR}/share/
+		botbrew_fix_interpreter_path ${G_EXPORT} || true
 		(
-			cd ${G_EXPORT}/system/bin
+			cd ${G_EXP_BINDIR}
 			ln -sf bzdiff bzcmp
 			ln -sf bzgrep bzegrep
 			ln -sf bzgrep bzfgrep
 			ln -sf bzmore bzless
 		)
-		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/* ${G_EXPORT}/system/lib/*.so || true
+		${G_STRIP} --strip-unneeded ${G_EXP_BINDIR}/* ${G_EXP_LIBDIR}/*.so* || true
 		touch ${G_EXPORT}/.d
 	fi
 }

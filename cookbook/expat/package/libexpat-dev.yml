@@ -1,0 +1,16 @@
+Package: libexpat-dev
+Version: 2.1.0-0
+Architecture: armeabi
+Section: libdevel
+Priority: optional
+Source: http://expat.sourceforge.net/
+Description: |
+ XML parsing C library - development kit
+ This package contains the header file and development libraries of expat, the C library for parsing XML. Expat is a stream oriented XML parser. This means that you register handlers with the parser prior to starting the parse. These handlers are called when the parser discovers the associated structures in the document being parsed. A start tag is an example of the kind of structures for which you may register handlers.
+Depends: libexpat
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/lib
+    cp -r ${EXPORT}${PREFIX}/include ${PACKAGE}${PREFIX}/
+    cp -r ${EXPORT}${PREFIX}/lib/*.a ${EXPORT}${PREFIX}/lib/*.la ${EXPORT}${PREFIX}/lib/pkgconfig ${PACKAGE}${PREFIX}/lib/

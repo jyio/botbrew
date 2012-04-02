@@ -1,0 +1,14 @@
+Package: libgpg-error
+Version: 1.10-0
+Architecture: armeabi
+Section: libs
+Priority: optional
+Source: http://www.gnupg.org/
+Description: |
+ library for common error values and messages in GnuPG components
+ Library that defines common error values for all GnuPG components. Among these are GPG, GPGSM, GPGME, GPG-Agent, libgcrypt, pinentry, SmartCard Daemon and possibly more in the future.
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/lib
+    cp ${EXPORT}${PREFIX}/lib/*.so* ${PACKAGE}${PREFIX}/lib/

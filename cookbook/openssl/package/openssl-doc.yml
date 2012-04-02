@@ -1,14 +1,14 @@
 Package: openssl-doc
-Version: 1.0.0h-0
+Version: 1.0.1-0
 Architecture: all
 Section: doc
 Priority: optional
 Source: http://www.openssl.org/
 Description: |
- Secure Socket Layer (SSL) binary and related cryptographic tools
- This package contains the openssl binary and related tools. It is part of the OpenSSL implementation of SSL. You need it to perform certain cryptographic actions like: creation of RSA, DH and DSA key parameters; creation of X.509 certificates, CSRs and CRLs; calculation of message digests; encryption and decryption with ciphers; SSL/TLS client and server tests; and handling of S/MIME signed or encrypted mail.
+ Secure Socket Layer (SSL) documentation
+ This package contains the openssl documentation. It is part of the OpenSSL implementation of SSL.
 Data:
  /CONTROL/init: |
     #!/bin/sh
-    mkdir -p $PACKAGE/system/share
-    cp -r $EXPORT/system/share/man $PACKAGE/system/share/
+    mkdir -p ${PACKAGE}${PREFIX}/share
+    cp -r ${EXPORT}${PREFIX}/share/man ${PACKAGE}${PREFIX}/share/

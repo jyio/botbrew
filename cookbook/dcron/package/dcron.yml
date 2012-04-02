@@ -1,5 +1,5 @@
 Package: dcron
-Version: 4.5-1
+Version: 4.5-3
 Architecture: armeabi
 Section: admin
 Priority: optional
@@ -8,30 +8,30 @@ Description: |
  lightweight cron daemon
  This lightweight cron daemon aims to be simple and secure, with just enough features to stay useful.
 Data:
- /system/etc/service/dcron/run: |
+ '%(PREFIX)s/etc/cron.d/.opkg-new': ''
+ '%(PREFIX)s/var/spool/cron/crontabs/.opkg-new': ''
+ '%(PREFIX)s/var/spool/cron/cronstamps/.opkg-new': ''
+ '%(PREFIX)s/service/dcron/run': |
     #!/system/bin/sh
     exec 2>&1
-    exec crond -f -L /data/log/crond.log
+    exec crond -f -L %(PREFIX)s/var/log/crond.log
  /CONTROL/postinst: |
     #!/system/bin/sh
-    mkdir -p /system/etc/cron.d /data/log /data/run/sv.dcron /data/spool/cron/crontabs /data/spool/cron/cronstamps
-    chmod 4750 /system/bin/crontab
-    if [ -d /system/etc/service/enabled ] && ! [ -e /system/etc/service/enabled/dcron ]; then
-    	ln -s /system/etc/service/dcron /system/etc/service/enabled/dcron
+    rm	${PKG_ROOT}%(PREFIX)s/etc/cron.d/.opkg-new \
+    	${PKG_ROOT}%(PREFIX)s/var/spool/cron/crontabs/.opkg-new \
+    	${PKG_ROOT}%(PREFIX)s/var/spool/cron/cronstamps/.opkg-new
+    chmod 4750 ${PKG_ROOT}%(PREFIX)s/bin/crontab
+    if ! [ -e ${PKG_ROOT}%(PREFIX)s/service/enabled/dcron ]; then
+    	ln -s ${PKG_ROOT}%(PREFIX)s/service/dcron ${PKG_ROOT}%(PREFIX)s/service/enabled/dcron
     fi
  /CONTROL/prerm: |
     #!/system/bin/sh
-    busybox rm -rf /system/etc/service/enabled/dcron
+    busybox rm -rf ${PKG_ROOT}%(PREFIX)s/service/enabled/dcron
  /CONTROL/postrm: |
     #!/system/bin/sh
-    rmdir /system/etc/cron.d || true
-    rmdir /data/spool/cron/crontabs || true
-    rmdir /data/spool/cron/cronstamps || true
-    rmdir /data/spool/cron || true
-    busybox rm -rf /data/run/sv.dcron
+    busybox rm -rf ${PKG_ROOT}%(PREFIX)s/service/dcron
  /CONTROL/init: |
     #!/bin/sh
-    mkdir -p $PACKAGE/system
-    cp -r $EXPORT/system/bin $PACKAGE/system/
-    ln -s /data/run/sv.dcron $PACKAGE/system/etc/service/dcron/supervise
-    chmod +x $PACKAGE/system/etc/service/dcron/run
+    mkdir -p ${PACKAGE}${PREFIX}
+    cp -r ${EXPORT}${PREFIX}/bin ${PACKAGE}${PREFIX}/
+    chmod +x ${PACKAGE}${PREFIX}/service/dcron/run

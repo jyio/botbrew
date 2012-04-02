@@ -1,0 +1,14 @@
+Package: libssl
+Version: 1.0.1-0
+Architecture: armeabi
+Section: libs
+Priority: optional
+Source: http://www.openssl.org/
+Description: |
+ Secure Socket Layer (SSL) shared library
+ This package contains the openssl shared library. It is part of the OpenSSL implementation of SSL.
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/lib
+    cp -r ${EXPORT}${PREFIX}/lib/*.so.* ${EXPORT}${PREFIX}/lib/engines ${PACKAGE}${PREFIX}/lib/

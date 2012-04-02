@@ -1,0 +1,20 @@
+Package: jamvm
+Version: 1.5.4-1
+Architecture: armeabi
+Section: interpreters
+Priority: optional
+Source: http://jamvm.sourceforge.net/
+Description: |
+ virtual machine which conforms to JVM specification 2
+ JamVM is a new Java Virtual Machine which conforms to the JVM specification version 2 (blue book). In comparison to most other VM's (free and commercial) it is extremely small, with a stripped executable on PowerPC of only ~110K, and Intel 80K. However, unlike other small VMs (e.g. KVM) it is designed to support the full specification, and includes support for object finalisation, the Java Native Interface (JNI) and the Reflection API.
+Depends: classpath
+Data:
+ '%(PREFIX)s/bin/java': |
+    #!/system/bin/sh
+    exec jamvm -Xbootclasspath:%(PREFIX)s/share/jamvm/classes.zip:%(PREFIX)s/share/classpath/glibj.zip "$@"
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}
+    cp -r ${EXPORT}${PREFIX}/bin ${EXPORT}${PREFIX}/lib ${EXPORT}${PREFIX}/share ${PACKAGE}${PREFIX}/
+    rm ${PACKAGE}${PREFIX}/lib/*.la
+    chmod +x ${PACKAGE}${PREFIX}/bin/java

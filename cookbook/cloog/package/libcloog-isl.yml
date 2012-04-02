@@ -1,0 +1,15 @@
+Package: libcloog-isl
+Version: 0.16.2-0
+Architecture: armeabi
+Section: libs
+Priority: optional
+Source: http://www.cloog.org/
+Description: |
+ Chunky Loop Generator (runtime library)
+ CLooG is a software which generates loops for scanning Z-polyhedra. This package contains the runtime library.
+Depends: libgmp, libisl
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/lib
+    cp ${EXPORT}${PREFIX}/lib/libcloog-isl.so* ${PACKAGE}${PREFIX}/lib/

@@ -1,0 +1,22 @@
+--- src/os/linux/os.c
++++ src/os/linux/os.c
+@@ -28,6 +28,10 @@
+ #define __USE_GNU
+ #include <pthread.h>
+ 
++#ifdef __ANDROID__
++#include <sys/sysconf.h>
++#endif
++
+ #include "../../jam.h"
+ 
+ void *nativeStackBase() {
+@@ -48,6 +52,8 @@
+ int nativeAvailableProcessors() {
+ #ifdef __UCLIBC__
+     return 1;
++#elif defined __ANDROID__
++    return sysconf(_SC_NPROCESSORS_ONLN);
+ #else
+     return get_nprocs();
+ #endif

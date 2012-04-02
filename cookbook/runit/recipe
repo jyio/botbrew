@@ -18,12 +18,12 @@ botbrew_do_build() {
 			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
 			cp -rlf ../${G_SOURCE}/* ./
 			cd src
-			echo "agcc.bash" > conf-cc
-			echo "agcc.bash -s" > conf-ld
-			${G_MAKE} -j1 compile load choose
+			echo "${G_TRIPLET}-gcc" > conf-cc
+			echo "${G_TRIPLET}-gcc -s" > conf-ld
+			${G_MAKE} -j1	compile load choose
 			cp iopause.h2	iopause.h
 			cp uint64.h2	uint64.h
-			${G_MAKE} -j1 chkshsgr
+			${G_MAKE} -j1	chkshsgr
 			cp hasshsgr.h2	hasshsgr.h
 			sed -e 's/static/shared/g' Makefile > temp
 			mv temp Makefile
@@ -32,19 +32,21 @@ botbrew_do_build() {
 	fi
 	if ! [ -e ${G_EXPORT}/.d ]; then
 		${G_MAKE} -C ${G_OBJECT}/src
-		mkdir -p ${G_EXPORT}/system/bin ${G_EXPORT}/system/share/man ${G_EXPORT}/system/share/doc
-		cp -lf ${G_OBJECT}/src/chpst		${G_EXPORT}/system/bin
-		cp -lf ${G_OBJECT}/src/runit		${G_EXPORT}/system/bin
-		cp -lf ${G_OBJECT}/src/runit-init	${G_EXPORT}/system/bin
-		cp -lf ${G_OBJECT}/src/runsv		${G_EXPORT}/system/bin
-		cp -lf ${G_OBJECT}/src/runsvchdir	${G_EXPORT}/system/bin
-		cp -lf ${G_OBJECT}/src/runsvdir		${G_EXPORT}/system/bin
-		cp -lf ${G_OBJECT}/src/sv		${G_EXPORT}/system/bin
-		cp -lf ${G_OBJECT}/src/svlogd		${G_EXPORT}/system/bin
-		cp -lf ${G_OBJECT}/src/utmpset		${G_EXPORT}/system/bin
-		cp -rlf ${G_OBJECT}/src/../man		${G_EXPORT}/system/share/man/man8
-		cp -rlf ${G_OBJECT}/src/../doc		${G_EXPORT}/system/share/doc/runit
-		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/* || true
+		mkdir -p ${G_EXP_BINDIR} ${G_EXP_SYSDIR}/share/man ${G_EXP_SYSDIR}/share/doc
+		cp -lf \
+			${G_OBJECT}/src/chpst \
+			${G_OBJECT}/src/runit \
+			${G_OBJECT}/src/runit-init \
+			${G_OBJECT}/src/runsv \
+			${G_OBJECT}/src/runsvchdir \
+			${G_OBJECT}/src/runsvdir \
+			${G_OBJECT}/src/sv \
+			${G_OBJECT}/src/svlogd \
+			${G_OBJECT}/src/utmpset \
+			${G_EXP_BINDIR}/
+		cp -rlf ${G_OBJECT}/src/../man	${G_EXP_SYSDIR}/share/man/man8
+		cp -rlf ${G_OBJECT}/src/../doc	${G_EXP_SYSDIR}/share/doc/runit
+		${G_STRIP} --strip-unneeded ${G_EXP_BINDIR}/* || true
 		touch ${G_EXPORT}/.d
 	fi
 }

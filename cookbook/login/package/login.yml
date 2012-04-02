@@ -1,0 +1,16 @@
+Package: login
+Version: 0.0.1-0
+Architecture: all
+Section: admin
+Priority: required
+Source: http://inportb.com/
+Description: |
+ (busybox) system login tools
+ These tools are required to be able to login and use your system. The login program invokes your user shell and enables command execution. The su program allows changing your effective user ID (useful being able to execute commands as another user).
+Depends: busybox
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/bin
+    ln -s busybox ${PACKAGE}${PREFIX}/bin/login
+    ln -s busybox ${PACKAGE}${PREFIX}/bin/su

@@ -46,15 +46,19 @@ G_PACKAGE=package
 
 G_NCPU=$(grep -c ^processor /proc/cpuinfo)
 
+export G_INSTALLPREFIX=/botbrew
 G_SYSTEMPREFIX=(
-	--prefix=/system
-	--sbindir=/system/bin
-	--sharedstatedir=/data
-	--localstatedir=/data
-	--oldincludedir=/system/include
-	--infodir=/system/share/info
-	--mandir=/system/share/man
+	--prefix="${G_INSTALLPREFIX}"
+	--sbindir="${G_INSTALLPREFIX}/bin"
+	--sharedstatedir="${G_INSTALLPREFIX}/var"
+	--localstatedir="${G_INSTALLPREFIX}/var"
+	--oldincludedir="${G_INSTALLPREFIX}/include"
+	--infodir="${G_INSTALLPREFIX}/share/info"
+	--mandir="${G_INSTALLPREFIX}/share/man"
 )
+
+G_IMPORT_PREFIX="${G_IMPORT}${G_INSTALLPREFIX}"
+G_EXPORT_PREFIX="${G_EXPORT}${G_INSTALLPREFIX}"
 
 if [ "${G_PATH}" = "" ]; then
 	G_PATH=${PATH}
@@ -217,10 +221,14 @@ botbrew_recipe() {
 		shift
 		(
 			G_WORKDIR=$(pwd)
-			G_SYSDIR=${G_WORKDIR}/${G_IMPORT}/system
-			G_BINDIR=${G_SYSDIR}/bin
-			G_LIBDIR=${G_SYSDIR}/lib
-			G_INCDIR=${G_SYSDIR}/include
+			G_SYSDIR="${G_WORKDIR}/${G_IMPORT_PREFIX}"
+			G_BINDIR="${G_SYSDIR}/bin"
+			G_LIBDIR="${G_SYSDIR}/lib"
+			G_INCDIR="${G_SYSDIR}/include"
+			G_EXP_SYSDIR="${G_WORKDIR}/${G_EXPORT_PREFIX}"
+			G_EXP_BINDIR="${G_EXP_SYSDIR}/bin"
+			G_EXP_LIBDIR="${G_EXP_SYSDIR}/lib"
+			G_EXP_INCDIR="${G_EXP_SYSDIR}/include"
 			PACKAGE_NAME=
 			PACKAGE_VERSION=
 			PACKAGE_DEPEND=()
@@ -322,7 +330,8 @@ botbrew_make_repo_index() {
 }
 
 botbrew_toolchain() {
-	${G_NDKPATH}/build/tools/make-standalone-toolchain.sh --arch=arm --platform=android-8 --install-dir=${G_ROOT}/${G_TOOLCHAIN}
+	${G_NDKPATH}/build/tools/make-standalone-toolchain.sh --arch=arm --platform=android-${G_NDKAPI} --install-dir=${G_ROOT}/${G_TOOLCHAIN}
+	touch ${G_ROOT}/${G_TOOLCHAIN}/.d
 }
 
 botbrew_makefile() {
@@ -357,6 +366,58 @@ botbrew_makefile() {
 		done
 		echo "build-all: ${BUILDALL[@]}"
 		echo "package-all: ${PACKAGEALL[@]}"
+	)
+}
+
+botbrew_graphbuild() {
+	(
+		echo "digraph build {"
+		for item in ${G_COOKBOOK}/*/${G_RECIPE} ${G_COOKBOOK}/*/*/${G_RECIPE}; do
+			if [ -f "${item}" ]; then
+				G_BOTBREW=1
+				. "${item}"
+				local DIR=$(dirname ${item})
+				local NAME=$(basename ${DIR})
+				local NAME_=${NAME//-/_}
+				local NAME_=${NAME_//./_}
+				if [ "${PACKAGE_VERSION}" != "0" ]; then
+					echo "	${NAME_} [label=\"${NAME}-${PACKAGE_VERSION}\"];"
+				else
+					echo "	${NAME_} [label=\"${NAME}\"];"
+				fi
+				for dep in "${PACKAGE_DEPEND[@]}"; do
+					local dep_=${dep//-/_}
+					local dep_=${dep_//./_}
+					echo "	${NAME_} -> ${dep_};"
+				done
+			fi
+		done
+		echo "}"
+	)
+}
+
+botbrew_graphinstall() {
+	(
+		echo "digraph install {"
+		for item in ${G_COOKBOOK}/*/${G_PACKAGE}/*.yml ${G_COOKBOOK}/*/*/${G_PACKAGE}/*.yml; do
+			if [ -f "${item}" ]; then
+				export PKG="${item}"
+python <<EOF
+import sys, os, yaml
+pkg = yaml.safe_load(open(os.environ['PKG']))
+if pkg['Section'] in ('libdevel','doc'):
+	exit()
+name = pkg['Package']
+name_ = name.replace('-','_').replace('.','_')
+print('\t%s [label="%s-%s"];'%(name_,name,pkg['Version']))
+for dep in pkg.get('Depends','').replace(',',' ').split():
+	dep = dep.strip()
+	if len(dep) > 0:
+		print('\t%s -> %s;'%(name_,dep.replace('-','_').replace('.','_')))
+EOF
+			fi
+		done
+		echo "}"
 	)
 }
 
@@ -407,7 +468,7 @@ botbrew_fix_crosslibconfig() {
 	local NAME=$(basename ${FILE})
 	if ! [ -e ${DIR}/.crosslibconfig.${NAME} ]; then
 		case "${DIR}" in
-			*/system/bin)
+			*/bin)
 				echo "#!/bin/sh" > temp
 				echo "prefix=$(dirname ${DIR})" >> temp
 				sed -e 's/^prefix=.*//g' ${FILE} >> temp
@@ -442,8 +503,9 @@ botbrew_fix_interpreter_path() {
 	fi
 	if [ "$query" = "" ]; then
 		botbrew_fix_interpreter_path "$target" '/bin/sh' 's/\/bin\/sh/\/system\/bin\/sh/g'
-		botbrew_fix_interpreter_path "$target" '/usr/bin/python' 's/\/usr\/bin\/python/\/system\/bin\/python/g'
-		botbrew_fix_interpreter_path "$target" '/usr/bin/perl' 's/\/usr\/bin\/perl/\/system\/bin\/perl/g'
+		botbrew_fix_interpreter_path "$target" '/usr/bin/python' 's/\/usr\/bin\/python/\/botbrew\/bin\/python/g'
+		botbrew_fix_interpreter_path "$target" '/usr/local/bin/python' 's/\/usr\/local\/bin\/python/\/botbrew\/bin\/python/g'
+		botbrew_fix_interpreter_path "$target" '/usr/bin/perl' 's/\/usr\/bin\/perl/\/botbrew\/bin\/perl/g'
 	elif [ "$operation" = "" ]; then
 		echo 1>&2 "No operation specified."
 		return 1
@@ -488,34 +550,38 @@ G_OBJDUMP=${G_OBJDUMP:-${G_TRIPLET}-objdump}
 G_MAKE=${G_MAKE:-"make -j$((${G_NCPU}+1))"}
 
 G_SYSROOT="${G_ROOT}/${G_TOOLCHAIN}/sysroot"
-G_INCCXX="-I$AGCC_NDK/sources/cxx-stl/gnu-libstdc++/libs/armeabi/include -I$AGCC_NDK/sources/cxx-stl/gnu-libstdc++/include"
-G_LIBCXX="$AGCC_NDK/sources/cxx-stl/gnu-libstdc++/libs/armeabi/libgnustl_static.a"
+G_INCCXX="-I${G_NDKPATH}/sources/cxx-stl/gnu-libstdc++/libs/armeabi/include -I${G_NDKPATH}/sources/cxx-stl/gnu-libstdc++/include"
+G_LIBCXX="${G_NDKPATH}/sources/cxx-stl/gnu-libstdc++/libs/armeabi/libgnustl_static.a"
 
-G_CPPFLAGS=(
+G_CPPFLAGS_A=(
+	-D_XOPEN_SOURCE=700 -D_GNU_SOURCE
 	-D__ARM_ARCH_5__ -D__ARM_ARCH_5T__ -D__ARM_ARCH_5E__
 	-D__ARM_ARCH_5TE__ -DSK_RELEASE -DNDEBUG -UDEBUG
 )
-export G_CPPFLAGS="${G_CPPFLAGS[@]}"
-G_WFLAGS=(
+export G_CPPFLAGS="${G_CPPFLAGS_A[@]}"
+G_WFLAGS_A=(
 	-Wall -Wno-unused -Wno-multichar -Wstrict-aliasing=2
 )
-export G_WFLAGS="${G_WFLAGS[@]}"
-G_CFLAGS=(
+export G_WFLAGS="${G_WFLAGS_A[@]}"
+G_CFLAGS_A=(
 	-march=armv5te -mtune=xscale -msoft-float -mthumb-interwork -fpic
 	-fno-exceptions -ffunction-sections -funwind-tables -fmessage-length=0
 )
-export G_CFLAGS="${G_CFLAGS[@]}"
-G_CXXFLAGS=(
+export G_CFLAGS="${G_CFLAGS_A[@]}"
+G_CXXFLAGS_A=(
 	-march=armv5te -mtune=xscale -msoft-float -mthumb-interwork -fpic
 	-frtti -fexceptions -ffunction-sections -funwind-tables -fmessage-length=0
 )
-export G_CXXFLAGS="${G_CXXFLAGS[@]}"
-G_OFLAGS=(
+export G_CXXFLAGS="${G_CXXFLAGS_A[@]}"
+G_OFLAGS_A=(
 	-O2 -finline-functions -finline-limit=300 -fno-inline-functions-called-once
 	-fgcse-after-reload -frerun-cse-after-loop -frename-registers
 	-fomit-frame-pointer -fstrict-aliasing -funswitch-loops
 )
-export G_OFLAGS="${G_OFLAGS[@]}"
+export G_OFLAGS="${G_OFLAGS_A[@]}"
+export G_ALL_CFLAGS="${G_CFLAGS_A[@]} ${G_OFLAGS_A[@]}"
+#export G_ALL_CXXFLAGS="${G_CXXFLAGS_A[@]} ${G_OFLAGS_A[@]} -I${G_INCCXX}"
+export G_ALL_CXXFLAGS="${G_CXXFLAGS_A[@]} ${G_OFLAGS_A[@]}"
 
 #export PATH=${G_ROOT}/bin:${G_ROOT}/bin/opkg-utils:${G_NDKPREBUILT}/bin:${G_NDKPATH}:${G_PATH}
 export PATH=${G_ROOT}/bin:${G_ROOT}/bin/opkg-utils:${G_ROOT}/${G_TOOLCHAIN}/bin:${G_NDKPATH}:${G_PATH}
@@ -527,7 +593,7 @@ export AGCC_GCC=${G_NDKGCC}
 export OPKG_MAINTAINER=${G_MAINTAINER}
 
 if [ $# -gt 0 ]; then case "$1" in
-	download|unpack|svn|git|hg|copytree|recipe|toolchain|makefile)
+	download|unpack|svn|git|hg|copytree|recipe|toolchain|makefile|graphbuild|graphinstall)
 		CMD="$1"
 		shift
 		botbrew_${CMD} "$@"

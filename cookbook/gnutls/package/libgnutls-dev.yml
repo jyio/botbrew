@@ -1,0 +1,18 @@
+Package: libgnutls-dev
+Version: 3.0.17-0
+Architecture: armeabi
+Section: libdevel
+Priority: optional
+Source: http://www.gnu.org/software/gnutls/
+Description: |
+ GNU TLS library - main development files
+ GnuTLS is a portable library which implements the Transport Layer Security (TLS 1.0, 1.1, 1.2) and Secure Sockets Layer (SSL) 3.0 protocols.
+Depends: libgnutls
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/lib
+    cp \
+    	${EXPORT}${PREFIX}/lib/libgnutls.a ${EXPORT}${PREFIX}/lib/libgnutls.la \
+    	${EXPORT}${PREFIX}/lib/libgnutlsxx.a ${EXPORT}${PREFIX}/lib/libgnutlsxx.la \
+    	${PACKAGE}${PREFIX}/lib/

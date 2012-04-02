@@ -1,0 +1,16 @@
+Package: libyaml-dev
+Version: 0.1.4-0
+Architecture: armeabi
+Section: libdevel
+Priority: optional
+Source: http://pyyaml.org/wiki/LibYAML
+Description: |
+ Fast YAML 1.1 parser and emitter library
+ LibYAML is a C library for parsing and emitting data in YAML 1.1, a human-readable data serialization format.
+Depends: libyaml
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/lib
+    cp -r ${EXPORT}${PREFIX}/include ${PACKAGE}${PREFIX}/
+    cp ${EXPORT}${PREFIX}/lib/*.a ${EXPORT}${PREFIX}/lib/*.la ${PACKAGE}${PREFIX}/lib/

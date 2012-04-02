@@ -1,5 +1,5 @@
 Package: libmagic-dev
-Version: 5.09-0
+Version: 5.09-1
 Architecture: armeabi
 Section: libdevel
 Priority: optional
@@ -7,8 +7,10 @@ Source: http://www.darwinsys.com/file/
 Description: |
  Determines file type using "magic" numbers
  File tests each argument in an attempt to classify it. There are three sets of tests, performed in this order: filesystem tests, magic number tests, and language tests. The first test that succeeds causes the file type to be printed.
+Depends: libmagic
 Data:
  /CONTROL/init: |
     #!/bin/sh
-    mkdir -p $PACKAGE/system
-    cp -r $EXPORT/system/lib $EXPORT/system/include $PACKAGE/system/
+    mkdir -p ${PACKAGE}${PREFIX}/lib
+    cp -r ${EXPORT}${PREFIX}/include ${PACKAGE}${PREFIX}/
+    cp ${EXPORT}${PREFIX}/lib/*.a ${EXPORT}${PREFIX}/lib/*.la ${PACKAGE}${PREFIX}/lib/

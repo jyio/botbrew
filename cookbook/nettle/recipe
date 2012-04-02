@@ -17,8 +17,7 @@ botbrew_do_build() {
 	if ! [ -e ${G_OBJECT}/Makefile ]; then
 		(
 			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
-			CC="agcc.bash" CXX="agcc-bash-g++" CPPFLAGS="-I${G_INCDIR}" \
-			LD="agcc.bash" LDFLAGS="-L${G_LIBDIR}" \
+			CPPFLAGS="${G_CPPFLAGS} -I${G_INCDIR}" CFLAGS="${G_ALL_CFLAGS}" LDFLAGS="-L${G_LIBDIR}" \
 			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
 				--enable-shared
 		)
@@ -26,11 +25,7 @@ botbrew_do_build() {
 	if ! [ -e ${G_EXPORT}/.d ]; then
 		${G_MAKE} -C ${G_OBJECT}
 		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
-		for file in ${G_EXPORT}/system/lib/*.so.*.*; do
-			mv -T "${file}" "${file%.*.*}"
-		done
-		rm -rf ${G_EXPORT}/system/lib/*.so.* ${G_EXPORT}/system/lib/pkgconfig
-		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/* ${G_EXPORT}/system/lib/*.so || true
+		${G_STRIP} --strip-unneeded ${G_EXP_BINDIR}/* ${G_EXP_LIBDIR}/*.so* || true
 		touch ${G_EXPORT}/.d
 	fi
 }

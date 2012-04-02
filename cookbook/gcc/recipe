@@ -2,7 +2,7 @@
 if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
 
 PACKAGE_NAME=$(basename $(pwd))
-PACKAGE_VERSION=4.6.2
+PACKAGE_VERSION=4.7.0
 PACKAGE_DEPEND=( binutils gmp mpfr mpc ppl cloog )
 
 FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
@@ -12,39 +12,38 @@ botbrew_do_build() {
 	botbrew_download http://ftp.gnu.org/gnu/${PACKAGE_NAME}/${FULLNAME}/${ARCHIVE} ${ARCHIVE}
 	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
 	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
-	cp -lf ${G_SOURCE}/include/sha1.h ${G_SOURCE}/libiberty/
-	botbrew_patchtree -p0 ${G_SOURCE} patch/gcc-4.6.2-android.patch
+	botbrew_patchtree -p0 ${G_SOURCE} patch/gcc-4.7.0-android.patch
 	botbrew_import
 	if ! [ -e ${G_OBJECT}/Makefile ]; then
 		(
 			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
-			CC="agcc.bash" CXX="agcc-bash-g++" LD="agcc.bash" \
-			CC_FOR_TARGET="agcc.bash" CXX_FOR_TARGET="agcc-bash-g++" RAW_CXX_FOR_TARGET="agcc-bash-g++" LD_FOR_TARGET="agcc.bash" \
-			target_configargs="--disable-symvers" \
-			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
-				--disable-bootstrap --disable-nls --enable-languages=c,lto \
+			CFLAGS="${G_CPPFLAGS} ${G_ALL_CFLAGS}" CXXFLAGS="${G_CPPFLAGS} ${G_ALL_CXXFLAGS}" \
+			LDFLAGS="-Wl,-rpath-link,${G_LIBDIR}" \
+			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} --target=${G_TRIPLET} \
+				--with-host-libstdcxx="-lstdc++" \
+				--enable-languages=c \
+				--with-system-zlib \
+				--disable-sjlj-exceptions \
+				--disable-libgomp \
 				--with-gmp=${G_SYSDIR} \
 				--with-mpfr=${G_SYSDIR} \
 				--with-mpc=${G_SYSDIR} \
 				--with-ppl=${G_SYSDIR} \
 				--with-cloog=${G_SYSDIR} \
 				--enable-cloog-backend=isl
+			mkdir gcc
+			cp ../${G_SOURCE}/gcc/ginclude/unwind-arm-common.h gcc/
 		)
 	fi
 	if ! [ -e ${G_EXPORT}/.d ]; then
-		${G_MAKE} -C ${G_OBJECT} CC_FOR_TARGET="agcc.bash" CXX_FOR_TARGET="agcc-bash-g++" RAW_CXX_FOR_TARGET="agcc-bash-g++" LD_FOR_TARGET="agcc.bash"
+		${G_MAKE} -C ${G_OBJECT}
 		${G_MAKE} -C ${G_OBJECT} -j1 install DESTDIR=$(pwd)/${G_EXPORT}
-		cp -r ${AGCC_NDK}/platforms/android-${AGCC_API}/arch-arm/usr/lib/*.o ${G_EXPORT}/system/lib/gcc/${G_TRIPLET}/${PACKAGE_VERSION}/
-		cp -r ${G_EXPORT}/system/lib/gcc/${G_TRIPLET}/4.4.3/* ${G_EXPORT}/system/lib/gcc/${G_TRIPLET}/${PACKAGE_VERSION}/
-		rm -r ${G_EXPORT}/system/lib/gcc/${G_TRIPLET}/4.4.3 $(find ${G_EXPORT} -type f -name '*.la')
-		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/* ${G_EXPORT}/system/lib/*.so* ${G_EXPORT}/system/lib/*/*.so* \
-			${G_EXPORT}/system/libexec/gcc/${G_TRIPLET}/${PACKAGE_VERSION}/cc1 \
-			${G_EXPORT}/system/libexec/gcc/${G_TRIPLET}/${PACKAGE_VERSION}/collect2 \
-			${G_EXPORT}/system/libexec/gcc/${G_TRIPLET}/${PACKAGE_VERSION}/lto1 \
-			${G_EXPORT}/system/libexec/gcc/${G_TRIPLET}/${PACKAGE_VERSION}/lto-wrapper \
-			${G_EXPORT}/system/libexec/gcc/${G_TRIPLET}/${PACKAGE_VERSION}/install-tools/fixincl \
-			|| true
-		botbrew_fix_shell_path $(grep -rlIF '/bin/sh' ${G_EXPORT})
+		cp -r ${G_NDKPATH}/platforms/android-${G_NDKAPI}/arch-arm/usr/lib/*.o ${G_EXP_LIBDIR}/gcc/${G_TRIPLET}/${PACKAGE_VERSION}/
+		cp -rlf ${G_EXP_LIBDIR}/gcc/${G_TRIPLET}/4.4.3/* ${G_EXP_LIBDIR}/gcc/${G_TRIPLET}/${PACKAGE_VERSION}/
+		rm -r ${G_EXP_LIBDIR}/gcc/${G_TRIPLET}/4.4.3
+		${G_STRIP} --strip-unneeded ${G_EXP_BINDIR}/* $(find ${G_EXPORT} -name '*.so*') \
+			$(find ${G_EXP_SYSDIR}/libexec/gcc/${G_TRIPLET}/${PACKAGE_VERSION}) || true
+		botbrew_fix_interpreter_path ${G_EXPORT}
 		touch ${G_EXPORT}/.d
 	fi
 }

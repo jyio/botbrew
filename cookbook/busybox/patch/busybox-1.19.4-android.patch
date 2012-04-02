@@ -5,8 +5,8 @@
  static void write_status_file(deb_file_t **deb_file)
  {
 +#ifdef __ANDROID__
-+	FILE *old_status_file = xfopen_for_read("/system/lib/dpkg/status");
-+	FILE *new_status_file = xfopen_for_write("/system/lib/dpkg/status.udeb");
++	FILE *old_status_file = xfopen_for_read("/botbrew/var/lib/dpkg/status");
++	FILE *new_status_file = xfopen_for_write("/botbrew/var/lib/dpkg/status.udeb");
 +#else
  	FILE *old_status_file = xfopen_for_read("/var/lib/dpkg/status");
  	FILE *new_status_file = xfopen_for_write("/var/lib/dpkg/status.udeb");
@@ -19,7 +19,7 @@
  
  	/* Create a separate backfile to dpkg */
 +#ifdef __ANDROID__
-+	if (rename("/system/lib/dpkg/status", "/system/lib/dpkg/status.udeb.bak") == -1) {
++	if (rename("/botbrew/var/lib/dpkg/status", "/botbrew/var/lib/dpkg/status.udeb.bak") == -1) {
 +#else
  	if (rename("/var/lib/dpkg/status", "/var/lib/dpkg/status.udeb.bak") == -1) {
 +#endif
@@ -31,7 +31,7 @@
  	}
  
 +#ifdef __ANDROID__
-+	xrename("/system/lib/dpkg/status.udeb", "/system/lib/dpkg/status");
++	xrename("/botbrew/var/lib/dpkg/status.udeb", "/botbrew/var/lib/dpkg/status");
 +#else
  	xrename("/var/lib/dpkg/status.udeb", "/var/lib/dpkg/status");
 +#endif
@@ -43,7 +43,7 @@
  	int result;
  
 +#ifdef __ANDROID__
-+	script_path = xasprintf("/system/lib/dpkg/info/%s.%s", package_name, script_type);
++	script_path = xasprintf("/botbrew/var/lib/dpkg/info/%s.%s", package_name, script_type);
 +#else
  	script_path = xasprintf("/var/lib/dpkg/info/%s.%s", package_name, script_type);
 +#endif
@@ -55,7 +55,7 @@
  	remove_files = xzalloc(sizeof(all_control_files) + sizeof(char*));
  	while (i < ARRAY_SIZE(all_control_files)) {
 +#ifdef __ANDROID__
-+		remove_files[i] = xasprintf("/system/lib/dpkg/info/%s.%s", package_name, all_control_files[i]);
++		remove_files[i] = xasprintf("/botbrew/var/lib/dpkg/info/%s.%s", package_name, all_control_files[i]);
 +#else
  		remove_files[i] = xasprintf("/var/lib/dpkg/info/%s.%s",
  				package_name, all_control_files[i]);
@@ -68,14 +68,14 @@
  
  	/* Create a list of files to remove, and a separate list of those to keep */
 +#ifdef __ANDROID__
-+	sprintf(list_name, "/system/lib/dpkg/info/%s.%s", package_name, "list");
++	sprintf(list_name, "/botbrew/var/lib/dpkg/info/%s.%s", package_name, "list");
 +#else
  	sprintf(list_name, "/var/lib/dpkg/info/%s.%s", package_name, "list");
 +#endif
  	remove_files = create_list(list_name);
  
 +#ifdef __ANDROID__
-+	sprintf(conffile_name, "/system/lib/dpkg/info/%s.%s", package_name, "conffiles");
++	sprintf(conffile_name, "/botbrew/var/lib/dpkg/info/%s.%s", package_name, "conffiles");
 +#else
  	sprintf(conffile_name, "/var/lib/dpkg/info/%s.%s", package_name, "conffiles");
 +#endif
@@ -87,7 +87,7 @@
  	exclude_files = xzalloc(sizeof(exclude_files[0]) * 3);
  	exclude_files[0] = xstrdup(conffile_name);
 +#ifdef __ANDROID__
-+	exclude_files[1] = xasprintf("/system/lib/dpkg/info/%s.%s", package_name, "postrm");
++	exclude_files[1] = xasprintf("/botbrew/var/lib/dpkg/info/%s.%s", package_name, "postrm");
 +#else
  	exclude_files[1] = xasprintf("/var/lib/dpkg/info/%s.%s", package_name, "postrm");
 +#endif
@@ -99,7 +99,7 @@
  
  	/* Create a list of files to remove */
 +#ifdef __ANDROID__
-+	sprintf(list_name, "/system/lib/dpkg/info/%s.%s", package_name, "list");
++	sprintf(list_name, "/botbrew/var/lib/dpkg/info/%s.%s", package_name, "list");
 +#else
  	sprintf(list_name, "/var/lib/dpkg/info/%s.%s", package_name, "list");
 +#endif
@@ -111,7 +111,7 @@
  	/* Delete all of them except the postrm script */
  	exclude_files = xzalloc(sizeof(exclude_files[0]) * 2);
 +#ifdef __ANDROID__
-+	exclude_files[0] = xasprintf("/system/lib/dpkg/info/%s.%s", package_name, "postrm");
++	exclude_files[0] = xasprintf("/botbrew/var/lib/dpkg/info/%s.%s", package_name, "postrm");
 +#else
  	exclude_files[0] = xasprintf("/var/lib/dpkg/info/%s.%s", package_name, "postrm");
 +#endif
@@ -123,7 +123,7 @@
  	char *filename, *line;
  
 +#ifdef __ANDROID__
-+	filename = xasprintf("/system/lib/dpkg/info/%s.%s", package_name, control_name);
++	filename = xasprintf("/botbrew/var/lib/dpkg/info/%s.%s", package_name, control_name);
 +#else
  	filename = xasprintf("/var/lib/dpkg/info/%s.%s", package_name, control_name);
 +#endif
@@ -135,7 +135,7 @@
  
  	/* Extract control.tar.gz to /var/lib/dpkg/info/<package>.filename */
 +#ifdef __ANDROID__
-+	info_prefix = xasprintf("/system/lib/dpkg/info/%s.%s", package_name, "");
++	info_prefix = xasprintf("/botbrew/var/lib/dpkg/info/%s.%s", package_name, "");
 +#else
  	info_prefix = xasprintf("/var/lib/dpkg/info/%s.%s", package_name, "");
 +#endif
@@ -147,7 +147,7 @@
  
  	/* Create the list file */
 +#ifdef __ANDROID__
-+	list_filename = xasprintf("/system/lib/dpkg/info/%s.%s", package_name, "list");
++	list_filename = xasprintf("/botbrew/var/lib/dpkg/info/%s.%s", package_name, "list");
 +#else
  	list_filename = xasprintf("/var/lib/dpkg/info/%s.%s", package_name, "list");
 +#endif
@@ -159,7 +159,7 @@
  
  /*	puts("(Reading database ... xxxxx files and directories installed.)"); */
 +#ifdef __ANDROID__
-+	index_status_file("/system/lib/dpkg/status");
++	index_status_file("/botbrew/var/lib/dpkg/status");
 +#else
  	index_status_file("/var/lib/dpkg/status");
 +#endif
@@ -173,7 +173,7 @@
  	path = getenv("TMPDIR");
  	if (!path || path[0] == '\0')
 +#ifdef __ANDROID__
-+		path = "/data/vtmp";
++		path = "/botbrew/tmp";
 +#else
  		path = "/tmp";
 +#endif
@@ -187,7 +187,7 @@
  	fstab = getenv("FSTAB_FILE");
  	if (!fstab)
 +#ifdef __ANDROID__
-+		fstab = "/system/etc/fstab";
++		fstab = "/botbrew/etc/fstab";
 +#else
  		fstab = "/etc/fstab";
 +#endif
@@ -201,7 +201,7 @@
  extern char *blkid_strndup(const char *s, const int length);
  
 +#ifdef __ANDROID__
-+#define BLKID_CACHE_FILE "/system/etc/blkid.tab"
++#define BLKID_CACHE_FILE "/botbrew/etc/blkid.tab"
 +#else
  #define BLKID_CACHE_FILE "/etc/blkid.tab"
 +#endif
@@ -215,7 +215,7 @@
  
  #ifdef DEBUG
 +#ifdef __ANDROID__
-+	retval = check_mntent_file("/data/vtmp/mtab", file, mount_flags, mtpt, mtlen);
++	retval = check_mntent_file("/botbrew/tmp/mtab", file, mount_flags, mtpt, mtlen);
 +#else
  	retval = check_mntent_file("/tmp/mtab", file, mount_flags,
  				   mtpt, mtlen);
@@ -230,7 +230,7 @@
  
  #ifndef _PATH_MNTTAB
 +#ifdef __ANDROID__
-+#define _PATH_MNTTAB    "/system/etc/fstab"
++#define _PATH_MNTTAB    "/botbrew/etc/fstab"
 +#else
  #define _PATH_MNTTAB    "/etc/fstab"
  #endif
@@ -245,13 +245,31 @@
  		 */
  		if (lseek(fd, 0, SEEK_SET) == -1 && errno == ESPIPE) {
 +#ifdef __ANDROID__
-+			char name[] = "/data/vtmp/difXXXXXX";
++			char name[] = "/botbrew/tmp/difXXXXXX";
 +#else
  			char name[] = "/tmp/difXXXXXX";
 +#endif
  			int fd_tmp = xmkstemp(name);
  
  			unlink(name);
+--- include/grp_.h
++++ include/grp_.h
+@@ -30,6 +30,7 @@
+  * so that function calls are directed to bb_internal_XXX replacements
+  */
+ 
++#ifndef __ANDROID__
+ #define setgrent     bb_internal_setgrent
+ #define endgrent     bb_internal_endgrent
+ #define getgrent     bb_internal_getgrent
+@@ -43,6 +44,7 @@
+ #define fgetgrent_r  bb_internal_fgetgrent_r
+ #define getgrouplist bb_internal_getgrouplist
+ #define initgroups   bb_internal_initgroups
++#endif
+ 
+ 
+ /* All function names below should be remapped by #defines above
 --- include/libbb.h
 +++ include/libbb.h
 @@ -66,6 +66,9 @@
@@ -279,7 +297,7 @@
  /* Busybox mount uses either /proc/mounts or /etc/mtab to
   * get the list of currently mounted filesystems */
 +#ifdef __ANDROID__
-+#define bb_path_mtab_file IF_FEATURE_MTAB_SUPPORT("/system/etc/mtab")IF_NOT_FEATURE_MTAB_SUPPORT("/proc/mounts")
++#define bb_path_mtab_file IF_FEATURE_MTAB_SUPPORT("/botbrew/etc/mtab")IF_NOT_FEATURE_MTAB_SUPPORT("/proc/mounts")
 +#else
  #define bb_path_mtab_file IF_FEATURE_MTAB_SUPPORT("/etc/mtab")IF_NOT_FEATURE_MTAB_SUPPORT("/proc/mounts")
 +#endif
@@ -290,7 +308,7 @@
  #define bb_path_gshadow_file _PATH_GSHADOW
  
 +#ifdef __ANDROID__
-+#define bb_path_motd_file "/system/etc/motd"
++#define bb_path_motd_file "/botbrew/etc/motd"
 +#else
  #define bb_path_motd_file "/etc/motd"
 +#endif
@@ -325,6 +343,24 @@
  # define FB_0 "/dev/fb0"
  #endif
  
+--- include/pwd_.h
++++ include/pwd_.h
+@@ -31,6 +31,7 @@
+  * so that function calls are directed to bb_internal_XXX replacements
+  */
+ 
++#ifndef __ANDROID__
+ #define setpwent    bb_internal_setpwent
+ #define endpwent    bb_internal_endpwent
+ #define getpwent    bb_internal_getpwent
+@@ -42,6 +43,7 @@
+ #define getpwuid_r  bb_internal_getpwuid_r
+ #define getpwnam_r  bb_internal_getpwnam_r
+ #define fgetpwent_r bb_internal_fgetpwent_r
++#endif
+ 
+ 
+ /* All function names below should be remapped by #defines above
 --- init/bootchartd.c
 +++ init/bootchartd.c
 @@ -178,7 +178,11 @@
@@ -332,7 +368,7 @@
  static char *make_tempdir(void)
  {
 +#ifdef __ANDROID__
-+	char template[] = "/data/vtmp/bootchart.XXXXXX";
++	char template[] = "/botbrew/tmp/bootchart.XXXXXX";
 +#else
  	char template[] = "/tmp/bootchart.XXXXXX";
 +#endif
@@ -344,7 +380,7 @@
  		 * Try a few locations which are likely ti exist.
  		 */
 +#ifdef __ANDROID__
-+		static const char dirs[] = "/mnt\0""/data/vtmp\0""/boot\0""/proc\0";
++		static const char dirs[] = "/mnt\0""/botbrew/tmp\0""/boot\0""/proc\0";
 +#else
  		static const char dirs[] = "/mnt\0""/tmp\0""/boot\0""/proc\0";
 +#endif
@@ -356,7 +392,7 @@
  
  	/* Package log files */
 +#ifdef __ANDROID__
-+	system("tar -zcf /data/log/bootchart.tgz header *.log");
++	system("tar -zcf /botbrew/var/log/bootchart.tgz header *.log");
 +#else
  	system("tar -zcf /var/log/bootchart.tgz header *.log"); // + $pacct
 +#endif
@@ -368,8 +404,8 @@
  	if (ENABLE_FEATURE_BOOTCHARTD_CONFIG_FILE) {
  		char* token[2];
 +#ifdef __ANDROID__
-+		parser_t *parser = config_open2("/system/etc/bootchartd.conf" + 5, fopen_for_read);
-+		if (!parser) parser = config_open2("/system/etc/bootchartd.conf", fopen_for_read);
++		parser_t *parser = config_open2("/botbrew/etc/bootchartd.conf" + 5, fopen_for_read);
++		if (!parser) parser = config_open2("/botbrew/etc/bootchartd.conf", fopen_for_read);
 +#else
  		parser_t *parser = config_open2("/etc/bootchartd.conf" + 5, fopen_for_read);
  		if (!parser)
@@ -385,7 +421,7 @@
  /* Default sysinit script. */
  #ifndef INIT_SCRIPT
 +#ifdef __ANDROID__
-+#define INIT_SCRIPT  "/system/etc/init.d/rcS"
++#define INIT_SCRIPT  "/botbrew/etc/init.d/rcS"
 +#else
  #define INIT_SCRIPT  "/etc/init.d/rcS"
  #endif
@@ -398,7 +434,7 @@
  #if ENABLE_FEATURE_USE_INITTAB
  	char *token[4];
 +#ifdef __ANDROID__
-+	parser_t *parser = config_open2("/system/etc/inittab", fopen_for_read);
++	parser_t *parser = config_open2("/botbrew/etc/inittab", fopen_for_read);
 +#else
  	parser_t *parser = config_open2("/etc/inittab", fopen_for_read);
 +#endif
@@ -410,7 +446,7 @@
  	struct init_action *a, **nextp;
  
 +#ifdef __ANDROID__
-+	message(L_LOG, "reloading /system/etc/inittab");
++	message(L_LOG, "reloading /botbrew/etc/inittab");
 +#else
  	message(L_LOG, "reloading /etc/inittab");
 +#endif
@@ -424,7 +460,7 @@
  {
  	/* Don't depend on the tools to combine strings. */
 +#ifdef __ANDROID__
-+	static const char config_file[] ALIGN1 = "/system/etc/busybox.conf";
++	static const char config_file[] ALIGN1 = "/botbrew/etc/busybox.conf";
 +#else
  	static const char config_file[] ALIGN1 = "/etc/busybox.conf";
 +#endif
@@ -436,8 +472,8 @@
  
  # if ENABLE_FEATURE_INSTALLER
 +#ifdef __ANDROID__
-+static const char usr_bin [] ALIGN1 = "/system/bin/";
-+static const char usr_sbin[] ALIGN1 = "/system/bin/";
++static const char usr_bin [] ALIGN1 = "/botbrew/bin/";
++static const char usr_sbin[] ALIGN1 = "/botbrew/bin/";
 +#else
  static const char usr_bin [] ALIGN1 = "/usr/bin/";
  static const char usr_sbin[] ALIGN1 = "/usr/sbin/";
@@ -452,7 +488,7 @@
   * but I want to save a few bytes here. Check libbb.h before changing! */
  const char bb_PATH_root_path[] ALIGN1 =
 +#ifdef __ANDROID__
-+	"PATH=/sbin:/vendor/bin:/system/sbin:/system/bin:/data/system/bin:/sd-ext/system/bin:/system/xbin" BB_ADDITIONAL_PATH;
++	"PATH=/sbin:/vendor/bin:/system/sbin:/botbrew/bin:/system/bin:/system/xbin" BB_ADDITIONAL_PATH;
 +#else
  	"PATH=/sbin:/usr/sbin:/bin:/usr/bin" BB_ADDITIONAL_PATH;
 +#endif
@@ -467,9 +503,9 @@
  
 +#ifdef __ANDROID__
 +#if ENABLE_FEATURE_HWCLOCK_ADJTIME_FHS
-+# define ADJTIME_PATH "/data/lib/hwclock/adjtime"
++# define ADJTIME_PATH "/botbrew/var/lib/hwclock/adjtime"
 +#else
-+# define ADJTIME_PATH "/system/etc/adjtime"
++# define ADJTIME_PATH "/botbrew/etc/adjtime"
 +#endif
 +#else
  #if ENABLE_FEATURE_HWCLOCK_ADJTIME_FHS
@@ -488,7 +524,7 @@
  	 * of the user */
  	if (chdir(pw->pw_dir)) {
 +#ifdef __ANDROID__
-+		xchdir((flags & SETUP_ENV_TO_TMP) ? "/data/vtmp" : "/");
++		xchdir((flags & SETUP_ENV_TO_TMP) ? "/botbrew/tmp" : "/");
 +#else
  		xchdir((flags & SETUP_ENV_TO_TMP) ? "/tmp" : "/");
 +#endif
@@ -507,32 +543,6 @@
  
  /*
   * This asks kernel to let us know dst addr/port of incoming packets
---- libpwdgrp/pwd_grp.c
-+++ libpwdgrp/pwd_grp.c
-@@ -671,7 +671,12 @@
- 				p->pw_name, p->pw_passwd,
- 				(unsigned long)(p->pw_uid),
- 				(unsigned long)(p->pw_gid),
--				p->pw_gecos, p->pw_dir, p->pw_shell) >= 0
-+#ifdef __ANDROID__
-+				"",
-+#else
-+				p->pw_gecos,
-+#endif
-+				p->pw_dir, p->pw_shell) >= 0
- 		) {
- 		rv = 0;
- 	}
-@@ -783,7 +788,9 @@
- 	offsetof(struct passwd, pw_passwd),     /* 1 */
- 	offsetof(struct passwd, pw_uid),        /* 2 - not a char ptr */
- 	offsetof(struct passwd, pw_gid),        /* 3 - not a char ptr */
-+#ifndef __ANDROID__
- 	offsetof(struct passwd, pw_gecos),      /* 4 */
-+#endif
- 	offsetof(struct passwd, pw_dir),        /* 5 */
- 	offsetof(struct passwd, pw_shell)       /* 6 */
- };
 --- loginutils/add-remove-shell.c
 +++ loginutils/add-remove-shell.c
 @@ -38,7 +38,11 @@
@@ -540,7 +550,7 @@
  #include "libbb.h"
  
 +#ifdef __ANDROID__
-+#define SHELLS_FILE "/system/etc/shells"
++#define SHELLS_FILE "/botbrew/etc/shells"
 +#else
  #define SHELLS_FILE "/etc/shells"
 +#endif
@@ -549,7 +559,15 @@
  #define ADD_SHELL    (ENABLE_ADD_SHELL && (!ENABLE_REMOVE_SHELL || applet_name[0] == 'a'))
 --- loginutils/adduser.c
 +++ loginutils/adduser.c
-@@ -124,7 +124,9 @@
+@@ -13,7 +13,6 @@
+ //usage:#define adduser_full_usage "\n\n"
+ //usage:       "Add a user\n"
+ //usage:     "\n	-h DIR		Home directory"
+-//usage:     "\n	-g GECOS	GECOS field"
+ //usage:     "\n	-s SHELL	Login shell"
+ //usage:     "\n	-G GRP		Add user to existing group"
+ //usage:     "\n	-S		Create a system user"
+@@ -124,7 +123,9 @@
  #if ENABLE_FEATURE_ADDUSER_LONG_OPTIONS
  static const char adduser_longopts[] ALIGN1 =
  		"home\0"                Required_argument "h"
@@ -559,7 +577,7 @@
  		"shell\0"               Required_argument "s"
  		"ingroup\0"             Required_argument "G"
  		"disabled-password\0"   No_argument       "D"
-@@ -157,7 +159,9 @@
+@@ -157,7 +158,9 @@
  		bb_error_msg_and_die(bb_msg_perm_denied_are_you_root);
  	}
  
@@ -569,7 +587,7 @@
  	/* We assume that newly created users "inherit" root's shell setting */
  	pw.pw_shell = (char *)get_shell_name();
  	pw.pw_dir = NULL;
-@@ -166,10 +170,18 @@
+@@ -166,10 +169,18 @@
  	/* disable interactive passwd for system accounts */
  	opt_complementary = "=1:SD:u+";
  	if (sizeof(pw.pw_uid) == sizeof(int)) {
@@ -588,38 +606,50 @@
  		if (opts & OPT_UID) {
  			pw.pw_uid = uid;
  		}
-@@ -181,7 +193,11 @@
+@@ -181,7 +192,11 @@
  	die_if_bad_username(pw.pw_name);
  	if (!pw.pw_dir) {
  		/* create string for $HOME if not specified already */
 +#ifdef __ANDROID__
-+		pw.pw_dir = xasprintf("/data/home/%s", argv[0]);
++		pw.pw_dir = xasprintf("/botbrew/home/%s", argv[0]);
 +#else
  		pw.pw_dir = xasprintf("/home/%s", argv[0]);
 +#endif
  	}
  	pw.pw_passwd = (char *)"x";
  	if (opts & OPT_SYSTEM_ACCOUNT) {
-@@ -199,7 +215,12 @@
+@@ -189,7 +204,11 @@
+ 			usegroup = "nogroup";
+ 		}
+ 		if (!(opts & OPT_SHELL)) {
++#ifdef __ANDROID__
++			pw.pw_shell = (char *) "/botbrew/bin/false";
++#else
+ 			pw.pw_shell = (char *) "/bin/false";
++#endif
+ 		}
+ 	}
+ 	pw.pw_gid = usegroup ? xgroup2gid(usegroup) : -1; /* exits on failure */
+@@ -197,9 +216,13 @@
+ 	/* make sure everything is kosher and setup uid && maybe gid */
+ 	passwd_study(&pw);
  
++#ifdef __ANDROID__
++	p = xasprintf("x:%u:%u:%s:%s:%s", (unsigned) pw.pw_uid, (unsigned) pw.pw_gid, pw.pw_name, pw.pw_dir, pw.pw_shell);
++#else
  	p = xasprintf("x:%u:%u:%s:%s:%s",
  			(unsigned) pw.pw_uid, (unsigned) pw.pw_gid,
--			pw.pw_gecos, pw.pw_dir, pw.pw_shell);
-+#ifdef __ANDROID__
-+			"",
-+#else
-+			pw.pw_gecos,
+ 			pw.pw_gecos, pw.pw_dir, pw.pw_shell);
 +#endif
-+			pw.pw_dir, pw.pw_shell);
  	if (update_passwd(bb_path_passwd_file, pw.pw_name, p, NULL) < 0) {
  		return EXIT_FAILURE;
  	}
-@@ -247,7 +268,11 @@
+@@ -247,7 +270,11 @@
  			};
  			/* Be silent on any errors (like: no /etc/skel) */
  			logmode = LOGMODE_NONE;
 +#ifdef __ANDROID__
-+			copy_file("/system/etc/skel", pw.pw_dir, FILEUTILS_RECUR);
++			copy_file("/botbrew/etc/skel", pw.pw_dir, FILEUTILS_RECUR);
 +#else
  			copy_file("/etc/skel", pw.pw_dir, FILEUTILS_RECUR);
 +#endif
@@ -633,7 +663,7 @@
   */
  #undef  _PATH_LOGIN
 +#ifdef __ANDROID__
-+#define _PATH_LOGIN "/system/bin/login"
++#define _PATH_LOGIN "/botbrew/bin/login"
 +#else
  #define _PATH_LOGIN "/bin/login"
 +#endif
@@ -644,7 +674,7 @@
   * wrong baud rate.
   */
 +#ifdef __ANDROID__
-+#define ISSUE "/system/etc/issue"
++#define ISSUE "/botbrew/etc/issue"
 +#else
  #define ISSUE "/etc/issue"
 +#endif
@@ -694,7 +724,7 @@
  	int empty = 1;
  
 +#ifdef __ANDROID__
-+	fp = fopen_for_read("/system/etc/nologin");
++	fp = fopen_for_read("/botbrew/etc/nologin");
 +#else
  	fp = fopen_for_read("/etc/nologin");
 +#endif
@@ -706,8 +736,8 @@
  static int check_securetty(void)
  {
 +#ifdef __ANDROID__
-+	char *buf = (char*)"/system/etc/securetty";
-+	parser_t *parser = config_open2("/system/etc/securetty", fopen_for_read);
++	char *buf = (char*)"/botbrew/etc/securetty";
++	parser_t *parser = config_open2("/botbrew/etc/securetty", fopen_for_read);
 +#else
  	char *buf = (char*)"/etc/securetty"; /* any non-NULL is ok */
  	parser_t *parser = config_open2("/etc/securetty", fopen_for_read);
@@ -733,7 +763,7 @@
  	crondlog(LVL8 "crond (busybox "BB_VER") started, log level %d", G.log_level);
  	rescan_crontab_dir();
 +#ifdef __ANDROID__
-+	write_pidfile("/data/run/crond.pid");
++	write_pidfile("/botbrew/var/run/crond.pid");
 +#else
  	write_pidfile("/var/run/crond.pid");
 +#endif
@@ -747,8 +777,8 @@
  #define BUFFER_SIZE 16384
  #define DEVFSD_VERSION "1.3.25"
 +#ifdef __ANDROID__
-+#define CONFIG_FILE  "/system/etc/devfsd.conf"
-+#define MODPROBE		"/system/bin/modprobe"
++#define CONFIG_FILE  "/botbrew/etc/devfsd.conf"
++#define MODPROBE		"/botbrew/bin/modprobe"
 +#else
  #define CONFIG_FILE  "/etc/devfsd.conf"
  #define MODPROBE		"/sbin/modprobe"
@@ -756,7 +786,7 @@
  #define MODPROBE_SWITCH_1 "-k"
  #define MODPROBE_SWITCH_2 "-C"
 +#ifdef __ANDROID__
-+#define CONFIG_MODULES_DEVFS "/system/etc/modules.devfs"
++#define CONFIG_MODULES_DEVFS "/botbrew/etc/modules.devfs"
 +#else
  #define CONFIG_MODULES_DEVFS "/etc/modules.devfs"
 +#endif
@@ -770,7 +800,7 @@
  			G.bdebug_messages = val;
  			if (G.bdebug_messages)
 +#ifdef __ANDROID__
-+				G.logfile_fd = xfopen_for_write("/data/vtmp/fbsplash.log");
++				G.logfile_fd = xfopen_for_write("/botbrew/tmp/fbsplash.log");
 +#else
  				G.logfile_fd = xfopen_for_write("/tmp/fbsplash.log");
 +#endif
@@ -784,7 +814,7 @@
  	man_path_list[0] = getenv("MANPATH");
  	if (!man_path_list[0]) /* default, may be overridden by /etc/man.conf */
 +#ifdef __ANDROID__
-+		man_path_list[0] = (char*)"/system/share/man";
++		man_path_list[0] = (char*)"/botbrew/share/man";
 +#else
  		man_path_list[0] = (char*)"/usr/man";
 +#endif
@@ -796,9 +826,9 @@
  	/* man version 1.6f uses man.config */
  	/* man-db implementation of man uses man_db.conf */
 +#ifdef __ANDROID__
-+	parser = config_open2("/system/etc/man.config", fopen_for_read);
-+	if (!parser) parser = config_open2("/system/etc/man.conf", fopen_for_read);
-+	if (!parser) parser = config_open2("/system/etc/man_db.conf", fopen_for_read);
++	parser = config_open2("/botbrew/etc/man.config", fopen_for_read);
++	if (!parser) parser = config_open2("/botbrew/etc/man.conf", fopen_for_read);
++	if (!parser) parser = config_open2("/botbrew/etc/man_db.conf", fopen_for_read);
 +#else
  	parser = config_open2("/etc/man.config", fopen_for_read);
  	if (!parser)
@@ -816,7 +846,7 @@
  	// try to create lock file in /var/lock
  	device_lock_file = (char *)bb_basename(argv[0]);
 +#ifdef __ANDROID__
-+	device_lock_file = xasprintf("/data/lock/LCK..%s", device_lock_file);
++	device_lock_file = xasprintf("/botbrew/var/lock/LCK..%s", device_lock_file);
 +#else
  	device_lock_file = xasprintf("/var/lock/LCK..%s", device_lock_file);
 +#endif
@@ -842,8 +872,8 @@
  		return EXIT_SUCCESS;
  
 +#ifdef __ANDROID__
-+	read_config("/system/etc/modprobe.conf");
-+	read_config("/system/etc/modprobe.d");
++	read_config("/botbrew/etc/modprobe.conf");
++	read_config("/botbrew/etc/modprobe.d");
 +#else
  	read_config("/etc/modprobe.conf");
  	read_config("/etc/modprobe.d");
@@ -858,7 +888,7 @@
  	options = NULL;
  	if (!is_rmmod) {
 +#ifdef __ANDROID__
-+		char *opt_filename = xasprintf("/system/etc/modules/%s", name);
++		char *opt_filename = xasprintf("/botbrew/etc/modules/%s", name);
 +#else
  		char *opt_filename = xasprintf("/etc/modules/%s", name);
 +#endif
@@ -914,7 +944,7 @@
  {
  	const char *listen_interface = "0.0.0.0";
 +#ifdef __ANDROID__
-+	const char *fileconf = "/system/etc/dnsd.conf";
++	const char *fileconf = "/botbrew/etc/dnsd.conf";
 +#else
  	const char *fileconf = "/etc/dnsd.conf";
 +#endif
@@ -928,7 +958,7 @@
  #define HEADER_READ_TIMEOUT 60
  
 +#ifdef __ANDROID__
-+static const char DEFAULT_PATH_HTTPD_CONF[] ALIGN1 = "/system/etc";
++static const char DEFAULT_PATH_HTTPD_CONF[] ALIGN1 = "/botbrew/etc";
 +#else
  static const char DEFAULT_PATH_HTTPD_CONF[] ALIGN1 = "/etc";
 +#endif
@@ -942,8 +972,8 @@
  	},
  	{ "dhclient",
 +#ifdef __ANDROID__
-+		"dhclient -pf /data/run/dhclient.%iface%.pid %iface%",
-+		"kill -9 `cat /data/run/dhclient.%iface%.pid` 2>/dev/null",
++		"dhclient -pf /botbrew/var/run/dhclient.%iface%.pid %iface%",
++		"kill -9 `cat /botbrew/var/run/dhclient.%iface%.pid` 2>/dev/null",
 +#else
  		"dhclient -pf /var/run/dhclient.%iface%.pid %iface%",
  		"kill -9 `cat /var/run/dhclient.%iface%.pid` 2>/dev/null",
@@ -955,9 +985,9 @@
  	},
  	{ "udhcpc",
 +#ifdef __ANDROID__
-+		"udhcpc " UDHCPC_CMD_OPTIONS " -p /data/run/udhcpc.%iface%.pid -i %iface%[[ -H %hostname%]][[ -c %client%]]"
++		"udhcpc " UDHCPC_CMD_OPTIONS " -p /botbrew/var/run/udhcpc.%iface%.pid -i %iface%[[ -H %hostname%]][[ -c %client%]]"
 +				"[[ -s %script%]][[ %udhcpc_opts%]]",
-+		"kill `cat /data/run/udhcpc.%iface%.pid` 2>/dev/null",
++		"kill `cat /botbrew/var/run/udhcpc.%iface%.pid` 2>/dev/null",
 +#else
  		"udhcpc " UDHCPC_CMD_OPTIONS " -p /var/run/udhcpc.%iface%.pid -i %iface%[[ -H %hostname%]][[ -c %client%]]"
  				"[[ -s %script%]][[ %udhcpc_opts%]]",
@@ -971,7 +1001,7 @@
  		return 0;
  #  endif
 +#ifdef __ANDROID__
-+	return execute("udhcpc " UDHCPC_CMD_OPTIONS " -p /data/run/udhcpc.%iface%.pid "
++	return execute("udhcpc " UDHCPC_CMD_OPTIONS " -p /botbrew/var/run/udhcpc.%iface%.pid "
 +#else
  	return execute("udhcpc " UDHCPC_CMD_OPTIONS " -p /var/run/udhcpc.%iface%.pid "
 +#endif
@@ -983,8 +1013,8 @@
  	int result;
  	result = execute(
 +#ifdef __ANDROID__
-+		"test -f /data/run/udhcpc.%iface%.pid && "
-+		"kill `cat /data/run/udhcpc.%iface%.pid` 2>/dev/null",
++		"test -f /botbrew/var/run/udhcpc.%iface%.pid && "
++		"kill `cat /botbrew/var/run/udhcpc.%iface%.pid` 2>/dev/null",
 +#else
  		"test -f /var/run/udhcpc.%iface%.pid && "
  		"kill `cat /var/run/udhcpc.%iface%.pid` 2>/dev/null",
@@ -997,7 +1027,7 @@
  {
  	return execute("start-stop-daemon --start -x wvdial "
 +#ifdef __ANDROID__
-+		"-p /data/run/wvdial.%iface% -b -m --[[ %provider%]]", ifd, exec);
++		"-p /botbrew/var/run/wvdial.%iface% -b -m --[[ %provider%]]", ifd, exec);
 +#else
  		"-p /var/run/wvdial.%iface% -b -m --[[ %provider%]]", ifd, exec);
 +#endif
@@ -1007,7 +1037,7 @@
  {
  	return execute("start-stop-daemon --stop -x wvdial "
 +#ifdef __ANDROID__
-+			"-p /data/run/wvdial.%iface% -s 2", ifd, exec);
++			"-p /botbrew/var/run/wvdial.%iface% -s 2", ifd, exec);
 +#else
  			"-p /var/run/wvdial.%iface% -s 2", ifd, exec);
 +#endif
@@ -1019,7 +1049,7 @@
  	}
  
 +#ifdef __ANDROID__
-+	buf = xasprintf("run-parts /system/etc/network/if-%s.d", opt);
++	buf = xasprintf("run-parts /botbrew/etc/network/if-%s.d", opt);
 +#else
  	buf = xasprintf("run-parts /etc/network/if-%s.d", opt);
 +#endif
@@ -1031,7 +1061,7 @@
  	struct interfaces_file_t *defn;
  	llist_t *target_list = NULL;
 +#ifdef __ANDROID__
-+	const char *interfaces = "/system/etc/network/interfaces";
++	const char *interfaces = "/botbrew/etc/network/interfaces";
 +#else
  	const char *interfaces = "/etc/network/interfaces";
 +#endif
@@ -1055,7 +1085,7 @@
  #endif
  
 +#ifdef __ANDROID__
-+#define _PATH_INETDPID  "/data/run/inetd.pid"
++#define _PATH_INETDPID  "/botbrew/var/run/inetd.pid"
 +#else
  #define _PATH_INETDPID  "/var/run/inetd.pid"
 +#endif
@@ -1067,7 +1097,7 @@
  #define allsock         (G.allsock        )
  #define line            (G.line           )
 +#ifdef __ANDROID__
-+#define INIT_G() do { rlim_ofile_cur = OPEN_MAX; global_queuelen = 128; config_filename = "/system/etc/inetd.conf"; } while (0)
++#define INIT_G() do { rlim_ofile_cur = OPEN_MAX; global_queuelen = 128; config_filename = "/botbrew/etc/inetd.conf"; } while (0)
 +#else
  #define INIT_G() do { \
  	rlim_ofile_cur = OPEN_MAX; \
@@ -1085,7 +1115,7 @@
  	rtnl_rtprot_tab = xzalloc(sizeof(*rtnl_rtprot_tab));
  	memcpy(rtnl_rtprot_tab->tab, init_tab, sizeof(init_tab));
 +#ifdef __ANDROID__
-+	rtnl_tab_initialize("/system/etc/iproute2/rt_protos", rtnl_rtprot_tab->tab);
++	rtnl_tab_initialize("/botbrew/etc/iproute2/rt_protos", rtnl_rtprot_tab->tab);
 +#else
  	rtnl_tab_initialize("/etc/iproute2/rt_protos", rtnl_rtprot_tab->tab);
 +#endif
@@ -1097,7 +1127,7 @@
  	rtnl_rtscope_tab->tab[253] = "link";
  	rtnl_rtscope_tab->tab[200] = "site";
 +#ifdef __ANDROID__
-+	rtnl_tab_initialize("/system/etc/iproute2/rt_scopes", rtnl_rtscope_tab->tab);
++	rtnl_tab_initialize("/botbrew/etc/iproute2/rt_scopes", rtnl_rtscope_tab->tab);
 +#else
  	rtnl_tab_initialize("/etc/iproute2/rt_scopes", rtnl_rtscope_tab->tab);
 +#endif
@@ -1109,7 +1139,7 @@
  	rtnl_rtrealm_tab = xzalloc(sizeof(*rtnl_rtrealm_tab));
  	rtnl_rtrealm_tab->tab[0] = "unknown";
 +#ifdef __ANDROID__
-+	rtnl_tab_initialize("/system/etc/iproute2/rt_realms", rtnl_rtrealm_tab->tab);
++	rtnl_tab_initialize("/botbrew/etc/iproute2/rt_realms", rtnl_rtrealm_tab->tab);
 +#else
  	rtnl_tab_initialize("/etc/iproute2/rt_realms", rtnl_rtrealm_tab->tab);
 +#endif
@@ -1121,7 +1151,7 @@
  	rtnl_rtdsfield_tab = xzalloc(sizeof(*rtnl_rtdsfield_tab));
  	rtnl_rtdsfield_tab->tab[0] = "0";
 +#ifdef __ANDROID__
-+	rtnl_tab_initialize("/system/etc/iproute2/rt_dsfield", rtnl_rtdsfield_tab->tab);
++	rtnl_tab_initialize("/botbrew/etc/iproute2/rt_dsfield", rtnl_rtdsfield_tab->tab);
 +#else
  	rtnl_tab_initialize("/etc/iproute2/rt_dsfield", rtnl_rtdsfield_tab->tab);
 +#endif
@@ -1133,7 +1163,7 @@
  	rtnl_rttable_tab->tab[254] = "main";
  	rtnl_rttable_tab->tab[253] = "default";
 +#ifdef __ANDROID__
-+	rtnl_tab_initialize("/system/etc/iproute2/rt_tables", rtnl_rttable_tab->tab);
++	rtnl_tab_initialize("/botbrew/etc/iproute2/rt_tables", rtnl_rttable_tab->tab);
 +#else
  	rtnl_tab_initialize("/etc/iproute2/rt_tables", rtnl_rttable_tab->tab);
 +#endif
@@ -1147,7 +1177,7 @@
  {
  	ethtable_t *clist = NULL;
 +#ifdef __ANDROID__
-+	const char *fname = "/system/etc/mactab";
++	const char *fname = "/botbrew/etc/mactab";
 +#else
  	const char *fname = "/etc/mactab";
 +#endif
@@ -1200,7 +1230,7 @@
  } FIX_ALIASING;
  #define G (*(struct globals*)&bb_common_bufsiz1)
 +#ifdef __ANDROID__
-+#define INIT_G() do { G.loginpath = "/system/bin/login"; G.issuefile = "/system/etc/issue.net"; } while (0)
++#define INIT_G() do { G.loginpath = "/botbrew/bin/login"; G.issuefile = "/botbrew/etc/issue.net"; } while (0)
 +#else
  #define INIT_G() do { \
  	G.loginpath = "/bin/login"; \
@@ -1217,7 +1247,7 @@
  #define LEASES_FILE             CONFIG_DHCPD_LEASES_FILE
  /* Where to find the DHCP server configuration file */
 +#ifdef __ANDROID__
-+#define DHCPD_CONF_FILE         "/system/etc/udhcpd.conf"
++#define DHCPD_CONF_FILE         "/botbrew/etc/udhcpd.conf"
 +#else
  #define DHCPD_CONF_FILE         "/etc/udhcpd.conf"
 +#endif
@@ -1231,7 +1261,7 @@
  	{"min_lease"    , read_u32        , &server_config.min_lease_sec, "60"},
  	{"lease_file"   , read_str        , &server_config.lease_file   , LEASES_FILE},
 +#ifdef __ANDROID__
-+	{"pidfile"	, read_str	, &server_config.pidfile	, "/data/run/udhcpd.pid"},
++	{"pidfile"	, read_str	, &server_config.pidfile	, "/botbrew/var/run/udhcpd.pid"},
 +#else
  	{"pidfile"      , read_str        , &server_config.pidfile      , "/var/run/udhcpd.pid"},
 +#endif
@@ -1258,7 +1288,7 @@
  		LPQ_FORCE       = 1 << 4, // -f: force waiting job(s) to be printed
  	};
 +#ifdef __ANDROID__
-+	char tempfile[sizeof("/data/vtmp/lprXXXXXX")];
++	char tempfile[sizeof("/botbrew/tmp/lprXXXXXX")];
 +#else
  	char tempfile[sizeof("/tmp/lprXXXXXX")];
 +#endif
@@ -1270,7 +1300,7 @@
  		// if data file is stdin, we need to dump it first
  		if (LONE_DASH(*argv)) {
 +#ifdef __ANDROID__
-+			strcpy(tempfile, "/data/vtmp/lprXXXXXX");
++			strcpy(tempfile, "/botbrew/tmp/lprXXXXXX");
 +#else
  			strcpy(tempfile, "/tmp/lprXXXXXX");
 +#endif
@@ -1284,7 +1314,7 @@
  		option_mask32 |= FLAG_WRITE;
  		/* xchdir("/proc/sys") is inside */
 +#ifdef __ANDROID__
-+		return sysctl_handle_preload_file(*argv ? *argv : "/system/etc/sysctl.conf");
++		return sysctl_handle_preload_file(*argv ? *argv : "/botbrew/etc/sysctl.conf");
 +#else
  		return sysctl_handle_preload_file(*argv ? *argv : "/etc/sysctl.conf");
 +#endif
@@ -1298,7 +1328,7 @@
  	pc[0] = fc[0] = NULL;
  
 +#ifdef __ANDROID__
-+	parser = config_open("/system/etc/sestatus.conf");
++	parser = config_open("/botbrew/etc/sestatus.conf");
 +#else
  	parser = config_open("/etc/sestatus.conf");
 +#endif
@@ -1312,7 +1342,7 @@
  	if (isloginsh) {
  		state = 1;
 +#ifdef __ANDROID__
-+		read_profile("/system/etc/profile");
++		read_profile("/botbrew/etc/profile");
 +#else
  		read_profile("/etc/profile");
 +#endif
@@ -1326,8 +1356,8 @@
  	if (flags & OPT_login) {
  		FILE *input;
 +#ifdef __ANDROID__
-+		debug_printf("sourcing /system/etc/profile\n");
-+		input = fopen_for_read("/system/etc/profile");
++		debug_printf("sourcing /botbrew/etc/profile\n");
++		input = fopen_for_read("/botbrew/etc/profile");
 +#else
  		debug_printf("sourcing /etc/profile\n");
  		input = fopen_for_read("/etc/profile");
@@ -1342,7 +1372,7 @@
  static const struct init_globals init_data = {
  	.logFile = {
 +#ifdef __ANDROID__
-+		.path = "/data/log/messages",
++		.path = "/botbrew/var/log/messages",
 +#else
  		.path = "/var/log/messages",
 +#endif
@@ -1354,7 +1384,7 @@
  	parser_t *parser;
  
 +#ifdef __ANDROID__
-+	parser = config_open2(file ? file : "/system/etc/syslog.conf",
++	parser = config_open2(file ? file : "/botbrew/etc/syslog.conf",
 +#else
  	parser = config_open2(file ? file : "/etc/syslog.conf",
 +#endif
@@ -1366,7 +1396,7 @@
  	}
  	//umask(0); - why??
 +#ifdef __ANDROID__
-+	write_pidfile("/data/run/syslogd.pid");
++	write_pidfile("/botbrew/var/run/syslogd.pid");
 +#else
  	write_pidfile("/var/run/syslogd.pid");
 +#endif
@@ -1380,13 +1410,13 @@
  	int opts;
  	struct pollfd *pfd;
 +#ifdef __ANDROID__
-+	const char *opt_dir = "/system/etc/acpi";
++	const char *opt_dir = "/botbrew/etc/acpi";
 +	const char *opt_input = "/dev/input/event";
-+	const char *opt_logfile = "/data/log/acpid.log";
-+	const char *opt_action = "/system/etc/acpid.conf";
-+	const char *opt_map = "/system/etc/acpi.map";
++	const char *opt_logfile = "/botbrew/var/log/acpid.log";
++	const char *opt_action = "/botbrew/etc/acpid.conf";
++	const char *opt_map = "/botbrew/etc/acpi.map";
 +#if ENABLE_FEATURE_PIDFILE
-+	const char *opt_pidfile = "/data/run/acpid.pid";
++	const char *opt_pidfile = "/botbrew/var/run/acpid.pid";
 +#endif
 +#else
  	const char *opt_dir = "/etc/acpi";
@@ -1407,7 +1437,7 @@
  
  #define DEFAULTFBDEV  FB_0
 +#ifdef __ANDROID__
-+#define DEFAULTFBMODE "/system/etc/fb.modes"
++#define DEFAULTFBMODE "/botbrew/etc/fb.modes"
 +#else
  #define DEFAULTFBMODE "/etc/fb.modes"
 +#endif
@@ -1421,7 +1451,7 @@
  	/* If we have config file, look up user settings */
  	if (ENABLE_FEATURE_MDEV_CONF)
 +#ifdef __ANDROID__
-+		parser = config_open2("/system/etc/mdev.conf", fopen_for_read);
++		parser = config_open2("/botbrew/etc/mdev.conf", fopen_for_read);
 +#else
  		parser = config_open2("/etc/mdev.conf", fopen_for_read);
 +#endif
@@ -1435,7 +1465,7 @@
  {
  	static const char filesystems[2][sizeof("/proc/filesystems")] = {
 +#ifdef __ANDROID__
-+		"/system/etc/filesystems",
++		"/botbrew/etc/filesystems",
 +#else
  		"/etc/filesystems",
 +#endif
@@ -1447,7 +1477,7 @@
  
  	// Open either fstab or mtab
 +#ifdef __ANDROID__
-+	fstabname = "/system/etc/fstab";
++	fstabname = "/botbrew/etc/fstab";
 +#else
  	fstabname = "/etc/fstab";
 +#endif
@@ -1461,8 +1491,8 @@
  	int err;
  
 +#ifdef __ANDROID__
-+	f = setmntent("/system/etc/fstab", "r");
-+	if (f == NULL) bb_perror_msg_and_die("/system/etc/fstab");
++	f = setmntent("/botbrew/etc/fstab", "r");
++	if (f == NULL) bb_perror_msg_and_die("/botbrew/etc/fstab");
 +#else
  	f = setmntent("/etc/fstab", "r");
  	if (f == NULL)

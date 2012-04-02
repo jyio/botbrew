@@ -1,0 +1,14 @@
+Package: libsocket
+Version: 1.8-0
+Architecture: armeabi
+Section: libs
+Priority: optional
+Source: http://www.happycoders.org/software/libsocket.php
+Description: |
+ Generic C++ socket library
+ Happycoders socket C++ library implements portable socket abstraction for all OS. It provides an abstraction for UDP/TCP sockets, for client and server in IPv4 and IPV6. It includes local socket suport for Unix and Linux system. A full tests suite is included to check library functions. This library is released under the term of the GNU LGPL licence.
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/lib
+    cp ${EXPORT}${PREFIX}/lib/*.so* ${PACKAGE}${PREFIX}/lib/

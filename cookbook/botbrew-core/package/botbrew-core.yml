@@ -1,0 +1,9 @@
+Package: botbrew-core
+Version: 0.0.1-3
+Architecture: all
+Section: admin
+Priority: required
+Source: http://inportb.com/
+Description: |
+ Core packages for BotBrew
+Depends: botbrew-foundation, opkg, runit, login, hostname, passwd, adduser, miscutils, net-tools

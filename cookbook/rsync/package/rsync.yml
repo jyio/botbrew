@@ -1,5 +1,5 @@
 Package: rsync
-Version: 3.0.9-0
+Version: 3.0.9-1
 Architecture: armeabi
 Section: net
 Priority: optional
@@ -7,8 +7,9 @@ Source: http://rsync.samba.org/
 Description: |
  fast remote file copy program (like rcp)
  rsync is a program that allows files to be copied to and from remote machines in much the same way as rcp. It has many more options than rcp, and uses the rsync remote-update protocol to greatly speed up file transfers when the destination file already exists. The rsync remote-update protocol allows rsync to transfer just the differences between two sets of files across the network link. This package also includes rsyncd daemon functionality.
+Depends: libmusl
 Data:
  /CONTROL/init: |
     #!/bin/sh
-    mkdir -p $PACKAGE/system
-    cp -r $EXPORT/system/bin $PACKAGE/system/
+    mkdir -p ${PACKAGE}${PREFIX}
+    cp -r ${EXPORT}${PREFIX}/bin ${PACKAGE}${PREFIX}/

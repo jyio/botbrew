@@ -1,0 +1,33 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=1.8
+PACKAGE_DEPEND=()
+
+FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
+ARCHIVE=${FULLNAME}.tar.gz
+
+botbrew_do_build() {
+	botbrew_download http://www.speedblue.org/conf/${ARCHIVE} ${ARCHIVE}
+	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
+	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
+	botbrew_fix_config ${G_SOURCE}/config
+#	botbrew_patchtree -p0 ${G_SOURCE} patch/binutils-2.22-android.patch
+	if ! [ -e ${G_OBJECT}/Makefile ]; then
+		(
+			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
+			CPPFLAGS="${G_CPPFLAGS} -D__STDC_INT64__" CFLAGS="${G_ALL_CFLAGS}" CXXFLAGS="${G_ALL_CXXFLAGS}" \
+			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} --target=${G_TRIPLET}
+		)
+	fi
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		${G_MAKE} -C ${G_OBJECT}
+		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
+		mv ${G_EXP_SYSDIR}/include/happycoders/* ${G_EXP_SYSDIR}/include/
+		mv ${G_EXP_LIBDIR}/happycoders/* ${G_EXP_LIBDIR}/
+		rm -rf ${G_EXP_SYSDIR}/include/happycoders ${G_EXP_LIBDIR}/happycoders
+		${G_STRIP} --strip-unneeded ${G_EXP_LIBDIR}/*.so* || true
+		touch ${G_EXPORT}/.d
+	fi
+}

@@ -1,0 +1,16 @@
+Package: gcc-4.7
+Version: 4.7.0-0
+Architecture: armeabi
+Section: devel
+Priority: optional
+Source: http://gcc.gnu.org/
+Description: |
+ GNU C compiler
+ This is the GNU C compiler, a fairly portable optimizing compiler for C.
+Depends: binutils, libc-bionic-dev, libgmp, libmpfr, libcloog-isl, libppl
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}
+    cp -r ${EXPORT}/* ${PACKAGE}/
+    rm -rf ${PACKAGE}${PREFIX}/share/info ${PACKAGE}${PREFIX}/share/man

@@ -1,0 +1,16 @@
+Package: libffi-dev
+Version: 3.0.10-0
+Architecture: armeabi
+Section: libdevel
+Priority: optional
+Source: http://sourceware.org/libffi/
+Description: |
+ Foreign Function Interface library (development files)
+ This package contains the headers and static library files necessary for building programs which use libffi. A foreign function interface is the popular name for the interface that allows code written in one language to call code written in another language.
+Depends: libffi
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/lib
+    cp -r ${EXPORT}${PREFIX}/include ${PACKAGE}${PREFIX}/
+    cp ${EXPORT}${PREFIX}/lib/*.a ${EXPORT}${PREFIX}/lib/*.la ${PACKAGE}${PREFIX}/lib/

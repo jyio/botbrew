@@ -1,0 +1,14 @@
+Package: libgmp-doc
+Version: 5.0.4-0
+Architecture: all
+Section: doc
+Priority: optional
+Source: http://gmplib.org/
+Description: |
+ Multiprecision arithmetic library
+ GNU MP is a programmer's library for arbitrary precision arithmetic (ie, a bignum package). It can operate on signed integer, rational, and floating point numeric types. It has a rich set of functions, and the functions have a regular interface.
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}
+    cp -r ${EXPORT}${PREFIX}/share ${PACKAGE}${PREFIX}/

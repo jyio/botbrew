@@ -45,11 +45,11 @@
  /* Default hostkey paths - these can be specified on the command line */
  #ifndef DSS_PRIV_FILENAME
 -#define DSS_PRIV_FILENAME "/etc/dropbear/dropbear_dss_host_key"
-+#define DSS_PRIV_FILENAME "/system/etc/dropbear/dropbear_dss_host_key"
++#define DSS_PRIV_FILENAME "/botbrew/etc/dropbear/dropbear_dss_host_key"
  #endif
  #ifndef RSA_PRIV_FILENAME
 -#define RSA_PRIV_FILENAME "/etc/dropbear/dropbear_rsa_host_key"
-+#define RSA_PRIV_FILENAME "/system/etc/dropbear/dropbear_rsa_host_key"
++#define RSA_PRIV_FILENAME "/botbrew/etc/dropbear/dropbear_rsa_host_key"
  #endif
  
  /* Set NON_INETD_MODE if you require daemon functionality (ie Dropbear listens
@@ -76,7 +76,7 @@
  /* The MOTD file path */
  #ifndef MOTD_FILENAME
 -#define MOTD_FILENAME "/etc/motd"
-+#define MOTD_FILENAME "/system/etc/motd"
++#define MOTD_FILENAME "/botbrew/etc/motd"
  #endif
  
  /* Authentication Types - at least one required.
@@ -105,7 +105,7 @@
     scripts etc. This can be overridden with the -P flag */
  #ifndef DROPBEAR_PIDFILE
 -#define DROPBEAR_PIDFILE "/var/run/dropbear.pid"
-+#define DROPBEAR_PIDFILE "/data/run/dropbear.pid"
++#define DROPBEAR_PIDFILE "/botbrew/var/run/dropbear.pid"
  #endif
  
  /* The command to invoke for xauth when using X11 forwarding.
@@ -114,13 +114,13 @@
   * be enabled */
  #ifndef SFTPSERVER_PATH
 -#define SFTPSERVER_PATH "/usr/libexec/sftp-server"
-+#define SFTPSERVER_PATH "/system/libexec/sftp-server"
++#define SFTPSERVER_PATH "/botbrew/libexec/sftp-server"
  #endif
  
  /* This is used by the scp binary when used as a client binary. If you're
   * not using the Dropbear client, you'll need to change it */
 -#define _PATH_SSH_PROGRAM "/usr/bin/dbclient"
-+#define _PATH_SSH_PROGRAM "/system/bin/dbclient"
++#define _PATH_SSH_PROGRAM "/botbrew/bin/dbclient"
  
  /* Whether to log commands executed by a client. This only logs the 
   * (single) command sent to the server, not what a user did in a 
@@ -129,36 +129,10 @@
  
  /* The default path. This will often get replaced by the shell */
 -#define DEFAULT_PATH "/usr/bin:/bin"
-+#define DEFAULT_PATH "/sbin:/vendor/bin:/system/sbin:/system/bin:/data/system/bin:/sd-ext/system/bin:/system/xbin"
++#define DEFAULT_PATH "/sbin:/vendor/bin:/system/sbin:/botbrew/bin:/system/bin:/system/xbin"
  
  /* Some other defines (that mostly should be left alone) are defined
   * in sysoptions.h */
---- sshpty.c
-+++ sshpty.c
-@@ -50,19 +50,19 @@
- {
- #if defined(HAVE_OPENPTY)
- 	/* exists in recent (4.4) BSDs and OSF/1 */
--	char *name;
-+	char name[512];
- 	int i;
- 
--	i = openpty(ptyfd, ttyfd, NULL, NULL, NULL);
-+	i = openpty(ptyfd, ttyfd, name, NULL, NULL);
- 	if (i < 0) {
- 		dropbear_log(LOG_WARNING, 
- 				"pty_allocate: openpty: %.100s", strerror(errno));
- 		return 0;
- 	}
--	name = ttyname(*ttyfd);
-+	/*name = ttyname(*ttyfd);
- 	if (!name) {
- 		dropbear_exit("ttyname fails for openpty device");
--	}
-+	}*/
- 
- 	strlcpy(namebuf, name, namebuflen);	/* possible truncation */
- 	return 1;
 --- svr-agentfwd.c
 +++ svr-agentfwd.c
 @@ -41,7 +41,7 @@
@@ -166,7 +140,7 @@
  #include "auth.h"
  
 -#define AGENTDIRPREFIX "/tmp/dropbear-"
-+#define AGENTDIRPREFIX "/data/vtmp/dropbear-"
++#define AGENTDIRPREFIX "/botbrew/tmp/dropbear-"
  
  static int send_msg_channel_open_agent(int fd);
  static int bindagent(int fd, struct ChanSess * chansess);
@@ -209,7 +183,7 @@
  #define _PATH_TTY "/dev/tty"
  
 -#define _PATH_CP "/bin/cp"
-+#define _PATH_CP "/system/xbin/cp"
++#define _PATH_CP "/botbrew/libexec/busybox/cp"
  
  /* success/failure defines */
  #define DROPBEAR_SUCCESS 0

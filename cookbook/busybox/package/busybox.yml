@@ -1,18 +1,19 @@
 Package: busybox
-Version: 1.19.4-1
+Version: 1.19.4-3
 Architecture: armeabi
 Section: utils
 Priority: required
 Source: http://busybox.net/
 Description: |
- DO NOT INSTALL THIS PACKAGE. SERIOUSLY. - Tiny utilities for small and embedded systems
+ Tiny utilities for small and embedded systems
  BusyBox combines tiny versions of many common UNIX utilities into a single small executable. It provides minimalist replacements for the most common utilities you would usually find on your desktop system (i.e., ls, cp, mv, mount, tar, etc.). The utilities in BusyBox generally have fewer options than their full-featured GNU cousins; however, the options that are included provide the expected functionality and behave very much like their GNU counterparts.
-Depends: libmusl
 Data:
  /CONTROL/postinst: |
     #!/system/bin/sh
-    chmod 6755 /system/bin/busybox
+    chmod 6755 ${PKG_ROOT}%(PREFIX)s/bin/busybox
  /CONTROL/init: |
     #!/bin/sh
-    mkdir -p $PACKAGE
-    cp -r $EXPORT/system $PACKAGE/
+    mkdir -p ${PACKAGE}${PREFIX}
+    cp -r ${EXPORT}${PREFIX}/* ${PACKAGE}${PREFIX}/
+    mkdir -p ${PACKAGE}/system/lib
+    ln -s ${PREFIX}/lib/libbusybox.so.1.19.4 ${PACKAGE}/system/lib/

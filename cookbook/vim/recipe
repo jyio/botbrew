@@ -9,14 +9,15 @@ botbrew_do_build() {
 	botbrew_hg https://${PACKAGE_NAME}.googlecode.com/hg ${PACKAGE_NAME}
 	botbrew_copytree ${PACKAGE_NAME} ${G_SOURCE} || true
 	botbrew_import
-	botbrew_fix_crosslibconfig ${G_IMPORT}/system/bin/ncursesw5-config
+	botbrew_fix_crosslibconfig ${G_IMPORT}${G_INSTALLPREFIX}/bin/ncursesw5-config
 	if ! [ -e ${G_OBJECT}/Makefile ]; then
 		(
 			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
 			cp -rlf ../${G_SOURCE}/* ./
 			# configuration variables from
 			# http://credentiality2.blogspot.com/2010/08/native-vim-for-android.html
-			CC="agcc.bash" CPPFLAGS="-I${G_INCDIR}" LD="agcc.bash" LDFLAGS="-L${G_LIBDIR}" STRIP="${G_STRIP} --strip-unneeded" \
+			CPPFLAGS="-I${G_INCDIR} ${G_CPPFLAGS}" CFLAGS="${G_ALL_CFLAGS}" LDFLAGS="-L${G_LIBDIR}" \
+			STRIP="${G_STRIP} --strip-unneeded" \
 			vim_cv_toupper_broken=no \
 			vim_cv_terminfo=yes \
 			vim_cv_tty_group=world \
@@ -37,8 +38,8 @@ botbrew_do_build() {
 	if ! [ -e ${G_EXPORT}/.d ]; then
 		${G_MAKE} -C ${G_OBJECT}
 		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
-		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/* || true
-		botbrew_fix_shell_path $(grep -rlIF '/bin/sh' ${G_EXPORT})
+		${G_STRIP} --strip-unneeded ${G_EXP_BINDIR}/* || true
+		botbrew_fix_interpreter_path ${G_EXPORT}
 		touch ${G_EXPORT}/.d
 	fi
 }

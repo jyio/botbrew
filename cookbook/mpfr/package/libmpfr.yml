@@ -1,0 +1,15 @@
+Package: libmpfr
+Version: 3.1.0-0
+Architecture: armeabi
+Section: libs
+Priority: optional
+Source: http://mpc.multiprecision.org/
+Description: |
+ multiple precision floating-point computation
+ MPFR provides a library for multiple-precision floating-point computation with correct rounding. The computation is both efficient and has a well-defined semantics. It copies the good ideas from the ANSI/IEEE-754 standard for double-precision floating-point arithmetic (53-bit mantissa).
+Depends: libgmp
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/lib
+    cp ${EXPORT}${PREFIX}/lib/*.so* ${PACKAGE}${PREFIX}/lib/

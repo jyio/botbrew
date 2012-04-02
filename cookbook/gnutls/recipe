@@ -2,7 +2,7 @@
 if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
 
 PACKAGE_NAME=$(basename $(pwd))
-PACKAGE_VERSION=3.0.12
+PACKAGE_VERSION=3.0.17
 PACKAGE_DEPEND=( gmp nettle libtasn1 libiconv )
 
 FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
@@ -18,8 +18,8 @@ botbrew_do_build() {
 	if ! [ -e ${G_OBJECT}/Makefile ]; then
 		(
 			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
-			CC="agcc.bash" CXX="agcc-bash-g++" CPPFLAGS="-I${G_INCDIR}" \
-			LD="agcc.bash" LDFLAGS="-L${G_LIBDIR}" \
+			gl_cv_func_gettimeofday_clobber=no \
+			CPPFLAGS="${G_CPPFLAGS} -I${G_INCDIR}" CFLAGS="${G_ALL_CFLAGS}" LDFLAGS="-L${G_LIBDIR} -Wl,-rpath-link,${G_LIBDIR}" \
 			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
 				--with-nettle-prefix=${G_SYSDIR} \
 				--with-libtasn1-prefix=${G_SYSDIR} \
@@ -33,8 +33,7 @@ botbrew_do_build() {
 	if ! [ -e ${G_EXPORT}/.d ]; then
 		${G_MAKE} -C ${G_OBJECT} -j1
 		${G_MAKE} -C ${G_OBJECT} -j1 install DESTDIR=$(pwd)/${G_EXPORT}
-		rm -rf ${G_EXPORT}/system/lib/*.la ${G_EXPORT}/system/lib/pkgconfig
-		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/* || true
+		${G_STRIP} --strip-unneeded ${G_EXP_BINDIR}/* ${G_EXP_LIBDIR}/*.so* || true
 		touch ${G_EXPORT}/.d
 	fi
 }

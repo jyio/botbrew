@@ -19,14 +19,23 @@ except KeyError:
 package = tempfile.mkdtemp(prefix='tmp-opkg-')
 print 'staging package in',package
 
+env = {
+	'PATH':		os.environ.get('PATH',''),
+	'PROJECT':	project,
+	'EXPORT':	os.path.join(project,'export'),
+	'BUILD':	os.path.join(project,'export'),
+	'PACKAGE':	package,
+	'PREFIX':	os.environ.get('G_INSTALLPREFIX','')
+}
+
 for k,v in data.iteritems():
-	k = os.path.join(package,k.lstrip(os.sep))
+	k = os.path.join(package,k.lstrip(os.sep))%env
 	try:
 		os.makedirs(os.path.dirname(k),0755)
 	except OSError:
 		pass
 	with open(k,'w+') as f:
-		f.write(v.encode('utf-8'))
+		f.write((v%env).encode('utf-8'))
 try:
 	os.chmod(os.path.join(package,'CONTROL','preinst'),0755)
 except OSError:
@@ -54,13 +63,7 @@ with open(os.path.join(package,'CONTROL','control'),'w+') as f:
 initfile = os.path.join(package,'CONTROL','init')
 if os.path.isfile(initfile):
 	os.chmod(initfile,0755)
-	code = subprocess.call((os.path.abspath(initfile),),env={
-		'PATH':		os.environ.get('PATH',''),
-		'PROJECT':	project,
-		'EXPORT':	os.path.join(project,'export'),
-		'BUILD':	os.path.join(project,'export'),
-		'PACKAGE':	package
-	})
+	code = subprocess.call((os.path.abspath(initfile),),env=env)
 	if code != 0:
 		print >>sys.stderr,initfile,' failed'
 		exit(code)

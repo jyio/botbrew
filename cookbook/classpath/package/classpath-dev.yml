@@ -1,0 +1,16 @@
+Package: classpath-dev
+Version: 0.99-1
+Architecture: armeabi
+Section: libdevel
+Priority: optional
+Source: http://www.gnu.org/software/classpath/
+Description: |
+ clean room standard Java libraries
+ GNU classpath provides a free replacement for Sun's proprietary class libraries so that the GNU system can run programs written in the Java language. GNU Classpath makes it possible to compile DFSG-free programs written in the Java language without depending on proprietary class libraries. GNU Classpath can be used to run Java applications without depending on proprietary software.
+Depends: classpath
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/lib/classpath
+    cp -r ${EXPORT}${PREFIX}/include ${PACKAGE}${PREFIX}/
+    cp ${EXPORT}${PREFIX}/lib/classpath/*.la ${PACKAGE}${PREFIX}/lib/classpath/

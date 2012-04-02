@@ -16,17 +16,16 @@ botbrew_do_build() {
 	if ! [ -e ${G_OBJECT}/Makefile ]; then
 		(
 			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
-			CC="agcc.bash" LD="agcc.bash" \
-			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET}
+			CFLAGS="${G_CPPFLAGS} ${G_ALL_CFLAGS} -Wno-error" \
+			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} --target=${G_TRIPLET}
 		)
 	fi
 	if ! [ -e ${G_EXPORT}/.d ]; then
 		${G_MAKE} -C ${G_OBJECT}
 		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
-		cp -rlf ${G_EXPORT}/system/${G_TRIPLET}/* ${G_EXPORT}/system/
-		rm -rf ${G_EXPORT}/system/${G_TRIPLET} ${G_EXPORT}/system/lib/libiberty.*
-		rm ${G_EXPORT}/system/lib/*.la
-		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/* || true
+		cp -rlf ${G_EXP_SYSDIR}/${G_TRIPLET}/* ${G_EXP_SYSDIR}/
+		rm -rf ${G_EXP_SYSDIR}/${G_TRIPLET} ${G_EXP_LIBDIR}/libiberty.*
+		${G_STRIP} --strip-unneeded ${G_EXP_BINDIR}/* || true
 		touch ${G_EXPORT}/.d
 	fi
 }

@@ -1,0 +1,16 @@
+Package: classpath
+Version: 0.99-1
+Architecture: armeabi
+Section: libs
+Priority: optional
+Source: http://www.gnu.org/software/classpath/
+Description: |
+ clean room standard Java libraries
+ GNU classpath provides a free replacement for Sun's proprietary class libraries so that the GNU system can run programs written in the Java language. GNU Classpath makes it possible to compile DFSG-free programs written in the Java language without depending on proprietary class libraries. GNU Classpath can be used to run Java applications without depending on proprietary software.
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/share
+    cp -r ${EXPORT}${PREFIX}/bin ${EXPORT}${PREFIX}/lib ${PACKAGE}${PREFIX}/
+    cp -r ${EXPORT}${PREFIX}/share/classpath ${PACKAGE}${PREFIX}/share/
+    rm ${PACKAGE}${PREFIX}/lib/classpath/*.la

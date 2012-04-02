@@ -1,0 +1,16 @@
+Package: libgdbm-dev
+Version: 1.10-0
+Architecture: armeabi
+Section: libdevel
+Priority: optional
+Source: http://www.gnu.org.ua/software/gdbm/
+Description: |
+ GNU dbm database routines (development files)
+ GNU dbm ('gdbm') is a library of database functions that use extendible hashing and works similarly to the standard UNIX 'dbm' functions. The basic use of 'gdbm' is to store key/data pairs in a data file, thus providing a persistent version of the 'dictionary' Abstract Data Type ('hash' to perl programmers).
+Depends: libgdbm
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/lib
+    cp -r ${EXPORT}${PREFIX}/include ${PACKAGE}${PREFIX}/
+    cp -r ${EXPORT}${PREFIX}/lib/*.a ${EXPORT}${PREFIX}/lib/*.la ${PACKAGE}${PREFIX}/lib/

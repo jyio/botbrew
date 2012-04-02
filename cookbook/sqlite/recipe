@@ -2,7 +2,7 @@
 if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
 
 PACKAGE_NAME=$(basename $(pwd))
-PACKAGE_VERSION=3071000
+PACKAGE_VERSION=3071100
 PACKAGE_DEPEND=( readline ncursesw )
 
 FULLNAME=${PACKAGE_NAME}-amalgamation-${PACKAGE_VERSION}
@@ -14,7 +14,7 @@ botbrew_do_build() {
 	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
 	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
 	botbrew_import
-	botbrew_fix_crosslibconfig ${G_IMPORT}/system/bin/ncursesw5-config
+	botbrew_fix_crosslibconfig ${G_IMPORT}${G_INSTALLPREFIX}/bin/ncursesw5-config
 	if ! [ -e ${G_OBJECT}/.d ]; then
 		(
 			set -x
@@ -26,13 +26,13 @@ botbrew_do_build() {
 	if ! [ -e ${G_EXPORT}/.d ]; then
 		set -x
 		rm -rf ${G_EXPORT} ${G_OBJECT}/*.o
-		mkdir -p ${G_EXPORT}/system/bin ${G_EXPORT}/system/lib ${G_EXPORT}/system/include
-		(cd ${G_OBJECT}; agcc.bash -c shell.c sqlite3.c "${OPTIONS[@]}" -I${G_INCDIR})
-		${G_AR} -r ${G_EXPORT}/system/lib/libsqlite3.a ${G_OBJECT}/sqlite3.o
-		agcc.bash -o ${G_EXPORT}/system/lib/libsqlite3.so -shared -Wl,-soname,libsqlite3.so ${G_OBJECT}/sqlite3.o -ldl
-		agcc.bash -o ${G_EXPORT}/system/bin/sqlite3 ${G_OBJECT}/shell.o -L${G_EXPORT}/system/lib -L${G_LIBDIR} -lsqlite3 -lreadline -lncursesw
-		cp -rl ${G_OBJECT}/*.h ${G_EXPORT}/system/include/
-		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/* ${G_EXPORT}/system/lib/*.so || true
+		mkdir -p ${G_EXP_BINDIR} ${G_EXP_LIBDIR} ${G_EXP_INCDIR}
+		(cd ${G_OBJECT}; ${G_TRIPLET}-gcc -c shell.c sqlite3.c "${OPTIONS[@]}" -I${G_INCDIR})
+		${G_AR} -r ${G_EXP_LIBDIR}/libsqlite3.a ${G_OBJECT}/sqlite3.o
+		${G_TRIPLET}-gcc -o ${G_EXP_LIBDIR}/libsqlite3.so -shared -Wl,-soname,libsqlite3.so ${G_OBJECT}/sqlite3.o -ldl
+		${G_TRIPLET}-gcc -o ${G_EXP_BINDIR}/sqlite3 ${G_OBJECT}/shell.o -L${G_EXP_LIBDIR} -L${G_LIBDIR} -lsqlite3 -lreadline -lncursesw
+		cp -rl ${G_OBJECT}/*.h ${G_EXP_INCDIR}/
+		${G_STRIP} --strip-unneeded ${G_EXP_BINDIR}/* ${G_EXP_LIBDIR}/*.so || true
 		touch ${G_EXPORT}/.d
 	fi
 }

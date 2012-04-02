@@ -1,0 +1,18 @@
+Package: adduser
+Version: 0.0.1-0
+Architecture: all
+Section: admin
+Priority: optional
+Source: http://inportb.com/
+Description: |
+ (busybox) add and remove users and groups
+ This package includes the 'adduser' and 'deluser' commands for creating and removing users.
+Depends: busybox
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/bin
+    ln -s busybox ${PACKAGE}${PREFIX}/bin/addgroup
+    ln -s busybox ${PACKAGE}${PREFIX}/bin/adduser
+    ln -s busybox ${PACKAGE}${PREFIX}/bin/delgroup
+    ln -s busybox ${PACKAGE}${PREFIX}/bin/deluser

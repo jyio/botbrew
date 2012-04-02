@@ -1,0 +1,16 @@
+Package: libassuan-dev
+Version: 2.0.3-0
+Architecture: armeabi
+Section: libdevel
+Priority: optional
+Source: http://www.gnupg.org/
+Description: |
+ IPC library for the GnuPG components (development)
+ An IPC library used by the next generation of GnuPG and its various components.
+Depends: libassuan, libgpg-error-dev
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}
+    cp -r ${EXPORT}${PREFIX}/* ${PACKAGE}${PREFIX}/
+    rm -r ${PACKAGE}${PREFIX}/lib/*.so* ${PACKAGE}${PREFIX}/share/info

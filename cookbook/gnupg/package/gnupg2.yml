@@ -1,5 +1,5 @@
 Package: gnupg2
-Version: 2.0.18-1
+Version: 2.0.19-0
 Architecture: armeabi
 Section: utils
 Priority: optional
@@ -7,10 +7,10 @@ Source: http://www.gnupg.org/
 Description: |
  GNU privacy guard - a free PGP replacement (new v2.x)
  GnuPG is GNU's tool for secure communication and data storage. It can be used to encrypt data and to create digital signatures. It includes an advanced key management facility and is compliant with the proposed OpenPGP Internet standard as described in RFC2440. GnuPG 2.x is the new modularized version of GnuPG supporting OpenPGP and S/MIME. GnuPG does not use any patented algorithms so it cannot be compatible with PGP2 because it uses IDEA (which is patented worldwide).
-Depends: libbz2, readline, libncursesw
+Depends: libbz2, readline, libncursesw, libiconv, libgpg-error, libassuan, libksba, libgcrypt
 Data:
  /CONTROL/init: |
     #!/bin/sh
-    mkdir -p $PACKAGE/system/share
-    cp -r $EXPORT/system/bin $EXPORT/system/libexec $PACKAGE/system/
-    cp -r $EXPORT/system/share/gnupg $PACKAGE/system/share
+    mkdir -p ${PACKAGE}${PREFIX}/share
+    cp -r ${EXPORT}${PREFIX}/bin ${EXPORT}${PREFIX}/libexec ${PACKAGE}${PREFIX}/
+    cp -r ${EXPORT}${PREFIX}/share/gnupg ${PACKAGE}${PREFIX}/share

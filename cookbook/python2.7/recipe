@@ -3,7 +3,7 @@ if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
 
 PACKAGE_NAME=Python
 PACKAGE_VERSION=2.7.2
-PACKAGE_DEPEND=( ncursesw sqlite bzip2 openssl gdbm )
+PACKAGE_DEPEND=( musl ncursesw sqlite bzip2 openssl gdbm )
 
 local FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
 local ARCHIVE=${FULLNAME}.tgz
@@ -23,7 +23,7 @@ botbrew_do_build() {
 	mv temp ${G_SOURCE}/Modules/_ctypes/libffi/src/dlmalloc.c
 	botbrew_fix_config ${G_SOURCE}/Modules/_ctypes/libffi
 	botbrew_import
-	botbrew_fix_crosslibconfig ${G_IMPORT}/system/bin/ncursesw5-config
+	botbrew_fix_crosslibconfig ${G_IMPORT}${G_INSTALLPREFIX}/bin/ncursesw5-config
 	if ! [ -e ${G_OBJECT}-host/Makefile ]; then
 		(mkdir -p ${G_OBJECT}-host; cd ${G_OBJECT}-host; ../${G_SOURCE}/configure)
 	fi
@@ -33,15 +33,21 @@ botbrew_do_build() {
 	if ! [ -e ${G_OBJECT}/Makefile ]; then
 		(
 			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
-			CC="agcc.bash" CPPFLAGS="-I${G_INCDIR} -I${G_INCDIR}/ncursesw" LD="agcc.bash" LDFLAGS="-L${G_LIBDIR} -L$(pwd)" \
-			AR="${G_AR}" RANLIB="${G_RANLIB}" \
+#AR="${G_AR}" RANLIB="${G_RANLIB}"
+			CPPFLAGS="-I${G_INCDIR} -I${G_INCDIR}/ncursesw -I${G_INCDIR}/musl ${G_CPPFLAGS}" CFLAGS="${G_ALL_CFLAGS}" \
+			LDFLAGS="-L${G_LIBDIR} -L$(pwd)" LIBS="-lmusl" \
 			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
 				 --enable-shared
-		#	cat > Modules/Setup.local <<-EOF
-		#		readline readline.c -lreadline -lncursesw
-		#		_curses _cursesmodule.c -lncursesw
-		#		_curses_panel _curses_panel.c -lpanelw -lncursesw
-		#	EOF
+			cat > Modules/Setup.local <<-EOF
+				#readline readline.c -lreadline -lncursesw
+				#_curses _cursesmodule.c -lncursesw
+				#_curses_panel _curses_panel.c -lpanelw -lncursesw
+				crypt cryptmodule.c -lmusl
+				pwd pwdmodule.c -lmusl
+				grp grpmodule.c -lmusl
+				spwd spwdmodule.c -lmusl
+				_locale _locale.c -lmusl
+			EOF
 			cat pyconfig.h \
 				| sed -e '/HAVE_FDATASYNC/ c#undef HAVE_FDATASYNC' \
 				| sed -e '/HAVE_KILLPG/ c#undef HAVE_KILLPG' \
@@ -53,30 +59,28 @@ botbrew_do_build() {
 	fi
 	if ! [ -e ${G_EXPORT}/.d ]; then
 		local BLDSHARED=(
-			agcc.bash -shared -I${G_INCDIR} -L${G_LIBDIR} -L$(pwd)/${G_OBJECT}
-			-lpython2.7 -ldl
+			${G_TRIPLET}-gcc -shared -I${G_INCDIR} -I${G_INCDIR}/musl -L${G_LIBDIR} -L$(pwd)/${G_OBJECT}
+			-lpython2.7 -lm -ldl
 			-Wl,--no-undefined
 		)
 		local BLDSHARED="${BLDSHARED[@]}"
 		ARCH="armeabi" NDKPLATFORM="${G_NDKPLATFORM}" \
-			${G_MAKE} -C ${G_OBJECT} INSTSONAME=libpython2.7.so libpython2.7.so \
+			${G_MAKE} -C ${G_OBJECT} libpython2.7.so \
 				HOSTPYTHON="${HPYTHON}" HOSTPGEN="${HPGEN}" CROSS_COMPILE_TARGET=yes \
-				BLDSHARED="agcc.bash -shared -I${G_INCDIR} -L${G_LIBDIR} -L$(pwd)/${G_OBJECT} -ldl -Wl,--no-undefined"
+				BLDSHARED="${G_TRIPLET}-gcc -shared -I${G_INCDIR} -I${G_INCDIR}/musl -L${G_LIBDIR} -L$(pwd)/${G_OBJECT} -ldl -Wl,--no-undefined"
 		ARCH="armeabi" NDKPLATFORM="${G_NDKPLATFORM}" \
 			HOSTARCH="${G_TRIPLET}" BUILDARCH="$(${G_ROOT}/config.guess)" \
-			CROSS_COMPILE_INC="${G_INCDIR}:${G_INCDIR}/ncursesw" CROSS_COMPILE_LIB="${G_LIBDIR}" TERMCAP_LIBRARY="ncursesw" \
-			${G_MAKE} -C ${G_OBJECT} INSTSONAME=libpython2.7.so \
-				HOSTPYTHON="${HPYTHON}" HOSTPGEN="${HPGEN}" CROSS_COMPILE_TARGET=yes BLDSHARED="${BLDSHARED}"
+			CROSS_COMPILE_INC="${G_INCDIR}:${G_INCDIR}/ncursesw:${G_INCDIR}/musl" CROSS_COMPILE_LIB="${G_LIBDIR}" TERMCAP_LIBRARY="ncursesw" \
+			${G_MAKE} -C ${G_OBJECT} \
+				HOSTPYTHON="${HPYTHON}" HOSTPGEN="${HPGEN}" CROSS_COMPILE_TARGET=yes BLDSHARED="${BLDSHARED} ${G_CPPFLAGS} ${G_ALL_CFLAGS}"
 		ARCH="armeabi" NDKPLATFORM="${G_NDKPLATFORM}" \
 			HOSTARCH="${G_TRIPLET}" BUILDARCH="$(${G_ROOT}/config.guess)" \
-			CROSS_COMPILE_INC="${G_INCDIR}:${G_INCDIR}/ncursesw" CROSS_COMPILE_LIB="${G_LIBDIR}" TERMCAP_LIBRARY="ncursesw" \
+			CROSS_COMPILE_INC="${G_INCDIR}:${G_INCDIR}/ncursesw:${G_INCDIR}/musl" CROSS_COMPILE_LIB="${G_LIBDIR}" TERMCAP_LIBRARY="ncursesw" \
 			${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT} \
-				HOSTPYTHON="${HPYTHON}" CROSS_COMPILE_TARGET=yes BLDSHARED="${BLDSHARED}"
-		rm -f ${G_EXPORT}/system/lib/libpython2.7.so
-		mv ${G_EXPORT}/system/lib/libpython2.7.so.* ${G_EXPORT}/system/lib/libpython2.7.so
-		chmod 0755 ${G_EXPORT}/system/lib/libpython2.7.so
-		rm -rf ${G_EXPORT}/system/lib/pkgconfig
-		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/python2.7 $(find ${G_EXPORT} -type f -name '*.so') || true
+				HOSTPYTHON="${HPYTHON}" CROSS_COMPILE_TARGET=yes BLDSHARED="${BLDSHARED} ${G_CPPFLAGS} ${G_ALL_CFLAGS}"
+		chmod 0755 ${G_EXP_LIBDIR}/libpython2.7.so.*
+		botbrew_fix_interpreter_path ${G_EXPORT}
+		${G_STRIP} --strip-unneeded ${G_EXP_BINDIR}/* $(find ${G_EXPORT} -type f -name '*.so*') || true
 		touch ${G_EXPORT}/.d
 	fi
 }

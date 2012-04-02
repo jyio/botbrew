@@ -4,7 +4,7 @@
  
  static void trydecpoint (LexState *ls, SemInfo *seminfo) {
    /* format error: try to update decimal point separator */
-+#ifdef ANDROID
++#ifdef __ANDROID__
 +  char old = ls->decpoint = '.';
 +#else
    struct lconv *cv = localeconv();
@@ -20,7 +20,7 @@
  #include <errno.h>
  
  /* need an autoconf to check for this */
-+#ifndef ANDROID
++#ifndef __ANDROID__
  typedef void (*sighandler_t)(int);
 +#endif
  
@@ -33,7 +33,7 @@
  #endif /* HAVE_CONFIG_H */
  
 -#ifndef WIN32
-+#if !defined(WIN32) && !defined(ANDROID)
++#if !defined(WIN32) && !defined(__ANDROID__)
      #include <sysexits.h>
  #endif
  

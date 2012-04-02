@@ -2,8 +2,8 @@
 if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
 
 PACKAGE_NAME=$(basename $(pwd))
-PACKAGE_VERSION=2.30.2
-PACKAGE_DEPEND=( libbotbrew libiconv libffi pcre dbus gettext )
+PACKAGE_VERSION=2.32.0	# build server needs glib-compile-resources
+PACKAGE_DEPEND=( musl libffi pcre dbus )
 
 FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
 ARCHIVE=${FULLNAME}.tar.xz
@@ -12,34 +12,39 @@ botbrew_do_build() {
 	botbrew_download http://ftp.gnome.org/pub/gnome/sources/${PACKAGE_NAME}/${PACKAGE_VERSION%.*}/${ARCHIVE} ${ARCHIVE}
 	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
 	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
-	botbrew_fix_config ${G_SOURCE}
 	sed -E 's/as_fn_error (\$\? "cannot run test program)/$as_echo \1/g' ${G_SOURCE}/configure > temp
 	cat temp > ${G_SOURCE}/configure
 	sed -E 's/\$\(SHELL\) \.\/config\.status --recheck/touch $@/g' ${G_SOURCE}/Makefile.in > temp
 	mv temp ${G_SOURCE}/Makefile.in
 	sed -e 's/\btests$//g' ${G_SOURCE}/gio/Makefile.in > temp
 	mv temp ${G_SOURCE}/gio/Makefile.in
-	botbrew_patchtree -p0 ${G_SOURCE} patch/glib-2.30.2-android.patch
+	botbrew_patchtree -p0 ${G_SOURCE} patch/glib-2.32.0-android.patch
 	botbrew_import
-	botbrew_fix_crosslibconfig ${G_IMPORT}/system/bin/pcre-config
+	botbrew_fix_crosslibconfig ${G_IMPORT}${G_INSTALLPREFIX}/bin/pcre-config
 	if ! [ -e ${G_OBJECT}/Makefile ]; then
 		(
 			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
+			glib_cv_uscore=no \
+			ac_cv_func_posix_getpwuid_r=yes \
+			ac_cv_func_posix_getgrgid_r=yes \
 			PATH=${PATH}:${G_SYSDIR}/bin \
-			CC="agcc.bash" CPPFLAGS="-I${G_INCDIR}" LD="agcc.bash" LDFLAGS="-L${G_LIBDIR}" LIBS="-liconv -lbotbrew" \
+			CPPFLAGS="-I${G_INCDIR} -I${G_INCDIR}/musl ${G_CPPFLAGS}" CFLAGS="${G_ALL_CFLAGS}" \
+			LDFLAGS="-L${G_LIBDIR}" LIBS="-lmusl" \
 			LIBFFI_CFLAGS="-I${G_INCDIR}" LIBFFI_LIBS="-L${G_LIBDIR} -lffi" \
 			PCRE_CFLAGS="-I${G_INCDIR}" PCRE_LIBS="-L${G_LIBDIR} -lpcre" \
 			DBUS1_CFLAGS="-I${G_INCDIR}/dbus-1.0 -I${G_LIBDIR}/dbus-1.0/include" DBUS1_LIBS="-L${G_LIBDIR} -ldbus-1" \
-			glib_cv_uscore=no \
-			ac_cv_func_posix_getpwuid_r=no \
-			ac_cv_func_posix_getgrgid_r=no \
 			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
 				--enable-shared \
 				--with-pcre=system
-			sed -e 's/-lpthread//g' gthread/tests/Makefile > temp
-			mv temp gthread/tests/Makefile
-			sed -e 's/-lpthread//g' gthread/Makefile > temp
-			mv temp gthread/Makefile
+			for item in $(grep -rlIF pthread .); do
+				case "${item}" in
+					*/libtool);;
+					*)
+						sed -e 's/-lpthread//g' -e 's/-pthreads//g' -e 's/-pthread//g' "${item}" > temp
+						cat temp > "${item}"
+						;;
+				esac
+			done
 			sed -E 's/\$\(SHELL\) \.\/config\.status --recheck/touch \$@/g' Makefile > temp
 			mv temp Makefile
 		)
@@ -47,9 +52,8 @@ botbrew_do_build() {
 	if ! [ -e ${G_EXPORT}/.d ]; then
 		${G_MAKE} -C ${G_OBJECT}
 		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
-		rm -r ${G_EXPORT}/system/lib/*.la ${G_EXPORT}/system/lib/pkgconfig
-		botbrew_fix_shell_path $(grep -rlIF '/bin/sh' ${G_EXPORT})
-		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/* || true
+		botbrew_fix_interpreter_path ${G_EXPORT}
+		${G_STRIP} --strip-unneeded ${G_EXP_BINDIR}/* ${G_EXP_LIBDIR}/*.so* || true
 		touch ${G_EXPORT}/.d
 	fi
 }

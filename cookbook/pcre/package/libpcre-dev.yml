@@ -1,0 +1,17 @@
+Package: libpcre-dev
+Version: 8.30-1
+Architecture: armeabi
+Section: libdevel
+Priority: optional
+Source: http://www.pcre.org/
+Description: |
+ Perl 5 Compatible Regular Expression Library - development files
+ This is a library of functions to support regular expressions whose syntax and semantics are as close as possible to those of the Perl 5 language.
+Depends: libpcre
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/bin ${PACKAGE}${PREFIX}/lib
+    cp -r ${EXPORT}${PREFIX}/include ${PACKAGE}${PREFIX}/
+    cp ${EXPORT}${PREFIX}/bin/*-config ${PACKAGE}${PREFIX}/bin/
+    cp -r ${EXPORT}${PREFIX}/lib/*.a ${EXPORT}${PREFIX}/lib/*.la ${EXPORT}${PREFIX}/lib/pkgconfig ${PACKAGE}${PREFIX}/lib/

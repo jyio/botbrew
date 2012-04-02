@@ -1,5 +1,5 @@
 Package: python2.7-dev
-Version: 2.7.2-1
+Version: 2.7.2-2
 Architecture: armeabi
 Section: python
 Priority: optional
@@ -7,10 +7,11 @@ Source: http://www.python.org/
 Description: |
  An interactive high-level object-oriented language (version 2.7)
  Version 2.7 of the high-level, interactive object oriented language, includes an extensive class library with lots of goodies for network programming, system administration, sounds and graphics.
+Depends: python2.7-minimal
 Data:
  /CONTROL/init: |
     #!/bin/sh
-    mkdir -p $PACKAGE/system/bin
-    cp $EXPORT/system/bin/*-config $PACKAGE/system/bin/
-    cp -r $EXPORT/system/include $PACKAGE/system/
-    rm -f $PACKAGE/system/include/python2.7/pyconfig.h
+    mkdir -p ${PACKAGE}${PREFIX}/bin
+    cp ${EXPORT}${PREFIX}/bin/*-config ${PACKAGE}${PREFIX}/bin/
+    cp -r ${EXPORT}${PREFIX}/include ${PACKAGE}${PREFIX}/
+    rm -f ${PACKAGE}${PREFIX}/include/python2.7/pyconfig.h

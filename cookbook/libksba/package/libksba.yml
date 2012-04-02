@@ -1,0 +1,15 @@
+Package: libksba
+Version: 1.2.0-0
+Architecture: armeabi
+Section: libs
+Priority: optional
+Source: http://www.gnupg.org/
+Description: |
+ X.509 and CMS support library (development)
+ KSBA (pronounced Kasbah) is a library to make X.509 certificates as well as the CMS easily accessible by other applications. Both specifications are building blocks of S/MIME and TLS. KSBA provides these subsystems: ASN.1 Parser, BER Decoder, BER Encoder, Certificate Handling and CMS Handling.
+Depends: libgpg-error
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/lib
+    cp ${EXPORT}${PREFIX}/lib/*.so* ${PACKAGE}${PREFIX}/lib/

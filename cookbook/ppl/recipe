@@ -2,7 +2,7 @@
 if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
 
 PACKAGE_NAME=$(basename $(pwd))
-PACKAGE_VERSION=0.11.2
+PACKAGE_VERSION=0.12
 PACKAGE_DEPEND=( gmp )
 
 FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
@@ -13,25 +13,21 @@ botbrew_do_build() {
 	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
 	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
 	botbrew_import
+	sed -e '/^dependency_libs=/ d' ${G_LIBDIR}/libgmpxx.la > temp
+	echo "dependency_libs=' ${G_LIBDIR}/libgmp.la'" >> temp
+	mv temp ${G_LIBDIR}/libgmpxx.la
 	if ! [ -e ${G_OBJECT}/Makefile ]; then
 		(
 			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
-			CC="agcc.bash" CXX="agcc-bash-g++" CPPFLAGS="-I${G_INCDIR}" \
-			LD="agcc.bash" LDFLAGS="-L${G_LIBDIR}" \
-			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET}
-			${G_MAKE} -j1 ppl-config.h
-			sed -e 's/#define PPL_HAVE_TYPEOF 1//' ppl-config.h > temp
-			mv temp ppl-config.h
-			${G_MAKE} -C src -j1 ppl.hh
-			sed -e 's/#define PPL_HAVE_TYPEOF 1//' src/ppl.hh > temp
-			mv temp src/ppl.hh
+			CPPFLAGS="${G_CPPFLAGS}" CFLAGS="${G_ALL_CFLAGS}" CXXFLAGS="${G_ALL_CXXFLAGS}" \
+			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
+				--with-gmp=${G_SYSDIR}
 		)
 	fi
 	if ! [ -e ${G_EXPORT}/.d ]; then
 		${G_MAKE} -C ${G_OBJECT}
 		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
-		rm ${G_EXPORT}/system/lib/*.la
-		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/* || true
+		${G_STRIP} --strip-unneeded ${G_EXP_BINDIR}/* ${G_EXP_LIBDIR}/*.so* || true
 		touch ${G_EXPORT}/.d
 	fi
 }

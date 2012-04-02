@@ -1,0 +1,205 @@
+--- gio/gdbus-tool.c
++++ gio/gdbus-tool.c
+@@ -50,7 +50,11 @@
+   s = g_strdup_vprintf (format, var_args);
+   if (f == NULL)
+     {
++#ifdef __ANDROID__
++      f = fopen ("/botbrew/tmp/gdbus-completion-debug.txt", "a+");
++#else
+       f = fopen ("/tmp/gdbus-completion-debug.txt", "a+");
++#endif
+     }
+   fprintf (f, "%s\n", s);
+   g_free (s);
+--- gio/glocalfileinfo.c
++++ gio/glocalfileinfo.c
+@@ -1095,6 +1095,7 @@
+       if (pwbufp->pw_name != NULL && pwbufp->pw_name[0] != 0)
+ 	data->user_name = convert_pwd_string_to_utf8 (pwbufp->pw_name);
+ 
++#ifndef __ANDROID__
+       gecos = pwbufp->pw_gecos;
+ 
+       if (gecos)
+@@ -1104,6 +1105,7 @@
+ 	    *comma = 0;
+ 	  data->real_name = convert_pwd_string_to_utf8 (gecos);
+ 	}
++#endif
+     }
+ 
+   /* Default fallbacks */
+--- gio/gunixmounts.c
++++ gio/gunixmounts.c
+@@ -271,6 +271,25 @@
+     "/sbin",
+     "/net",
+     "/sys",
++#ifdef __ANDROID__
++    "/botbrew",
++    "/botbrew/bin",
++    "/botbrew/etc",
++    "/botbrew/home",
++    "/botbrew/lib",
++    "/botbrew/media",
++    "/botbrew/root",
++    "/botbrew/service",
++    "/botbrew/tmp",
++    "/botbrew/var",
++    "/botbrew/var/crash",
++    "/botbrew/var/local",
++    "/botbrew/var/log",
++    "/botbrew/var/log/audit",
++    "/botbrew/var/mail",
++    "/botbrew/var/run",
++    "/botbrew/var/tmp",
++#endif
+     NULL
+   };
+ 
+--- gio/inotify/inotify-diag.c
++++ gio/inotify/inotify-diag.c
+@@ -45,7 +45,11 @@
+   ioc = NULL;
+   pid = getpid ();
+ 
++#ifdef __ANDROID__
++  fname = g_strdup_printf ("/botbrew/tmp/gvfsid.%d", pid);
++#else
+   fname = g_strdup_printf ("/tmp/gvfsid.%d", pid);
++#endif
+   ioc = g_io_channel_new_file (fname, "w", NULL);
+   g_free (fname);
+   
+--- gio/tests/gdbus-sessionbus.c
++++ gio/tests/gdbus-sessionbus.c
+@@ -307,7 +307,11 @@
+ {
+   if (temporary_address == NULL)
+     {
++#ifdef __ANDROID__
++      temporary_address = g_strdup_printf ("unix:path=/botbrew/tmp/g-dbus-tests-pid-%d", getpid ());
++#else
+       temporary_address = g_strdup_printf ("unix:path=/tmp/g-dbus-tests-pid-%d", getpid ());
++#endif
+     }
+ 
+   return temporary_address;
+--- glib/giounix.c
++++ glib/giounix.c
+@@ -186,8 +186,12 @@
+   GIOUnixChannel *unix_channel = (GIOUnixChannel *)channel;
+   gssize result;
+ 
++#ifdef __ANDROID__
++  if (count > LONG_MAX) count = LONG_MAX;
++#else
+   if (count > SSIZE_MAX) /* At least according to the Debian manpage for read */
+     count = SSIZE_MAX;
++#endif
+ 
+  retry:
+   result = read (unix_channel->fd, buf, count);
+--- glib/gstrfuncs.c
++++ glib/gstrfuncs.c
+@@ -706,8 +706,12 @@
+ 
+   fail_pos = NULL;
+ 
++#ifdef __ANDROID__
++  decimal_point = ".";
++#else
+   locale_data = localeconv ();
+   decimal_point = locale_data->decimal_point;
++#endif
+   decimal_point_len = strlen (decimal_point);
+ 
+   g_assert (decimal_point_len != 0);
+@@ -930,8 +934,12 @@
+ 
+   _g_snprintf (buffer, buf_len, format, d);
+ 
++#ifdef __ANDROID__
++  decimal_point = ".";
++#else
+   locale_data = localeconv ();
+   decimal_point = locale_data->decimal_point;
++#endif
+   decimal_point_len = strlen (decimal_point);
+ 
+   g_assert (decimal_point_len != 0);
+--- glib/gthread-posix.c
++++ glib/gthread-posix.c
+@@ -67,6 +67,17 @@
+ #include <sys/prctl.h>
+ #endif
+ 
++#ifdef __ANDROID__
++#define pthread_rwlock_t pthread_mutex_t
++#define pthread_rwlock_init pthread_mutex_init
++#define pthread_rwlock_destroy pthread_mutex_destroy
++#define pthread_rwlock_rdlock pthread_mutex_lock
++#define pthread_rwlock_tryrdlock pthread_mutex_trylock
++#define pthread_rwlock_wrlock pthread_mutex_lock
++#define pthread_rwlock_trywrlock pthread_mutex_trylock
++#define pthread_rwlock_unlock pthread_mutex_unlock
++#endif
++
+ static void
+ g_thread_abort (gint         status,
+                 const gchar *function)
+--- glib/gutils.c
++++ glib/gutils.c
+@@ -669,6 +669,9 @@
+   if (g_tmp_dir == NULL || *g_tmp_dir == '\0')
+     g_tmp_dir = get_windows_directory_root ();
+ #else  
++#ifdef __ANDROID__
++#undef P_tmpdir
++#endif
+ #ifdef P_tmpdir
+   if (g_tmp_dir == NULL || *g_tmp_dir == '\0')
+     {
+@@ -682,7 +685,11 @@
+   
+   if (g_tmp_dir == NULL || *g_tmp_dir == '\0')
+     {
++#ifdef __ANDROID__
++      g_tmp_dir = g_strdup ("/botbrew/tmp");
++#else
+       g_tmp_dir = g_strdup ("/tmp");
++#endif
+     }
+ #endif	/* !G_OS_WIN32 */
+   
+@@ -813,6 +820,7 @@
+     while (!pw);
+ #  endif /* HAVE_POSIX_GETPWUID_R || HAVE_NONPOSIX_GETPWUID_R */
+     
++#ifndef __ANDROID__
+     if (!pw)
+       {
+ 	setpwent ();
+@@ -840,6 +848,7 @@
+ 	if (!g_home_dir)
+ 	  g_home_dir = g_strdup (pw->pw_dir);
+       }
++#endif
+     g_free (buffer);
+   }
+   
+@@ -865,6 +874,13 @@
+     g_home_dir = g_strdup (g_getenv ("HOME"));
+ #endif
+ 
++#ifdef __ANDROID__
++  if (g_home_dir == NULL || *g_home_dir == '\0') {
++    if (g_home_dir) g_free (g_home_dir);
++    g_home_dir = g_strdup ("/mnt/sdcard");
++  }
++#endif
++
+ #ifdef __EMX__
+   /* change '\\' in %HOME% to '/' */
+   g_strdelimit (g_home_dir, "\\",'/');

@@ -2,15 +2,19 @@
 if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
 
 PACKAGE_NAME=$(basename $(pwd))
-PACKAGE_VERSION=${AGCC_API}
+PACKAGE_VERSION=${G_NDKAPI}
 PACKAGE_DEPEND=()
 
 botbrew_do_build() {
 	if ! [ -e ${G_EXPORT}/.d ]; then
-		mkdir -p ${G_EXPORT}/system/lib
-		cp -r ${AGCC_NDK}/platforms/android-${PACKAGE_VERSION}/arch-arm/usr/include ${G_EXPORT}/system/
-		cp -r ${AGCC_NDK}/platforms/android-${PACKAGE_VERSION}/arch-arm/usr/lib/*.a ${G_EXPORT}/system/lib/
-		cp -r ${AGCC_NDK}/platforms/android-${PACKAGE_VERSION}/arch-arm/usr/lib/*.o ${G_EXPORT}/system/lib/
+		mkdir -p ${G_EXP_SYSDIR}
+		cp -r \
+			${G_NDKPATH}/platforms/android-${PACKAGE_VERSION}/arch-arm/usr/include \
+			${G_NDKPATH}/platforms/android-${PACKAGE_VERSION}/arch-arm/usr/lib \
+			${G_EXP_SYSDIR}/
+		rm -f ${G_EXP_LIBDIR}/*.so* ${G_EXP_LIBDIR}/*.a ${G_EXP_LIBDIR}/*.la
+		chmod 0644 $(find ${G_EXPORT} -type f)
+		chmod 0755 $(find ${G_EXPORT} -type d)
 		touch ${G_EXPORT}/.d
 	fi
 }

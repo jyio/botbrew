@@ -1,0 +1,36 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=30
+PACKAGE_DEPEND=()
+
+FULLNAME=${PACKAGE_NAME}${PACKAGE_VERSION}
+ARCHIVE=${FULLNAME}.tgz
+
+botbrew_do_build() {
+	botbrew_download ftp://ftp.info-zip.org/pub/infozip/src/${ARCHIVE} ${ARCHIVE}
+	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
+	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
+	if ! [ -e ${G_OBJECT}/Makefile ]; then
+		(
+			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
+			cp -rlf ../${G_SOURCE}/* ./
+		)
+	fi
+	if ! [ -e ${G_EXPORT}/.d ]; then
+#		LOCAL_ZIP="${G_CPPFLAGS} ${G_ALL_CFLAGS}" \
+#		${G_MAKE} -C ${G_OBJECT} -f unix/Makefile generic \
+#			CC="${G_TRIPLET}-gcc" CPP="${G_TRIPLET}-gcc -E" || true
+#		-DUNICODE_SUPPORT
+		LOCAL_ZIP="-DUIDGID_NOT_16BIT -DHAVE_DIRENT_H -DHAVE_TERMIOS_H ${G_CPPFLAGS} ${G_ALL_CFLAGS}" \
+		${G_MAKE} -C ${G_OBJECT} -f unix/Makefile zips \
+			CC="${G_TRIPLET}-gcc" CPP="${G_TRIPLET}-gcc -E" \
+			LFLAGS1="-L${G_LIBDIR}" LFLAGS2="-s -lz"
+		${G_MAKE} -C ${G_OBJECT} -f unix/Makefile install prefix=$(pwd)/${G_EXPORT}${G_INSTALLPREFIX}
+		mkdir ${G_EXPORT}${G_INSTALLPREFIX}/share
+		mv ${G_EXPORT}${G_INSTALLPREFIX}/man ${G_EXPORT}${G_INSTALLPREFIX}/share/
+		${G_STRIP} --strip-unneeded ${G_EXP_BINDIR}/* || true
+		touch ${G_EXPORT}/.d
+	fi
+}

@@ -1,0 +1,15 @@
+Package: libisl
+Version: 0.06-0
+Architecture: armeabi
+Section: libs
+Priority: optional
+Source: http://www.cloog.org/
+Description: |
+ manipulating sets and relations of integer points bounded by linear constraints
+ isl is a library for manipulating sets and relations of integer points bounded by linear constraints. Supported operations on sets include intersection, union, set difference, emptiness check, convex hull, (integer) affine hull, integer projection, and computing the lexicographic minimum using parametric integer programming. It also includes an ILP solver based on generalized basis reduction. This package contains the runtime library.
+Depends: libgmp
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/lib
+    cp ${EXPORT}${PREFIX}/lib/libisl.so* ${PACKAGE}${PREFIX}/lib/

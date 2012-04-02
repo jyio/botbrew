@@ -2,7 +2,7 @@
 if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
 
 PACKAGE_NAME=$(basename $(pwd))
-PACKAGE_VERSION=2.0.18
+PACKAGE_VERSION=2.0.19
 PACKAGE_DEPEND=( libgpg-error libassuan libksba libgcrypt pth readline ncursesw libiconv bzip2 )
 
 FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
@@ -29,15 +29,15 @@ botbrew_do_build() {
 		echo "#include_next <stdint.h>" > ${G_SOURCE}/gl/stdint_.h
 		touch ${G_SOURCE}/gl/.do.stdint
 	fi
-	botbrew_patchtree -p0 ${G_SOURCE} patch/gnupg-2.0.18-android.patch
+#	botbrew_patchtree -p0 ${G_SOURCE} patch/gnupg-2.0.19-android.patch
 	botbrew_import
-	for config in $(find ${G_IMPORT} -name '*-config' | grep '\/system\/bin\/[^\.]*-config$'); do
+	for config in $(find ${G_IMPORT} -name '*-config' | grep '\/botbrew\/bin\/[^\.]*-config$'); do
 		botbrew_fix_crosslibconfig $config
 	done
 	if ! [ -e ${G_OBJECT}/Makefile ]; then
 		(
 			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
-			CC="agcc.bash" CPPFLAGS="-I${G_INCDIR}" LD="agcc.bash" LDFLAGS="-L${G_LIBDIR}" \
+			CPPFLAGS="${G_CPPFLAGS} -I${G_INCDIR}" CFLAGS="${G_ALL_CFLAGS}" LDFLAGS="-L${G_LIBDIR}" \
 			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
 				--with-gpg-error-prefix=${G_SYSDIR} \
 				--with-libassuan-prefix=${G_SYSDIR} \
@@ -50,8 +50,8 @@ botbrew_do_build() {
 	if ! [ -e ${G_EXPORT}/.d ]; then
 		${G_MAKE} -C ${G_OBJECT}
 		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
-		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/* ${G_EXPORT}/system/libexec/* || true
-		botbrew_fix_shell_path $(grep -rlIF '/bin/sh' ${G_EXPORT})
+		${G_STRIP} --strip-unneeded ${G_EXP_BINDIR}/* ${G_EXP_SYSDIR}/libexec/* || true
+		botbrew_fix_interpreter_path ${G_EXPORT}
 		touch ${G_EXPORT}/.d
 	fi
 }

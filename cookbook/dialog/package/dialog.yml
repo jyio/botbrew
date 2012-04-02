@@ -1,0 +1,15 @@
+Package: dialog
+Version: 1.1-20120215-1
+Architecture: armeabi
+Section: misc
+Priority: optional
+Source: http://invisible-island.net/dialog/
+Description: |
+ Displays user-friendly dialog boxes from shell scripts
+ This application provides a method of displaying several different types of dialog boxes from shell scripts. This allows a developer of a script to interact with the user in a much friendlier manner.
+Depends: ncurses-common, libncursesw
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}
+    cp -r ${EXPORT}${PREFIX}/bin ${PACKAGE}${PREFIX}/

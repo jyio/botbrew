@@ -3,7 +3,7 @@ if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
 
 PACKAGE_NAME=$(basename $(pwd))
 PACKAGE_VERSION=0.8
-PACKAGE_DEPEND=( libbotbrew )
+PACKAGE_DEPEND=( musl )
 
 FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
 ARCHIVE=${FULLNAME}.tar.gz
@@ -12,20 +12,19 @@ botbrew_do_build() {
 	botbrew_download http://downloads.sourceforge.net/project/${PACKAGE_NAME}/${PACKAGE_NAME}/${PACKAGE_VERSION}/${ARCHIVE} ${ARCHIVE}
 	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
 	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
-	botbrew_patchtree -p0 ${G_SOURCE} patch/dtach-0.8-android.patch
 	botbrew_import
 	if ! [ -e ${G_OBJECT}/Makefile ]; then
 		(
 			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
-			CC="agcc.bash" CFLAGS="-I${G_INCDIR}" LD="agcc.bash" LDFLAGS="-L${G_LIBDIR}" LIBS="-lbotbrew" \
+			CFLAGS="${G_CPPFLAGS} ${G_ALL_CFLAGS} -I${G_INCDIR}/musl" LDFLAGS="-L${G_LIBDIR}" LIBS="-lmusl" \
 			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET}
 		)
 	fi
 	if ! [ -e ${G_EXPORT}/.d ]; then
 		${G_MAKE} -C ${G_OBJECT}
-		mkdir -p ${G_EXPORT}/system/bin
-		cp ${G_OBJECT}/dtach ${G_EXPORT}/system/bin/
-		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/* || true
+		mkdir -p ${G_EXP_BINDIR}
+		cp ${G_OBJECT}/dtach ${G_EXP_BINDIR}/
+		${G_STRIP} --strip-unneeded ${G_EXP_BINDIR}/* || true
 		touch ${G_EXPORT}/.d
 	fi
 }

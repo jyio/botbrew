@@ -1,0 +1,17 @@
+Package: libdbus-1-dev
+Version: 1.5.12-0
+Architecture: armeabi
+Section: libdevel
+Priority: optional
+Source: http://www.freedesktop.org/wiki/Software/dbus
+Description: |
+ simple interprocess messaging system (development headers)
+ D-Bus is a message bus, used for sending messages between applications. Conceptually, it fits somewhere in between raw sockets and CORBA in terms of complexity.
+Depends: libdbus-1, libmusl-dev
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/lib
+    cp -r ${EXPORT}${PREFIX}/include ${PACKAGE}${PREFIX}/
+    cp ${EXPORT}${PREFIX}/lib/*.a ${EXPORT}${PREFIX}/lib/*.la ${PACKAGE}${PREFIX}/lib/
+    cp -r ${EXPORT}${PREFIX}/lib/dbus-1.0 ${EXPORT}${PREFIX}/lib/pkgconfig ${PACKAGE}${PREFIX}/lib/

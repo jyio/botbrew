@@ -126,6 +126,10 @@ while true; do
 			#	MODE=$1
 			#fi
 			;;
+		'-r')
+			ARGS[${#ARGS[@]}]="-Wl,-r"
+			ARGS[${#ARGS[@]}]="-Wl,-arch,arm"
+			;;
 		'-o')
 			if [ $# -gt 1 ]; then
 				if [ "$OUT" != "" ]; then

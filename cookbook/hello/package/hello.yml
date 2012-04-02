@@ -1,5 +1,5 @@
 Package: hello
-Version: 0.0.1-0
+Version: 0.0.1-1
 Architecture: all
 Section: devel
 Priority: optional
@@ -21,5 +21,5 @@ Data:
     echo "postrm: removed package"
  /CONTROL/init: |
     #!/bin/sh
-    cp -rf $EXPORT/* $PACKAGE/
-    echo "init: prepared package $EXPORT => $PACKAGE"
+    cp -rf ${EXPORT}/* ${PACKAGE}/
+    echo "init: prepared package ${EXPORT} => ${PACKAGE}"

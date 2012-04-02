@@ -12,10 +12,13 @@ botbrew_do_build() {
 	botbrew_download http://www.jimpryor.net/linux/releases/${ARCHIVE} ${ARCHIVE}
 	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
 	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
-	for item in $(grep -rlIF '/bin/sh' ${G_SOURCE}/*.c); do
-		sed -e 's/\/bin\/sh/\/system\/bin\/sh/g' ${item} > temp
-		mv temp ${item}
-	done
+	if ! [ -e ${G_SOURCE}/.do.sh ]; then
+		for item in $(grep -rlIF '/bin/sh' ${G_SOURCE}/*.c); do
+			sed -e 's/\/bin\/sh/\/system\/bin\/sh/g' ${item} > temp
+			mv temp ${item}
+		done
+		touch ${G_SOURCE}/.do.sh
+	fi
 	if ! [ -e ${G_OBJECT}/Makefile ]; then
 		(
 			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
@@ -25,18 +28,18 @@ botbrew_do_build() {
 	if ! [ -e ${G_EXPORT}/.d ]; then
 		${G_MAKE} -C ${G_OBJECT} \
 			CC=${G_TRIPLET}-gcc \
-			CPPFLAGS='-DTMPDIR=\"/cache\"' \
-			PREFIX=/system \
-			SBINDIR=/system/bin \
-			MANDIR=/system/share/man \
-			CRONTABS=/data/spool/cron/crontabs \
-			CRONSTAMPS=/data/spool/cron/cronstamps \
-			SCRONTABS=/system/etc/cron.d \
+			CPPFLAGS='-DTMPDIR=\"/botbrew/tmp\"' \
+			PREFIX=${G_INSTALLPREFIX} \
+			SBINDIR=${G_INSTALLPREFIX}/bin \
+			MANDIR=${G_INSTALLPREFIX}/share/man \
+			CRONTABS=${G_INSTALLPREFIX}/var/spool/cron/crontabs \
+			CRONSTAMPS=${G_INSTALLPREFIX}/var/spool/cron/cronstamps \
+			SCRONTABS=${G_INSTALLPREFIX}/etc/cron.d \
 			CRONTAB_GROUP=root
 		fakeroot ${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
-		cp -a ${G_OBJECT}/extra/run-cron ${G_EXPORT}/system/bin/
-		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/* || true
-		botbrew_fix_shell_path $(grep -rlIF '/bin/sh' ${G_EXPORT})
+		cp -a ${G_OBJECT}/extra/run-cron ${G_EXP_BINDIR}/
+		${G_STRIP} --strip-unneeded ${G_EXP_BINDIR}/* || true
+		botbrew_fix_interpreter_path ${G_EXPORT}
 		touch ${G_EXPORT}/.d
 	fi
 }

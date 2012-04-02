@@ -19,7 +19,7 @@ botbrew_do_build() {
 	if ! [ -e ${G_OBJECT}/Makefile ]; then
 		(
 			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
-			CPPFLAGS="-D_GNU_SOURCE -I${G_INCDIR}/musl" LDFLAGS="-L${G_LIBDIR}" LIBS="-lmusl" \
+			CPPFLAGS="${G_CPPFLAGS} ${G_ALL_CFLAGS} -I${G_INCDIR}/musl" LDFLAGS="-L${G_LIBDIR}" LIBS="-lmusl" \
 			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
 				--disable-wtmp \
 				--disable-wtmpx \
@@ -31,9 +31,9 @@ botbrew_do_build() {
 	if ! [ -e ${G_EXPORT}/.d ]; then
 		${G_MAKE} -C ${G_OBJECT} PROGRAMS="${PROGRAMS}" SCPPROGRESS=1 MULTI=1
 		${G_MAKE} -C ${G_OBJECT} installdropbearmulti DESTDIR=$(pwd)/${G_EXPORT} PROGRAMS="${PROGRAMS}" SCPPROGRESS=1 MULTI=1
-		mv ${G_EXPORT}/system/sbin/* ${G_EXPORT}/system/bin/
-		rm -rf ${G_EXPORT}/system/sbin
-		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/* || true
+		mv ${G_EXP_SYSDIR}/sbin/* ${G_EXP_BINDIR}/
+		rm -rf ${G_EXP_SYSDIR}/sbin
+		${G_STRIP} --strip-unneeded ${G_EXP_BINDIR}/* || true
 		touch ${G_EXPORT}/.d
 	fi
 }

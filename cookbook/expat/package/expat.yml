@@ -1,0 +1,15 @@
+Package: expat
+Version: 2.1.0-0
+Architecture: armeabi
+Section: text
+Priority: optional
+Source: http://expat.sourceforge.net/
+Description: |
+ XML parsing C library - example application
+ This package contains xmlwf, an example application of expat, the C library for parsing XML. The arguments to xmlwf are one or more files which are each to be checked for XML well-formedness.
+Depends: libexpat
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}
+    cp -r ${EXPORT}${PREFIX}/bin ${PACKAGE}${PREFIX}/

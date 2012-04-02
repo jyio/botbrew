@@ -1,0 +1,14 @@
+Package: libffi-doc
+Version: 3.0.10-0
+Architecture: all
+Section: doc
+Priority: optional
+Source: http://sourceware.org/libffi/
+Description: |
+ Foreign Function Interface library (documentation)
+ A foreign function interface is the popular name for the interface that allows code written in one language to call code written in another language.
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}
+    cp -r ${EXPORT}${PREFIX}/share ${PACKAGE}${PREFIX}/

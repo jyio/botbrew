@@ -1200,7 +1200,7 @@
 +ARCH		:= arm
 +CC		:= arm-linux-androideabi-gcc
 +LD		:= arm-linux-androideabi-gcc
-+CFLAGS		:= -Os -std=c99 -D_XOPEN_SOURCE=700 -pipe -march=armv5te -mtune=xscale -msoft-float -mthumb-interwork -fpic -fno-exceptions -ffunction-sections -funwind-tables -fmessage-length=0 -O2 -finline-functions -finline-limit=300 -fno-inline-functions-called-once -fgcse-after-reload -frerun-cse-after-loop -frename-registers -fomit-frame-pointer -fstrict-aliasing -funswitch-loops
++CFLAGS		:= -Os -std=c99 -D_XOPEN_SOURCE=700 -pipe -D_XOPEN_SOURCE=700 -D_GNU_SOURCE -D__ARM_ARCH_5__ -D__ARM_ARCH_5T__ -D__ARM_ARCH_5E__ -D__ARM_ARCH_5TE__ -DSK_RELEASE -DNDEBUG -UDEBUG -march=armv5te -mtune=xscale -msoft-float -mthumb-interwork -fpic -fno-exceptions -ffunction-sections -funwind-tables -fmessage-length=0 -O2 -finline-functions -finline-limit=300 -fno-inline-functions-called-once -fgcse-after-reload -frerun-cse-after-loop -frename-registers -fomit-frame-pointer -fstrict-aliasing -funswitch-loops
 +LDFLAGS		:= -shared -lm
 +AR		:= arm-linux-androideabi-ar
 +RANLIB		:= arm-linux-androideabi-ranlib
@@ -1384,14 +1384,12 @@
  	size_t gl_pathc;
 --- include/grp.h
 +++ include/grp.h
-@@ -1,25 +1,19 @@
--#ifndef	_GRP_H
--#define	_GRP_H
-+#ifndef _GRP_H
-+#define _GRP_H
-+
-+#include_next <grp.h>
+@@ -1,22 +1,16 @@
+ #ifndef	_GRP_H
+ #define	_GRP_H
  
++#include_next <grp.h>
++
  #ifdef __cplusplus
  extern "C" {
  #endif
@@ -1411,16 +1409,11 @@
 +#ifdef _PATH_GROUP
 +#undef _PATH_GROUP
 +#endif
-+#define _PATH_GROUP		"/system/etc/group"
++#define _PATH_GROUP		"/botbrew/etc/group"
  
--struct group  *getgrgid(gid_t);
--struct group  *getgrnam(const char *);
-+struct group  *__musl_getgrgid(gid_t);
-+struct group  *__musl_getgrnam(const char *);
- 
- int getgrgid_r(gid_t, struct group *, char *, size_t, struct group **);
- int getgrnam_r(const char *, struct group *, char *, size_t, struct group **);
-@@ -28,11 +22,8 @@
+ struct group  *getgrgid(gid_t);
+ struct group  *getgrnam(const char *);
+@@ -28,12 +22,6 @@
  void           endgrent(void);
  void           setgrent(void);
  
@@ -1429,11 +1422,10 @@
 -int setgroups(size_t, const gid_t *);
 -int initgroups(const char *, gid_t);
 -#endif
-+#define getgrgid	__musl_getgrgid
-+#define getgrnam	__musl_getgrnam
- 
+-
  #ifdef __cplusplus
  }
+ #endif
 --- include/iconv.h
 +++ include/iconv.h
 @@ -5,9 +5,7 @@
@@ -2501,28 +2493,28 @@
  
 -#define	_PATH_BSHELL	"/bin/sh"
 +/* Default search path. */
-+#define	_PATH_DEFPATH	"/system/bin:/data/system/bin:/sd-ext/system/bin:/system/xbin"
++#define	_PATH_DEFPATH	"/botbrew/bin:/system/bin:/system/xbin"
 +/* All standard utilities path. */
-+#define	_PATH_STDPATH	"/sbin:/vendor/bin:/system/sbin:/system/bin:/data/system/bin:/sd-ext/system/bin:/system/xbin"
++#define	_PATH_STDPATH	"/sbin:/vendor/bin:/system/sbin:/botbrew/bin:/system/bin:/system/xbin"
 +
-+#define	_PATH_BSHELL	"/system/bin/sh"
++#define	_PATH_BSHELL	"/botbrew/bin/bbsh"
  #define	_PATH_CONSOLE	"/dev/console"
 -#define	_PATH_CSHELL	"/bin/csh"
 -#define	_PATH_DEVDB	"/var/run/dev.db"
-+#define	_PATH_CSHELL	"/system/bin/csh"
-+#define	_PATH_DEVDB	"/data/run/dev.db"
++#define	_PATH_CSHELL	"/botbrew/bin/csh"
++#define	_PATH_DEVDB	"/botbrew/var/run/dev.db"
  #define	_PATH_DEVNULL	"/dev/null"
  #define	_PATH_DRUM	"/dev/drum"
 -#define	_PATH_GSHADOW	"/etc/gshadow"
-+#define _PATH_GSHADOW	"/system/etc/gshadow"
++#define _PATH_GSHADOW	"/botbrew/etc/gshadow"
  #define	_PATH_KLOG	"/proc/kmsg"
  #define	_PATH_KMEM	"/dev/kmem"
 -#define	_PATH_LASTLOG	"/var/log/lastlog"
 -#define	_PATH_MAILDIR	"/var/mail"
 -#define	_PATH_MAN	"/usr/share/man"
-+#define	_PATH_LASTLOG	"/data/log/lastlog"
-+#define	_PATH_MAILDIR	"/data/mail"
-+#define	_PATH_MAN	"/system/share/man"
++#define	_PATH_LASTLOG	"/botbrew/var/log/lastlog"
++#define	_PATH_MAILDIR	"/botbrew/var/mail"
++#define	_PATH_MAN	"/botbrew/share/man"
  #define	_PATH_MEM	"/dev/mem"
 -#define	_PATH_MNTTAB	"/etc/fstab"
 -#define	_PATH_MOUNTED	"/etc/mtab"
@@ -2532,22 +2524,22 @@
 -#define	_PATH_SENDMAIL	"/usr/sbin/sendmail"
 -#define	_PATH_SHADOW	"/etc/shadow"
 -#define	_PATH_SHELLS	"/etc/shells"
-+#define	_PATH_MNTTAB	"/system/etc/fstab"
-+#define	_PATH_MOUNTED	"/system/etc/mtab"
-+#define	_PATH_NOLOGIN	"/system/etc/nologin"
-+#define	_PATH_PRESERVE	"/data/lib"
-+#define	_PATH_RWHODIR	"/data/spool/rwho"
-+#define	_PATH_SENDMAIL	"/system/bin/sendmail"
-+#define	_PATH_SHADOW	"/system/etc/shadow"
-+#define	_PATH_SHELLS	"/system/etc/shells"
++#define	_PATH_MNTTAB	"/botbrew/etc/fstab"
++#define	_PATH_MOUNTED	"/botbrew/etc/mtab"
++#define	_PATH_NOLOGIN	"/botbrew/etc/nologin"
++#define	_PATH_PRESERVE	"/botbrew/var/lib"
++#define	_PATH_RWHODIR	"/botbrew/var/spool/rwho"
++#define	_PATH_SENDMAIL	"/botbrew/bin/sendmail"
++#define	_PATH_SHADOW	"/botbrew/etc/shadow"
++#define	_PATH_SHELLS	"/botbrew/etc/shells"
  #define	_PATH_TTY	"/dev/tty"
  #define	_PATH_UNIX	"/boot/vmlinux"
 -#define _PATH_UTMP	"/var/run/utmp"
 -#define	_PATH_VI	"/usr/bin/vi"
 -#define _PATH_WTMP	"/var/log/wtmp"
-+#define _PATH_UTMP	"/data/run/utmp"
-+#define	_PATH_VI	"/system/bin/vi"
-+#define _PATH_WTMP	"/data/log/wtmp"
++#define _PATH_UTMP	"/botbrew/var/run/utmp"
++#define	_PATH_VI	"/botbrew/bin/vi"
++#define _PATH_WTMP	"/botbrew/var/log/wtmp"
  
 +/* Provide trailing slash, since mostly used for building pathnames. */
  #define	_PATH_DEV	"/dev/"
@@ -2555,15 +2547,15 @@
 -#define	_PATH_VARDB	"/var/lib/misc/"
 -#define	_PATH_VARRUN	"/var/run/"
 -#define	_PATH_VARTMP	"/var/tmp/"
-+#define	_PATH_TMP	"/data/vtmp/"
-+#define	_PATH_VARDB	"/data/db/"
-+#define	_PATH_VARRUN	"/data/run/"
-+#define	_PATH_VARTMP	"/data/tmp/"
++#define	_PATH_TMP	"/botbrew/tmp/"
++#define	_PATH_VARDB	"/botbrew/var/lib/misc/"
++#define	_PATH_VARRUN	"/botbrew/var/run/"
++#define	_PATH_VARTMP	"/botbrew/var/tmp/"
  
  #endif
 --- include/pwd.h
 +++ include/pwd.h
-@@ -1,21 +1,32 @@
+@@ -1,30 +1,34 @@
  #ifndef _PWD_H
  #define _PWD_H
  
@@ -2580,61 +2572,42 @@
 -#ifdef _GNU_SOURCE
 -#define __NEED_FILE
 -#endif
--
++#include <stdio.h>
+ 
 -#include <bits/alltypes.h>
 +#undef _PATH_PASSWD
-+#define _PATH_PASSWD		"/system/etc/passwd"
++#define _PATH_PASSWD		"/botbrew/etc/passwd"
 +#undef _PATH_MASTERPASSWD
-+#define _PATH_MASTERPASSWD	"/system/etc/master.passwd"
++#define _PATH_MASTERPASSWD	"/botbrew/etc/master.passwd"
 +#undef _PATH_MASTERPASSWD_LOCK
-+#define _PATH_MASTERPASSWD_LOCK	"/system/etc/ptmp"
++#define _PATH_MASTERPASSWD_LOCK	"/botbrew/etc/ptmp"
 +#undef _PATH_PASSWD_CONF
-+#define _PATH_PASSWD_CONF	"/system/etc/passwd.conf"
++#define _PATH_PASSWD_CONF	"/botbrew/etc/passwd.conf"
 +#undef _PATH_PASSWDCONF
 +#define _PATH_PASSWDCONF	_PATH_PASSWD_CONF
 +#undef _PATH_USERMGMT_CONF
-+#define _PATH_USERMGMT_CONF	"/system/etc/usermgmt.conf"
++#define _PATH_USERMGMT_CONF	"/botbrew/etc/usermgmt.conf"
 +#undef _PATH_MP_DB
-+#define _PATH_MP_DB		"/system/etc/pwd.db"
++#define _PATH_MP_DB		"/botbrew/etc/pwd.db"
 +#undef _PATH_SMP_DB
-+#define _PATH_SMP_DB		"/system/etc/spwd.db"
++#define _PATH_SMP_DB		"/botbrew/etc/spwd.db"
 +#undef _PATH_PWD_MKDB
-+#define _PATH_PWD_MKDB		"/system/bin/pwd_mkdb"
++#define _PATH_PWD_MKDB		"/botbrew/bin/pwd_mkdb"
  
 -struct passwd
-+struct __musl_passwd
- {
- 	char *pw_name;
- 	char *pw_passwd;
-@@ -28,18 +39,22 @@
+-{
+-	char *pw_name;
+-	char *pw_passwd;
+-	uid_t pw_uid;
+-	gid_t pw_gid;
+-	char *pw_gecos;
+-	char *pw_dir;
+-	char *pw_shell;
+-};
++#define pw_gecos pw_name
  
  void setpwent (void);
  void endpwent (void);
--struct passwd *getpwent (void);
-+struct __musl_passwd *getpwent (void);
- 
--struct passwd *getpwuid (uid_t);
--struct passwd *getpwnam (const char *);
--int getpwuid_r (uid_t, struct passwd *, char *, size_t, struct passwd **);
--int getpwnam_r (const char *, struct passwd *, char *, size_t, struct passwd **);
-+struct __musl_passwd *__musl_getpwuid (uid_t);
-+struct __musl_passwd *__musl_getpwnam (const char *);
-+int getpwuid_r (uid_t, struct __musl_passwd *, char *, size_t, struct __musl_passwd **);
-+int getpwnam_r (const char *, struct __musl_passwd *, char *, size_t, struct __musl_passwd **);
- 
- #ifdef _GNU_SOURCE
- char *getpass(const char *);
--struct passwd *fgetpwent(FILE *);
-+struct __musl_passwd *fgetpwent(FILE *);
- #endif
- 
-+#define passwd		__musl_passwd
-+#define getpwuid	__musl_getpwuid
-+#define getpwnam	__musl_getpwnam
-+
- #ifdef __cplusplus
- }
- #endif
 --- include/sched.h
 +++ include/sched.h
 @@ -1,61 +1,22 @@
@@ -3392,10 +3365,11 @@
  
 --- include/sys/select.h
 +++ include/sys/select.h
-@@ -1,36 +1,15 @@
+@@ -1,36 +1,16 @@
  #ifndef _SYS_SELECT_H
  #define _SYS_SELECT_H
 +
++#include <asm/signal.h>
 +#include <linux/time.h>
 +#include_next <sys/select.h>
 +
@@ -4740,11 +4714,11 @@
 -}
 -#endif
 +#undef _PATH_UTMP
-+#define _PATH_UTMP	"/data/run/utmp"
++#define _PATH_UTMP	"/botbrew/var/run/utmp"
 +#undef _PATH_WTMP
-+#define _PATH_WTMP	"/data/log/wtmp"
++#define _PATH_WTMP	"/botbrew/var/log/wtmp"
 +#undef _PATH_LASTLOG
-+#define _PATH_LASTLOG	"/data/log/lastlog"
++#define _PATH_LASTLOG	"/botbrew/var/log/lastlog"
  
  #endif
 --- include/utmpx.h
@@ -4943,14 +4917,18 @@
  #ifdef __cplusplus
 --- Makefile
 +++ Makefile
-@@ -1,3 +1,6 @@
+@@ -1,3 +1,10 @@
++LIBNAME := c
++LIBNAME := c
++LIBNAME := c
++LIBNAME := c
 +LIBNAME := c
 +LIBNAME := c
 +LIBNAME := c
  #
  # Makefile for musl (requires GNU make)
  #
-@@ -34,8 +37,8 @@
+@@ -34,8 +41,8 @@
  EMPTY_LIB_NAMES = m rt pthread crypt util xnet resolv dl
  EMPTY_LIBS = $(EMPTY_LIB_NAMES:%=lib/lib%.a)
  CRT_LIBS = lib/crt1.o lib/crti.o lib/crtn.o
@@ -4961,7 +4939,7 @@
  ALL_LIBS = $(CRT_LIBS) $(STATIC_LIBS) $(SHARED_LIBS)
  ALL_TOOLS = tools/musl-gcc
  
-@@ -77,11 +80,11 @@
+@@ -77,11 +84,11 @@
  %.lo: %.c $(GENH)
  	$(CC) $(CFLAGS) $(INC) $(PIC) -c -o $@ $<
  
@@ -4976,7 +4954,7 @@
  	rm -f $@
  	$(AR) rc $@ $(OBJS)
  	$(RANLIB) $@
-@@ -109,9 +112,9 @@
+@@ -109,9 +116,9 @@
  $(DESTDIR)$(includedir)/%: include/%
  	install -D -m 644 $< $@
  
@@ -5149,23 +5127,14 @@
 -}
 -
 -weak_alias(__ptsname_r, ptsname_r);
---- src/passwd/fgetpwent.c
-+++ src/passwd/fgetpwent.c
-@@ -1,9 +1,9 @@
- #include "pwf.h"
- 
--struct passwd *fgetpwent(FILE *f)
-+struct __musl_passwd *fgetpwent(FILE *f)
- {
- 	static char *line;
--	static struct passwd pw;
-+	static struct __musl_passwd pw;
- 	size_t size=0;
- 	return __getpwent_a(f, &pw, &line, &size);
- }
 --- src/passwd/getgrent_a.c
 +++ src/passwd/getgrent_a.c
-@@ -6,8 +6,6 @@
+@@ -1,13 +1,10 @@
+ #include "pwf.h"
+-#include <pthread.h>
+ 
+ struct group *__getgrent_a(FILE *f, struct group *gr, char **line, size_t *size, char ***mem, size_t *nmem)
+ {
  	ssize_t l;
  	char *s, *mems;
  	size_t i;
@@ -5174,7 +5143,7 @@
  	for (;;) {
  		if ((l=getline(line, size, f)) < 0) {
  			free(*line);
-@@ -50,6 +48,5 @@
+@@ -50,6 +47,5 @@
  	}
  	gr->gr_mem = *mem;
  end:
@@ -5183,46 +5152,66 @@
  }
 --- src/passwd/getgrent.c
 +++ src/passwd/getgrent.c
-@@ -15,12 +15,12 @@
+@@ -1,4 +1,5 @@
+ #include "pwf.h"
++#include <dlfcn.h>
+ 
+ static FILE *f;
+ 
+@@ -15,13 +16,14 @@
  	static char *line, **mem;
  	static struct group gr;
  	size_t size=0, nmem=0;
 -	if (!f) f = fopen("/etc/group", "rb");
-+	if (!f) f = fopen("/system/etc/group", "rb");
++	if (!f) f = fopen(_PATH_GROUP, "rb");
  	if (!f) return 0;
  	return __getgrent_a(f, &gr, &line, &size, &mem, &nmem);
  }
  
--struct group *getgrgid(gid_t gid)
-+struct group *__musl_getgrgid(gid_t gid)
+ struct group *getgrgid(gid_t gid)
  {
++	static struct group *(*orig)(gid_t) = NULL;
  	struct group *gr;
  	int errno_saved;
-@@ -29,10 +29,11 @@
+ 	setgrent();
+@@ -29,11 +31,16 @@
  	errno_saved = errno;
  	endgrent();
  	errno = errno_saved;
 -	return gr;
 +	if((gr)&&(gr->gr_gid == gid)) return gr;
-+	else return getgrgid(gid);
++	else {
++		if(!orig) orig = (struct group *(*)(gid_t))dlsym(RTLD_NEXT,"getgrgid");
++		return orig?orig(gid):gr;
++	}
  }
  
--struct group *getgrnam(const char *name)
-+struct group *__musl_getgrnam(const char *name)
+ struct group *getgrnam(const char *name)
  {
++	static struct group *(*orig)(const char*) = NULL;
  	struct group *gr;
  	int errno_saved;
-@@ -41,5 +42,6 @@
+ 	setgrent();
+@@ -41,5 +48,9 @@
  	errno_saved = errno;
  	endgrent();
  	errno = errno_saved;
 -	return gr;
 +	if((gr)&&(strcmp(gr->gr_name,name) == 0)) return gr;
-+	else return getgrnam(name);
++	else {
++		if(!orig) orig = (struct group *(*)(const char*))dlsym(RTLD_NEXT,"getgrnam");
++		return orig?orig(name):gr;
++	}
  }
 --- src/passwd/getgr_r.c
 +++ src/passwd/getgr_r.c
-@@ -12,11 +12,8 @@
+@@ -1,5 +1,4 @@
+ #include "pwf.h"
+-#include <pthread.h>
+ 
+ #define FIX(x) (gr->gr_##x = gr->gr_##x-line+buf)
+ 
+@@ -12,11 +11,8 @@
  	size_t nmem = 0;
  	int rv = 0;
  	size_t i;
@@ -5231,11 +5220,11 @@
 -	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &cs);
 -
 -	f = fopen("/etc/group", "rb");
-+	f = fopen("/system/etc/group", "rb");
++	f = fopen(_PATH_GROUP, "rb");
  	if (!f) {
  		rv = errno;
  		goto done;
-@@ -47,7 +44,6 @@
+@@ -47,7 +43,6 @@
   	free(line);
  	fclose(f);
  done:
@@ -5245,12 +5234,11 @@
  
 --- src/passwd/getpwent_a.c
 +++ src/passwd/getpwent_a.c
-@@ -1,12 +1,10 @@
+@@ -1,12 +1,9 @@
  #include "pwf.h"
- #include <pthread.h>
+-#include <pthread.h>
  
--struct passwd *__getpwent_a(FILE *f, struct passwd *pw, char **line, size_t *size)
-+struct __musl_passwd *__getpwent_a(FILE *f, struct __musl_passwd *pw, char **line, size_t *size)
+ struct passwd *__getpwent_a(FILE *f, struct passwd *pw, char **line, size_t *size)
  {
  	ssize_t l;
  	char *s;
@@ -5259,92 +5247,84 @@
  	for (;;) {
  		if ((l=getline(line, size, f)) < 0) {
  			free(*line);
-@@ -38,6 +36,16 @@
+@@ -29,7 +26,7 @@
+ 		*s++ = 0; pw->pw_gid = atoi(s);
+ 		if (!(s = strchr(s, ':'))) continue;
+ 
+-		*s++ = 0; pw->pw_gecos = s;
++		*s++ = 0; /*pw->pw_gecos = s;*/
+ 		if (!(s = strchr(s, ':'))) continue;
+ 
+ 		*s++ = 0; pw->pw_dir = s;
+@@ -38,6 +35,5 @@
  		*s++ = 0; pw->pw_shell = s;
  		break;
  	}
 -	pthread_setcancelstate(cs, 0);
  	return pw;
  }
-+
-+void __musl_getpwandroid_a(struct __musl_passwd *_pw, struct passwd *apw)
-+{
-+	_pw->pw_name = apw->pw_name;
-+	_pw->pw_passwd = apw->pw_passwd;
-+	_pw->pw_uid = apw->pw_uid;
-+	_pw->pw_gid = apw->pw_gid;
-+	_pw->pw_gecos = apw->pw_name;
-+	_pw->pw_dir = apw->pw_dir;
-+	_pw->pw_shell = apw->pw_shell;
-+}
 --- src/passwd/getpwent.c
 +++ src/passwd/getpwent.c
-@@ -10,36 +10,46 @@
+@@ -1,4 +1,5 @@
+ #include "pwf.h"
++#include <dlfcn.h>
  
- weak_alias(setpwent, endpwent);
+ static FILE *f;
  
--struct passwd *getpwent()
-+struct __musl_passwd *getpwent()
- {
+@@ -15,13 +16,14 @@
  	static char *line;
--	static struct passwd pw;
-+	static struct __musl_passwd pw;
+ 	static struct passwd pw;
  	size_t size=0;
 -	if (!f) f = fopen("/etc/passwd", "rb");
-+	if (!f) f = fopen("/system/etc/passwd", "rb");
++	if (!f) f = fopen(_PATH_PASSWD, "rb");
  	if (!f) return 0;
  	return __getpwent_a(f, &pw, &line, &size);
  }
  
--struct passwd *getpwuid(uid_t uid)
-+static struct __musl_passwd *__musl_getpwandroid(struct passwd *apw)
+ struct passwd *getpwuid(uid_t uid)
  {
--	struct passwd *pw;
-+	if(!apw) return 0;
-+	static struct __musl_passwd _pw;
-+	__musl_getpwandroid_a(&_pw,apw);
-+	return &_pw;
-+}
-+
-+struct __musl_passwd *__musl_getpwuid(uid_t uid)
-+{
-+	struct __musl_passwd *pw;
++	static struct passwd *(*orig)(uid_t) = NULL;
+ 	struct passwd *pw;
  	int errno_saved;
  	setpwent();
- 	while ((pw=getpwent()) && pw->pw_uid != uid);
+@@ -29,11 +31,16 @@
  	errno_saved = errno;
  	endpwent();
  	errno = errno_saved;
 -	return pw;
 +	if((pw)&&(pw->pw_uid == uid)) return pw;
-+	else return __musl_getpwandroid(getpwuid(uid));
++	else {
++		if(!orig) orig = (struct passwd *(*)(uid_t))dlsym(RTLD_NEXT,"getpwuid");
++		return orig?orig(uid):pw;
++	}
  }
  
--struct passwd *getpwnam(const char *name)
-+struct __musl_passwd *__musl_getpwnam(const char *name)
+ struct passwd *getpwnam(const char *name)
  {
--	struct passwd *pw;
-+	struct __musl_passwd *pw;
++	static struct passwd *(*orig)(const char*) = NULL;
+ 	struct passwd *pw;
  	int errno_saved;
  	setpwent();
- 	while ((pw=getpwent()) && strcmp(pw->pw_name, name));
+@@ -41,5 +48,9 @@
  	errno_saved = errno;
  	endpwent();
  	errno = errno_saved;
 -	return pw;
 +	if((pw)&&(strcmp(pw->pw_name,name) == 0)) return pw;
-+	else return __musl_getpwandroid(getpwnam(name));
++	else {
++		if(!orig) orig = (struct passwd *(*)(const char*))dlsym(RTLD_NEXT,"getpwnam");
++		return orig?orig(name):pw;
++	}
  }
 --- src/passwd/getpw_r.c
 +++ src/passwd/getpw_r.c
-@@ -3,17 +3,14 @@
+@@ -1,5 +1,4 @@
+ #include "pwf.h"
+-#include <pthread.h>
  
  #define FIX(x) (pw->pw_##x = pw->pw_##x-line+buf)
  
--static int getpw_r(const char *name, uid_t uid, struct passwd *pw, char *buf, size_t size, struct passwd **res)
-+static int getpw_r(const char *name, uid_t uid, struct __musl_passwd *pw, char *buf, size_t size, struct __musl_passwd **res)
- {
- 	FILE *f;
+@@ -9,11 +8,8 @@
  	char *line = 0;
  	size_t len = 0;
  	int rv = 0;
@@ -5353,11 +5333,20 @@
 -	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &cs);
 -
 -	f = fopen("/etc/passwd", "rb");
-+	f = fopen("/system/etc/passwd", "rb");
++	f = fopen(_PATH_PASSWD, "rb");
  	if (!f) {
  		rv = errno;
  		goto done;
-@@ -40,16 +37,15 @@
+@@ -31,7 +27,7 @@
+ 			memcpy(buf, line, len);
+ 			FIX(name);
+ 			FIX(passwd);
+-			FIX(gecos);
++			/*FIX(gecos);*/
+ 			FIX(dir);
+ 			FIX(shell);
+ 			break;
+@@ -40,7 +36,6 @@
   	free(line);
  	fclose(f);
  done:
@@ -5365,17 +5354,6 @@
  	return rv;
  }
  
--int getpwnam_r(const char *name, struct passwd *pw, char *buf, size_t size, struct passwd **res)
-+int getpwnam_r(const char *name, struct __musl_passwd *pw, char *buf, size_t size, struct __musl_passwd **res)
- {
- 	return getpw_r(name, 0, pw, buf, size, res);
- }
- 
--int getpwuid_r(uid_t uid, struct passwd *pw, char *buf, size_t size, struct passwd **res)
-+int getpwuid_r(uid_t uid, struct __musl_passwd *pw, char *buf, size_t size, struct __musl_passwd **res)
- {
- 	return getpw_r(0, uid, pw, buf, size, res);
- }
 --- src/passwd/getspnam_r.c
 +++ src/passwd/getspnam_r.c
 @@ -31,7 +31,6 @@
@@ -5386,7 +5364,16 @@
  
  	*res = 0;
  
-@@ -51,9 +50,7 @@
+@@ -43,7 +42,7 @@
+ 	if (size < l+100) return ERANGE;
+ 
+ 	/* Protect against truncation */
+-	if (snprintf(path, sizeof path, "/etc/tcb/%s/shadow", name) >= sizeof path)
++	if (snprintf(path, sizeof path, "/botbrew/etc/tcb/%s/shadow", name) >= sizeof path)
+ 		return EINVAL;
+ 
+ 	fd = open(path, O_RDONLY|O_NOFOLLOW|O_NONBLOCK);
+@@ -51,13 +50,11 @@
  		struct stat st = { 0 };
  		errno = EINVAL;
  		if (fstat(fd, &st) || !S_ISREG(st.st_mode) || !(f = fdopen(fd, "rb"))) {
@@ -5396,24 +5383,11 @@
  			return errno;
  		}
  	} else {
---- src/passwd/pwf.h
-+++ src/passwd/pwf.h
-@@ -8,6 +8,14 @@
- #include <limits.h>
- #include "libc.h"
+-		f = fopen("/etc/shadow", "rb");
++		f = fopen(_PATH_SHADOW, "rb");
+ 		if (!f) return errno;
+ 	}
  
--struct passwd *__getpwent_a(FILE *f, struct passwd *pw, char **line, size_t *size);
-+#undef passwd
-+#undef getpwuid
-+#undef getpwnam
-+#undef getgrgid
-+#undef getgrnam
-+
-+struct __musl_passwd *__getpwent_a(FILE *f, struct __musl_passwd *pw, char **line, size_t *size);
- struct spwd *__getspent_a(FILE *f, struct spwd *sp, char **line, size_t *size);
- struct group *__getgrent_a(FILE *f, struct group *gr, char **line, size_t *size, char ***mem, size_t *nmem);
-+
-+void __musl_getpwandroid_a(struct __musl_passwd *_pw, struct passwd *apw);
 --- src/stat/statvfs.c
 +++ src/stat/statvfs.c
 @@ -3,27 +3,6 @@

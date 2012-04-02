@@ -1,0 +1,28 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=0.0.1
+PACKAGE_DEPEND=( musl )
+
+botbrew_do_build() {
+	botbrew_import
+	if ! [ -e ${G_OBJECT} ]; then
+		mkdir -p ${G_OBJECT}
+		cp -rlf ${G_SOURCE}/* ${G_OBJECT}/
+	fi
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		(
+			set -x
+			cd ${G_OBJECT}
+			${G_TRIPLET}-gcc ${G_CPPFLAGS} ${G_ALL_CFLAGS} -I${G_INCDIR}/musl -L${G_LIBDIR} -o ${PACKAGE_NAME} main.c -lmusl
+		)
+		mkdir -p ${G_EXP_BINDIR}
+		cp ${G_OBJECT}/${PACKAGE_NAME} ${G_EXP_BINDIR}/
+		touch ${G_EXPORT}/.d
+	fi
+}
+
+botbrew_do_clobber() {
+	rm -rf ${G_OBJECT} ${G_IMPORT} ${G_EXPORT}
+}

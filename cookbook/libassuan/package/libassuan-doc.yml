@@ -1,0 +1,14 @@
+Package: libassuan-doc
+Version: 2.0.3-0
+Architecture: armeabi
+Section: doc
+Priority: optional
+Source: http://www.gnupg.org/
+Description: |
+ IPC library for the GnuPG components (documentation)
+ An IPC library used by the next generation of GnuPG and its various components.
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/share
+    cp -r ${EXPORT}${PREFIX}/share/info ${PACKAGE}${PREFIX}/share/

@@ -4,7 +4,7 @@
  # endif /* PAGESIZE */
  #endif /* GNU_OUR_PAGESIZE */
  
-+#ifndef ANDROID
++#ifndef __ANDROID__
  int
  getpagesize (void)
  {
@@ -20,7 +20,7 @@
  #ifdef PR_SET_NAME
    /* On Linux this sets the top visible "comm", but not necessarily
       the name visible in ps. */
-+#ifndef ANDROID
++#ifndef __ANDROID__
    prctl (PR_SET_NAME, name);
 +#else
 +  prctl (PR_SET_NAME, name, 0, 0, 0);

@@ -1,5 +1,5 @@
 Package: bzip2-doc
-Version: 1.0.6-0
+Version: 1.0.6-1
 Architecture: all
 Section: doc
 Priority: optional
@@ -10,5 +10,5 @@ Description: |
 Data:
  /CONTROL/init: |
     #!/bin/sh
-    mkdir -p $PACKAGE/system/share
-    cp -r $EXPORT/system/share/man $PACKAGE/system/share/
+    mkdir -p ${PACKAGE}${PREFIX}/share
+    cp -r ${EXPORT}${PREFIX}/share/man ${PACKAGE}${PREFIX}/share/

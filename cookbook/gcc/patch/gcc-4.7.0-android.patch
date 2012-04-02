@@ -1,0 +1,224 @@
+--- fixincludes/config.h.in
++++ fixincludes/config.h.in
+@@ -8,7 +8,6 @@
+ 
+ /* Define to 1 if you have the `clearerr_unlocked' function. */
+ #ifndef USED_FOR_TARGET
+-#undef HAVE_CLEARERR_UNLOCKED
+ #endif
+ 
+ 
+@@ -36,7 +35,6 @@
+ /* Define to 1 if you have the declaration of `clearerr_unlocked', and to 0 if
+    you don't. */
+ #ifndef USED_FOR_TARGET
+-#undef HAVE_DECL_CLEARERR_UNLOCKED
+ #endif
+ 
+ 
+@@ -57,7 +55,6 @@
+ /* Define to 1 if you have the declaration of `ferror_unlocked', and to 0 if
+    you don't. */
+ #ifndef USED_FOR_TARGET
+-#undef HAVE_DECL_FERROR_UNLOCKED
+ #endif
+ 
+ 
+@@ -113,7 +110,6 @@
+ /* Define to 1 if you have the declaration of `fread_unlocked', and to 0 if
+    you don't. */
+ #ifndef USED_FOR_TARGET
+-#undef HAVE_DECL_FREAD_UNLOCKED
+ #endif
+ 
+ 
+@@ -173,7 +169,6 @@
+ 
+ /* Define to 1 if you have the `ferror_unlocked' function. */
+ #ifndef USED_FOR_TARGET
+-#undef HAVE_FERROR_UNLOCKED
+ #endif
+ 
+ 
+@@ -221,7 +216,6 @@
+ 
+ /* Define to 1 if you have the `fread_unlocked' function. */
+ #ifndef USED_FOR_TARGET
+-#undef HAVE_FREAD_UNLOCKED
+ #endif
+ 
+ 
+--- gcc/config.in
++++ gcc/config.in
+@@ -517,7 +517,6 @@
+ 
+ /* Define to 1 if you have the `clearerr_unlocked' function. */
+ #ifndef USED_FOR_TARGET
+-#undef HAVE_CLEARERR_UNLOCKED
+ #endif
+ 
+ 
+@@ -582,7 +581,6 @@
+ /* Define to 1 if we found a declaration for 'clearerr_unlocked', otherwise
+    define to 0. */
+ #ifndef USED_FOR_TARGET
+-#undef HAVE_DECL_CLEARERR_UNLOCKED
+ #endif
+ 
+ 
+@@ -610,7 +608,6 @@
+ /* Define to 1 if we found a declaration for 'ferror_unlocked', otherwise
+    define to 0. */
+ #ifndef USED_FOR_TARGET
+-#undef HAVE_DECL_FERROR_UNLOCKED
+ #endif
+ 
+ 
+@@ -666,7 +663,6 @@
+ /* Define to 1 if we found a declaration for 'fread_unlocked', otherwise
+    define to 0. */
+ #ifndef USED_FOR_TARGET
+-#undef HAVE_DECL_FREAD_UNLOCKED
+ #endif
+ 
+ 
+@@ -896,7 +892,6 @@
+ 
+ /* Define to 1 if you have the `ferror_unlocked' function. */
+ #ifndef USED_FOR_TARGET
+-#undef HAVE_FERROR_UNLOCKED
+ #endif
+ 
+ 
+@@ -950,7 +945,6 @@
+ 
+ /* Define to 1 if you have the `fread_unlocked' function. */
+ #ifndef USED_FOR_TARGET
+-#undef HAVE_FREAD_UNLOCKED
+ #endif
+ 
+ 
+--- gcc/gcc.c
++++ gcc/gcc.c
+@@ -1094,12 +1094,21 @@
+ 
+ /* Default prefixes to attach to command names.  */
+ 
++#ifdef __ANDROID__
++#ifndef STANDARD_STARTFILE_PREFIX_1
++#define STANDARD_STARTFILE_PREFIX_1 "/system/lib/"
++#endif
++#ifndef STANDARD_STARTFILE_PREFIX_2
++#define STANDARD_STARTFILE_PREFIX_2 "/data/local/lib/"
++#endif
++#else
+ #ifndef STANDARD_STARTFILE_PREFIX_1
+ #define STANDARD_STARTFILE_PREFIX_1 "/lib/"
+ #endif
+ #ifndef STANDARD_STARTFILE_PREFIX_2
+ #define STANDARD_STARTFILE_PREFIX_2 "/usr/lib/"
+ #endif
++#endif
+ 
+ #ifdef CROSS_DIRECTORY_STRUCTURE  /* Don't use these prefixes for a cross compiler.  */
+ #undef MD_EXEC_PREFIX
+--- libcpp/config.in
++++ libcpp/config.in
+@@ -26,7 +26,6 @@
+ #undef HAVE_ALLOCA_H
+ 
+ /* Define to 1 if you have the `clearerr_unlocked' function. */
+-#undef HAVE_CLEARERR_UNLOCKED
+ 
+ /* Define to 1 if you have the declaration of `abort', and to 0 if you don't.
+    */
+@@ -42,7 +41,6 @@
+ 
+ /* Define to 1 if you have the declaration of `clearerr_unlocked', and to 0 if
+    you don't. */
+-#undef HAVE_DECL_CLEARERR_UNLOCKED
+ 
+ /* Define to 1 if you have the declaration of `errno', and to 0 if you don't.
+    */
+@@ -54,7 +52,6 @@
+ 
+ /* Define to 1 if you have the declaration of `ferror_unlocked', and to 0 if
+    you don't. */
+-#undef HAVE_DECL_FERROR_UNLOCKED
+ 
+ /* Define to 1 if you have the declaration of `fflush_unlocked', and to 0 if
+    you don't. */
+@@ -86,7 +83,6 @@
+ 
+ /* Define to 1 if you have the declaration of `fread_unlocked', and to 0 if
+    you don't. */
+-#undef HAVE_DECL_FREAD_UNLOCKED
+ 
+ /* Define to 1 if you have the declaration of `fwrite_unlocked', and to 0 if
+    you don't. */
+@@ -123,7 +119,6 @@
+ #undef HAVE_FEOF_UNLOCKED
+ 
+ /* Define to 1 if you have the `ferror_unlocked' function. */
+-#undef HAVE_FERROR_UNLOCKED
+ 
+ /* Define to 1 if you have the `fflush_unlocked' function. */
+ #undef HAVE_FFLUSH_UNLOCKED
+@@ -147,7 +142,6 @@
+ #undef HAVE_FPUTS_UNLOCKED
+ 
+ /* Define to 1 if you have the `fread_unlocked' function. */
+-#undef HAVE_FREAD_UNLOCKED
+ 
+ /* Define to 1 if you have the `fwrite_unlocked' function. */
+ #undef HAVE_FWRITE_UNLOCKED
+--- libgcc/Makefile.in
++++ libgcc/Makefile.in
+@@ -224,7 +224,7 @@
+ LIBGCC2_DEBUG_CFLAGS = -g
+ LIBGCC2_CFLAGS = -O2 $(LIBGCC2_INCLUDES) $(GCC_CFLAGS) $(HOST_LIBGCC2_CFLAGS) \
+ 		 $(LIBGCC2_DEBUG_CFLAGS) -DIN_LIBGCC2 \
+-		 -fbuilding-libgcc -fno-stack-protector \
++		 -Dflag_building_libgcc -fno-stack-protector \
+ 		 $(INHIBIT_LIBC_CFLAGS)
+ 
+ # Additional options to use when compiling libgcc2.a.
+--- libgomp/env.c
++++ libgomp/env.c
+@@ -30,6 +30,7 @@
+ #include "libgomp_f.h"
+ #include <ctype.h>
+ #include <stdlib.h>
++#include <asm/page.h>
+ #ifdef STRING_WITH_STRINGS
+ # include <string.h>
+ # include <strings.h>
+--- libiberty/getpagesize.c
++++ libiberty/getpagesize.c
+@@ -60,11 +60,13 @@
+ # endif /* PAGESIZE */
+ #endif /* GNU_OUR_PAGESIZE */
+ 
++#ifndef __ANDROID__
+ int
+ getpagesize (void)
+ {
+   return (GNU_OUR_PAGESIZE);
+ }
++#endif
+ 
+ #else /* VMS */
+ 
+--- libiberty/setproctitle.c
++++ libiberty/setproctitle.c
+@@ -43,6 +43,10 @@
+ #ifdef PR_SET_NAME
+   /* On GNU/Linux this sets the top visible "comm", but not
+      necessarily the name visible in ps. */
++#ifdef __ANDROID__
++  prctl (PR_SET_NAME, name, 0, 0, 0);
++#else
+   prctl (PR_SET_NAME, name);
+ #endif
++#endif
+ }

@@ -2,8 +2,8 @@
 if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
 
 PACKAGE_NAME=$(basename $(pwd))
-PACKAGE_VERSION=0.3.6
-PACKAGE_DEPEND=( pth libiconv ncursesw gnutls gettext )
+PACKAGE_VERSION=0.3.7
+PACKAGE_DEPEND=( pth libiconv curl openssl ncursesw gnutls gmp nettle libtasn1 libgcrypt libgpg-error musl )
 
 FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
 ARCHIVE=${FULLNAME}.tar.gz
@@ -13,14 +13,21 @@ botbrew_do_build() {
 	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
 	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
 	botbrew_fix_config ${G_SOURCE}
-	botbrew_patchtree -p0 ${G_SOURCE} patch/weechat-0.3.6-android.patch
+	botbrew_patchtree -p0 ${G_SOURCE} patch/weechat-0.3.7-android.patch
 	botbrew_import
-	botbrew_fix_crosslibconfig ${G_IMPORT}/system/bin/pth-config
-	botbrew_fix_crosslibconfig ${G_IMPORT}/system/bin/ncursesw5-config
+	rm -f ${G_IMPORT}${G_INSTALLPREFIX}/lib/*.la
+	botbrew_fix_crosslibconfig ${G_IMPORT}${G_INSTALLPREFIX}/bin/pth-config
+	botbrew_fix_crosslibconfig ${G_IMPORT}${G_INSTALLPREFIX}/bin/curl-config
+	botbrew_fix_crosslibconfig ${G_IMPORT}${G_INSTALLPREFIX}/bin/ncursesw5-config
 	if ! [ -e ${G_OBJECT}/Makefile ]; then
 		(
+			CWD=$(pwd)
 			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
-			CC="agcc.bash" CPPFLAGS="-I${G_INCDIR}" LD="agcc.bash" LDFLAGS="-L${G_LIBDIR}" \
+			ac_cv_lib_iconv_iconv_open=yes \
+			ac_cv_lib_iconv_libiconv_open=yes \
+			ac_cv_path_CURL_CONFIG=${CWD}/${G_IMPORT}${G_INSTALLPREFIX}/bin/curl-config \
+			CPPFLAGS="${G_CPPFLAGS} -I${G_INCDIR} -I${G_INCDIR}/musl" CFLAGS="${G_ALL_CFLAGS}" \
+			LDFLAGS="-L${G_LIBDIR} -Wl,-rpath-link,${G_LIBDIR} -lgnutls -lgcrypt -lmusl" \
 			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
 				--with-libpth-prefix=${G_SYSDIR} \
 				--with-libiconv-prefix=${G_SYSDIR}
@@ -29,16 +36,7 @@ botbrew_do_build() {
 	if ! [ -e ${G_EXPORT}/.d ]; then
 		${G_MAKE} -C ${G_OBJECT}
 		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
-		(
-			cd ${G_EXPORT}/system/lib/weechat/plugins
-			for file in *.a; do
-				ar -x ${file}
-				agcc.bash -shared -Wl,-soname,`basename ${file} .a`.so -o `basename ${file} .a`.so *.o
-				rm *.o
-			done
-		)
-		rm -r ${G_EXPORT}/system/lib/weechat/plugins/*.la ${G_EXPORT}/system/lib/pkgconfig
-		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/* ${G_EXPORT}/system/lib/weechat/plugins/*.so || true
+		${G_STRIP} --strip-unneeded ${G_EXP_BINDIR}/* ${G_EXP_LIBDIR}/weechat/plugins/*.so* || true
 		touch ${G_EXPORT}/.d
 	fi
 }

@@ -1,0 +1,15 @@
+Package: libgcrypt
+Version: 1.5.0-0
+Architecture: armeabi
+Section: libs
+Priority: optional
+Source: http://www.gnupg.org/
+Description: |
+ LGPL Crypto library (runtime)
+ libgcrypt contains cryptographic functions. Many important free ciphers, hash algorithms and public key signing algorithms have been implemented: Arcfour, Blowfish, CAST5, DES, AES, Twofish, Serpent, rfc2268 (rc2), SEED, Camellia, CRC, MD4, MD5, RIPE-MD160, SHA-1, SHA-256, SHA-512, Tiger, Whirlpool, DSA, DSA2, ElGamal, RSA, ECC.
+Depends: libgpg-error
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/lib
+    cp ${EXPORT}${PREFIX}/lib/*.so* ${PACKAGE}${PREFIX}/lib/

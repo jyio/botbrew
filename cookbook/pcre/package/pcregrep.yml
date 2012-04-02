@@ -1,0 +1,15 @@
+Package: pcregrep
+Version: 8.30-1
+Architecture: armeabi
+Section: utils
+Priority: optional
+Source: http://www.pcre.org/
+Description: |
+ grep utility that uses perl 5 compatible regexes.
+ Perl-style regexps have many useful features that the standard POSIX ones don't; this is basically the same as grep but with the different regexp syntax. The other reason for the existence of pcregrep is that its source code is an example of programming with libpcre.
+Depends: libpcre
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/bin
+    cp -r ${EXPORT}${PREFIX}/bin/pcregrep ${PACKAGE}${PREFIX}/bin/

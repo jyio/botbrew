@@ -17,7 +17,7 @@ botbrew_do_build() {
 	if ! [ -e ${G_OBJECT}/Makefile ]; then
 		(
 			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
-			CC="agcc.bash" LD="agcc.bash" \
+			CPPFLAGS="${G_CPPFLAGS} ${G_ALL_CFLAGS}" \
 			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
 				--with-libiconv-prefix=${G_SYSDIR}
 		)
@@ -25,8 +25,7 @@ botbrew_do_build() {
 	if ! [ -e ${G_EXPORT}/.d ]; then
 		${G_MAKE} -C ${G_OBJECT}
 		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
-		rm ${G_EXPORT}/system/lib/charset.alias
-		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/* || true
+		${G_STRIP} --strip-unneeded ${G_EXP_BINDIR}/* || true
 		touch ${G_EXPORT}/.d
 	fi
 }

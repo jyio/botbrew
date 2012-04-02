@@ -1,0 +1,16 @@
+Package: libssl-dev
+Version: 1.0.1-0
+Architecture: armeabi
+Section: libdevel
+Priority: optional
+Source: http://www.openssl.org/
+Description: |
+ Secure Socket Layer (SSL) development libraries and header files
+ This package contains the openssl development libraries and header files. It is part of the OpenSSL implementation of SSL.
+Depends: libssl
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/lib
+    cp -r ${EXPORT}${PREFIX}/include ${PACKAGE}${PREFIX}/
+    cp -r ${EXPORT}${PREFIX}/lib/lib*.a ${EXPORT}${PREFIX}/lib/pkgconfig ${PACKAGE}${PREFIX}/lib/

@@ -1,5 +1,5 @@
 Package: binutils-dev
-Version: 2.22-0
+Version: 2.22-1
 Architecture: armeabi
 Section: devel
 Priority: optional
@@ -10,6 +10,7 @@ Description: |
 Data:
  /CONTROL/init: |
     #!/bin/sh
-    mkdir -p $PACKAGE/system/lib
-    cp -r $EXPORT/system/include $PACKAGE/system/
-    cp -r $EXPORT/system/lib/lib* $PACKAGE/system/lib/
+    mkdir -p ${PACKAGE}${PREFIX}/lib
+    cp -r ${EXPORT}${PREFIX}/include ${PACKAGE}${PREFIX}/
+    cp -r ${EXPORT}${PREFIX}/lib/lib* ${PACKAGE}${PREFIX}/lib/
+    rm ${PACKAGE}${PREFIX}/lib/libiberty.*

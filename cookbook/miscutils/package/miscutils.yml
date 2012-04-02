@@ -1,0 +1,18 @@
+Package: miscutils
+Version: 0.0.1-0
+Architecture: all
+Section: utils
+Priority: required
+Source: http://inportb.com/
+Description: |
+ (busybox) Miscellaneous utilities specific to BotBrew
+ This package provides a number of small utilities which are used primarily by the installation scripts of BotBrew packages, although you may use them directly.
+Depends: busybox
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/bin
+    ln -s busybox ${PACKAGE}${PREFIX}/bin/add-shell
+    ln -s busybox ${PACKAGE}${PREFIX}/bin/remove-shell
+    ln -s busybox ${PACKAGE}${PREFIX}/bin/run-parts
+    ln -s busybox ${PACKAGE}${PREFIX}/bin/which

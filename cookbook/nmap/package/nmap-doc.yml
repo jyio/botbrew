@@ -1,5 +1,5 @@
 Package: nmap-doc
-Version: 5.51-0
+Version: 5.51-1
 Architecture: all
 Section: doc
 Priority: optional
@@ -7,9 +7,8 @@ Source: http://nmap.org/
 Description: |
  The Network Mapper
  Nmap is a utility for network exploration or security auditing. It supports ping scanning (determine which hosts are up), many port scanning techniques, version detection (determine service protocols and application versions listening behind ports), and TCP/IP fingerprinting (remote host OS or device identification). Nmap also offers flexible target and port specification, decoy/stealth scanning, sunRPC scanning, and more. Most Unix and Windows platforms are supported in both GUI and commandline modes. Several popular handheld devices are also supported, including the Sharp Zaurus and the iPAQ.
-Depends: libpcap
 Data:
  /CONTROL/init: |
     #!/bin/sh
-    mkdir -p $PACKAGE/system/share
-    cp -r $EXPORT/system/share/man $PACKAGE/system/share/
+    mkdir -p ${PACKAGE}${PREFIX}/share
+    cp -r ${EXPORT}${PREFIX}/share/man ${PACKAGE}${PREFIX}/share/

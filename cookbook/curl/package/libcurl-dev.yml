@@ -1,5 +1,5 @@
 Package: libcurl-dev
-Version: 7.24.0-2
+Version: 7.25.1-0
 Architecture: armeabi
 Section: libdevel
 Priority: optional
@@ -11,7 +11,7 @@ Depends: libcurl
 Data:
  /CONTROL/init: |
     #!/bin/sh
-    mkdir -p $PACKAGE/system/bin $PACKAGE/system/lib
-    cp -r $EXPORT/system/include $PACKAGE/system/
-    cp $EXPORT/system/bin/*-config $PACKAGE/system/bin/
-    cp -r $EXPORT/system/lib/*.a $EXPORT/system/lib/*.la $EXPORT/system/lib/pkgconfig $PACKAGE/system/lib/
+    mkdir -p ${PACKAGE}${PREFIX}/bin ${PACKAGE}${PREFIX}/lib
+    cp -r ${EXPORT}${PREFIX}/include ${PACKAGE}${PREFIX}/
+    cp ${EXPORT}${PREFIX}/bin/*-config ${PACKAGE}${PREFIX}/bin/
+    cp -r ${EXPORT}${PREFIX}/lib/*.a ${EXPORT}${PREFIX}/lib/*.la ${EXPORT}${PREFIX}/lib/pkgconfig ${PACKAGE}${PREFIX}/lib/

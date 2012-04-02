@@ -1,5 +1,5 @@
 Package: patch
-Version: 2.6.1.136-1
+Version: 2.6.1.136-2
 Architecture: armeabi
 Section: vcs
 Priority: optional
@@ -7,8 +7,9 @@ Source: http://www.gnu.org/software/patch/
 Description: |
  Apply a diff file to an original
  Patch will take a patch file containing any of the four forms of difference listing produced by the diff program and apply those differences to an original file, producing a patched version.
+Depends: libiconv
 Data:
  /CONTROL/init: |
     #!/bin/sh
-    mkdir -p $PACKAGE/system
-    cp -r $EXPORT/system/bin $PACKAGE/system/
+    mkdir -p ${PACKAGE}${PREFIX}
+    cp -r ${EXPORT}${PREFIX}/bin ${PACKAGE}${PREFIX}/

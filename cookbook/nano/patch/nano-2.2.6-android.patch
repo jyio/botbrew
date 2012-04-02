@@ -5,7 +5,7 @@
      /* if P_tmpdir is NULL, use /tmp. */
      if (full_tempdir == NULL)
 +#ifdef __ANDROID__
-+	full_tempdir = mallocstrcpy(NULL, "/cache/");
++	full_tempdir = mallocstrcpy(NULL, "/data/vtmp/");
 +#else
  	full_tempdir = mallocstrcpy(NULL, "/tmp/");
 +#endif

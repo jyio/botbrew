@@ -1,0 +1,14 @@
+Package: dbus-doc
+Version: 1.5.12-0
+Architecture: all
+Section: doc
+Priority: optional
+Source: http://www.freedesktop.org/wiki/Software/dbus
+Description: |
+ simple interprocess messaging system (documentation)
+ D-Bus is a message bus, used for sending messages between applications. Conceptually, it fits somewhere in between raw sockets and CORBA in terms of complexity. D-Bus supports broadcast messages, asynchronous messages (thus decreasing latency), authentication, and more. It is designed to be low-overhead; messages are sent using a binary protocol, not using XML. D-Bus also supports a method call mapping for its messages, but it is not required; this makes using the system quite simple.
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/share
+    cp -r ${EXPORT}${PREFIX}/share/doc ${EXPORT}${PREFIX}/share/man ${PACKAGE}${PREFIX}/share/

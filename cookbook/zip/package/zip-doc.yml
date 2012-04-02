@@ -1,0 +1,15 @@
+Package: zip-doc
+Version: 3.0-0
+Architecture: all
+Section: doc
+Priority: optional
+Source: http://www.info-zip.org/Zip.html
+Description: |
+ Archiver for .zip files
+ This is InfoZIP's zip program. It produces files that are fully compatible with the popular PKZIP program; however, the command line options are not identical. In other words, the end result is the same, but the methods differ. :-) This version supports encryption.
+Depends: libmusl
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}
+    cp -r ${EXPORT}${PREFIX}/share ${PACKAGE}${PREFIX}/

@@ -1,0 +1,14 @@
+Package: lighttpd-doc
+Version: 1.4.30-1
+Architecture: all
+Section: doc
+Priority: optional
+Source: http://www.lighttpd.net/
+Description: |
+ fast webserver with minimal memory footprint
+ lighttpd is a small and fast webserver developed with security in mind and a lot of features.
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}
+    cp -r ${EXPORT}${PREFIX}/share ${PACKAGE}${PREFIX}/

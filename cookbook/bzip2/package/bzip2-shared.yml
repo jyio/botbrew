@@ -1,5 +1,5 @@
 Package: bzip2-shared
-Version: 1.0.6-1
+Version: 1.0.6-2
 Architecture: armeabi
 Section: utils
 Priority: optional
@@ -11,5 +11,5 @@ Depends: libbz2
 Data:
  /CONTROL/init: |
     #!/bin/sh
-    mkdir -p $PACKAGE/system/bin
-    cp $EXPORT/system/bin/bzip2-shared $PACKAGE/system/bin
+    mkdir -p ${PACKAGE}${PREFIX}/bin
+    cp ${EXPORT}${PREFIX}/bin/bzip2-shared ${PACKAGE}${PREFIX}/bin/

@@ -1,0 +1,17 @@
+Package: libcloog-isl-dev
+Version: 0.16.2-0
+Architecture: armeabi
+Section: libdevel
+Priority: optional
+Source: http://www.cloog.org/
+Description: |
+ Chunky Loop Generator (development files)
+ CLooG is a software which generates loops for scanning Z-polyhedra. That is, CLooG finds the code or pseudo-code where each integral point of one or more parametrized polyhedron or parametrized polyhedra union is reached. CLooG is designed to avoid control overhead and to produce a very efficient code. This package contains the development files and the cloog binary.
+Depends: libcloog-isl, libgmp-dev, libisl-dev
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/include ${PACKAGE}${PREFIX}/lib
+    cp -r ${EXPORT}${PREFIX}/bin ${PACKAGE}${PREFIX}/
+    cp -r ${EXPORT}${PREFIX}/include/cloog ${PACKAGE}${PREFIX}/include/
+    cp ${EXPORT}${PREFIX}/lib/libcloog-isl.a ${EXPORT}${PREFIX}/lib/libcloog-isl.la ${PACKAGE}${PREFIX}/lib/

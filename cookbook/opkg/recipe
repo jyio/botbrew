@@ -8,9 +8,8 @@ PACKAGE_DEPEND=( musl curl openssl )
 botbrew_do_build() {
 	botbrew_svn http://${PACKAGE_NAME}.googlecode.com/svn/trunk ${PACKAGE_NAME}
 	botbrew_copytree ${PACKAGE_NAME} ${G_SOURCE} || true
-#	botbrew_patchtree -p0 ${G_SOURCE} patch/opkg-0.1.8-android.patch
 	botbrew_import
-	botbrew_fix_crosslibconfig ${G_IMPORT}/system/bin/curl-config
+	botbrew_fix_crosslibconfig ${G_BINDIR}/curl-config
 	if ! [ -e ${G_SOURCE}/configure ]; then
 		(cd ${G_SOURCE}; autoreconf -v --install; glib-gettextize --force --copy)
 	fi
@@ -18,20 +17,22 @@ botbrew_do_build() {
 		(
 			rm -rf ${G_LIBDIR}/*.so* ${G_LIBDIR}/*.la ${G_LIBDIR}/pkgconfig
 			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
-			CPPFLAGS="-I${G_INCDIR} -I${G_INCDIR}/musl -D_GNU_SOURCE" CFLAGS="${G_CFLAGS} ${G_OFLAGS}" LDFLAGS="-L${G_LIBDIR}" \
+			CPPFLAGS="-I${G_CPPFLAGS} -I${G_INCDIR} -I${G_INCDIR}/musl" CFLAGS="${G_ALL_CFLAGS}" LDFLAGS="-L${G_LIBDIR}" \
 			CURL_CFLAGS="-I${G_INCDIR}" CURL_LIBS="-L${G_LIBDIR}" \
 			OPENSSL_CFLAGS="-I${G_INCDIR}" OPENSSL_LIBS="-L${G_LIBDIR}" \
 			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
-				--with-opkglibdir=/system/lib --with-opkgetcdir=/system/etc --with-opkglockfile=/cache/opkg/lock \
-				--enable-static --disable-shared --enable-openssl=yes --disable-gpg
+				--enable-static --disable-shared --enable-openssl=yes --disable-gpg \
+				--with-opkglibdir=${G_INSTALLPREFIX}/var/lib \
+				--with-opkgetcdir=${G_INSTALLPREFIX}/etc \
+				--with-opkglockfile=${G_INSTALLPREFIX}/tmp/opkg.lock
 		)
 	fi
 	if ! [ -e ${G_EXPORT}/.d ]; then
 		${G_MAKE} -C ${G_OBJECT} LIBS="-lmusl -lcurl -lz -lssl -lcrypto"
 		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
-		mv ${G_EXPORT}/system/bin/opkg-cl ${G_EXPORT}/system/bin/opkg
-		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/bin/* || true
-		botbrew_fix_interpreter_path $(grep -rlIF '/bin/sh' ${G_EXPORT})
+		mv ${G_EXP_BINDIR}/opkg-cl ${G_EXP_BINDIR}/opkg
+		${G_STRIP} --strip-unneeded ${G_EXP_BINDIR}/* || true
+		botbrew_fix_interpreter_path ${G_EXPORT}
 		touch ${G_EXPORT}/.d
 	fi
 }

@@ -37,7 +37,7 @@ botbrew_do_build() {
 				ARCH		:= arm
 				CC		:= ${G_CC}
 				LD		:= ${G_CC}
-				CFLAGS		:= -Os -std=c99 -D_XOPEN_SOURCE=700 -pipe ${G_CFLAGS} ${G_OFLAGS}
+				CFLAGS		:= -Os -std=c99 -D_XOPEN_SOURCE=700 -pipe ${G_CPPFLAGS} ${G_ALL_CFLAGS}
 				LDFLAGS		:= -shared -lm
 				AR		:= ${G_AR}
 				RANLIB		:= ${G_RANLIB}
@@ -56,12 +56,11 @@ botbrew_do_build() {
 	if ! [ -e ${G_EXPORT}/.d ]; then
 		${G_MAKE} -C ${G_OBJECT} lib/libmusl.a lib/libmusl.so
 		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
-		rm -rf ${G_EXPORT}/system
-		mkdir -p ${G_EXPORT}/system/lib ${G_EXPORT}/system/include/musl
-		mv ${G_EXPORT}/usr/local/musl/lib/libmusl.* ${G_EXPORT}/system/lib/
-		mv ${G_EXPORT}/usr/local/musl/include/* ${G_EXPORT}/system/include/musl/
+		mkdir -p ${G_EXP_LIBDIR} ${G_EXP_INCDIR}/musl
+		mv ${G_EXPORT}/usr/local/musl/lib/libmusl.* ${G_EXP_LIBDIR}/
+		mv ${G_EXPORT}/usr/local/musl/include/* ${G_EXP_INCDIR}/musl/
 		rm -rf ${G_EXPORT}/usr ${G_EXPORT}/lib
-		${G_STRIP} --strip-unneeded ${G_EXPORT}/system/lib/*.so || true
+		${G_STRIP} --strip-unneeded ${G_EXP_LIBDIR}/*.so || true
 		touch ${G_EXPORT}/.d
 	fi
 }

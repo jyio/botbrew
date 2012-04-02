@@ -7,43 +7,44 @@ Source: https://matt.ucc.asn.au/dropbear/dropbear.html
 Description: |
  lightweight SSH2 server and client
  Dropbear is a relatively small SSH 2 server and client. It runs on a variety of POSIX-based platforms. Dropbear is open source software, distributed under a MIT-style license. Dropbear is particularly useful for "embedded"-type Linux (or other Unix) systems, such as wireless routers.
-Depends: busybox
+Depends: busybox, libmusl
 Data:
- /system/etc/service/dropbear/run: |
+ '%(PREFIX)s/etc/dropbear/.opkg-new': ''
+ '%(PREFIX)s/var/log/dropbear/.opkg-new': ''
+ '%(PREFIX)s/service/dropbear/run': |
     #!/system/bin/sh
     exec 2>&1
     exec dropbear -F -E -p 22
- /system/etc/service/dropbear/log/run: |
+ '%(PREFIX)s/service/dropbear/log/run': |
     #!/system/bin/sh
-    exec svlogd -tt /data/log/dropbear
+    exec svlogd -tt %(PREFIX)s/var/log/dropbear
  /CONTROL/postinst: |
     #!/system/bin/sh
-    mkdir -p /system/etc/dropbear /data/run/sv.dropbear /data/run/sv.log.dropbear /data/log/dropbear
-    if [ ! -e /system/etc/dropbear/dropbear_rsa_host_key ]; then
-    	dropbearkey -t rsa -f /system/etc/dropbear/dropbear_rsa_host_key
+    rm	${PKG_ROOT}%(PREFIX)s/etc/dropbear/.opkg-new \
+    	${PKG_ROOT}%(PREFIX)s/var/log/dropbear/.opkg-new
+    if [ ! -e ${PKG_ROOT}%(PREFIX)s/etc/dropbear/dropbear_rsa_host_key ]; then
+    	dropbearkey -t rsa -f ${PKG_ROOT}%(PREFIX)s/etc/dropbear/dropbear_rsa_host_key
     fi
-    if [ ! -e /system/etc/dropbear/dropbear_dss_host_key ]; then
-    	dropbearkey -t dss -f /system/etc/dropbear/dropbear_dss_host_key
+    if [ ! -e ${PKG_ROOT}%(PREFIX)s/etc/dropbear/dropbear_dss_host_key ]; then
+    	dropbearkey -t dss -f ${PKG_ROOT}%(PREFIX)s/etc/dropbear/dropbear_dss_host_key
     fi
-    if [ -d /system/etc/service/enabled ] && ! [ -e /system/etc/service/enabled/dropbear ]; then
-    	ln -s /system/etc/service/dropbear /system/etc/service/enabled/dropbear
+    if ! [ -e ${PKG_ROOT}%(PREFIX)s/service/enabled/dropbear ]; then
+    	ln -s ${PKG_ROOT}%(PREFIX)s/service/dropbear ${PKG_ROOT}%(PREFIX)s/service/enabled/dropbear
     fi
-    if [ ! -f /system/bin/ssh ]; then
-    	ln -s dropbear /system/bin/ssh
+    if [ ! -f ${PKG_ROOT}%(PREFIX)s/bin/ssh ]; then
+    	ln -s dropbearmulti ${PKG_ROOT}%(PREFIX)s/bin/ssh
     fi
  /CONTROL/prerm: |
     #!/system/bin/sh
-    busybox rm -rf /system/etc/service/enabled/dropbear
-    if [ "`readlink /system/bin/ssh`" == "dropbear" ]; then
-    	rm /system/bin/ssh
+    busybox rm -rf ${PKG_ROOT}%(PREFIX)s/service/enabled/dropbear
+    if [ "`readlink ${PKG_ROOT}%(PREFIX)s/bin/ssh`" == "dropbearmulti" ]; then
+    	rm ${PKG_ROOT}%(PREFIX)s/bin/ssh
     fi
  /CONTROL/postrm: |
     #!/system/bin/sh
-    busybox rm -rf /data/run/sv.dropbear /data/run/sv.log.dropbear
+    busybox rm -rf ${PKG_ROOT}%(PREFIX)s/service/dropbear
  /CONTROL/init: |
     #!/bin/sh
-    mkdir -p $PACKAGE/system
-    cp -r $EXPORT/system/bin $PACKAGE/system/
-    ln -s /data/run/sv.dropbear $PACKAGE/system/etc/service/dropbear/supervise
-    ln -s /data/run/sv.log.dropbear $PACKAGE/system/etc/service/dropbear/log/supervise
-    chmod +x $PACKAGE/system/etc/service/dropbear/run $PACKAGE/system/etc/service/dropbear/log/run
+    mkdir -p ${PACKAGE}${PREFIX}
+    cp -r ${EXPORT}${PREFIX}/bin ${PACKAGE}${PREFIX}/
+    chmod +x ${PACKAGE}${PREFIX}/service/dropbear/run ${PACKAGE}${PREFIX}/service/dropbear/log/run

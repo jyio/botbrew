@@ -1,5 +1,5 @@
 Package: vim
-Version: 7.3-2
+Version: 7.3-3
 Architecture: armeabi
 Section: editors
 Priority: optional
@@ -11,6 +11,6 @@ Depends: libncursesw
 Data:
  /CONTROL/init: |
     #!/bin/sh
-    mkdir -p $PACKAGE/system/share
-    cp -r $EXPORT/system/bin $PACKAGE/system/
-    cp -r $EXPORT/system/share/vim $PACKAGE/system/share/
+    mkdir -p ${PACKAGE}${PREFIX}/share
+    cp -r ${EXPORT}${PREFIX}/bin ${PACKAGE}${PREFIX}/
+    cp -r ${EXPORT}${PREFIX}/share/vim ${PACKAGE}${PREFIX}/share/

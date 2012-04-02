@@ -1,0 +1,14 @@
+Package: gnutls-doc
+Version: 3.0.17-0
+Architecture: all
+Section: doc
+Priority: optional
+Source: http://www.gnu.org/software/gnutls/
+Description: |
+ GNU TLS library - documentation
+ GnuTLS is a portable library which implements the Transport Layer Security (TLS 1.0, 1.1, 1.2) and Secure Sockets Layer (SSL) 3.0 protocols.
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}
+    cp -r ${EXPORT}${PREFIX}/share ${PACKAGE}${PREFIX}/

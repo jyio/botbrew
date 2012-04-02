@@ -1,0 +1,15 @@
+Package: libassuan
+Version: 2.0.3-0
+Architecture: armeabi
+Section: libs
+Priority: optional
+Source: http://www.gnupg.org/
+Description: |
+ IPC library for the GnuPG components
+ An IPC library used by the next generation of GnuPG and its various components.
+Depends: libgpg-error
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/lib
+    cp ${EXPORT}${PREFIX}/lib/*.so* ${PACKAGE}${PREFIX}/lib/

@@ -14,10 +14,13 @@ botbrew_do_build() {
 	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
 	botbrew_fix_config ${G_SOURCE}
 	botbrew_import
+	sed -e '/^dependency_libs=/ d' ${G_LIBDIR}/libmpfr.la > temp
+	echo "dependency_libs=' -L${G_LIBDIR} ${G_LIBDIR}/libgmp.la'" >> temp
+	mv temp ${G_LIBDIR}/libmpfr.la
 	if ! [ -e ${G_OBJECT}/Makefile ]; then
 		(
 			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
-			CC="agcc.bash" LD="agcc.bash" \
+			CPPFLAGS="${G_CPPFLAGS}" CFLAGS="${G_ALL_CFLAGS}" \
 			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
 				--with-gmp=${G_SYSDIR} \
 				--with-mpfr=${G_SYSDIR}
@@ -26,7 +29,6 @@ botbrew_do_build() {
 	if ! [ -e ${G_EXPORT}/.d ]; then
 		${G_MAKE} -C ${G_OBJECT}
 		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
-		rm ${G_EXPORT}/system/lib/*.la
 		touch ${G_EXPORT}/.d
 	fi
 }

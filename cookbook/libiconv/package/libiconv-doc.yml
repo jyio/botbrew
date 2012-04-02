@@ -1,0 +1,14 @@
+Package: libiconv-doc
+Version: 1.14-0
+Architecture: all
+Section: doc
+Priority: optional
+Source: http://www.gnu.org/software/libiconv/
+Description: |
+ API used to convert between different character encodings
+ The iconv API is the standard programming interface for converting character strings from one character encoding to another in Unix-like operating systems.
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}
+    cp -r ${EXPORT}${PREFIX}/share ${PACKAGE}${PREFIX}/

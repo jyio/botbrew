@@ -1,0 +1,14 @@
+Package: libtasn1-doc
+Version: 2.12-0
+Architecture: armeabi
+Section: doc
+Priority: optional
+Source: http://www.gnu.org/software/libtasn1/
+Description: |
+ Manage ASN.1 structures (documentation)
+ Manage ASN1 (Abstract Syntax Notation One) structures.
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}
+    cp -r ${EXPORT}${PREFIX}/share ${PACKAGE}${PREFIX}/
