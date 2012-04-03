@@ -1,0 +1,35 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=1.4.6
+PACKAGE_DEPEND=()
+
+FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
+ARCHIVE=${FULLNAME}.tar.bz2
+
+botbrew_do_build() {
+	botbrew_download http://www.apache.org/dist/${PACKAGE_NAME}/${ARCHIVE} ${ARCHIVE}
+	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
+	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
+	if ! [ -e ${G_OBJECT}/Makefile ]; then
+		(
+			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
+			ac_cv_file__dev_zero=yes \
+			ac_cv_func_setpgrp_void=yes \
+			apr_cv_process_shared_works=yes \
+			apr_cv_mutex_robust_shared=no \
+			apr_cv_tcp_nodelay_with_cork=no \
+			CPPFLAGS="${G_CPPFLAGS} -DAPR_IOVEC_DEFINED" CFLAGS="${G_ALL_CFLAGS}" \
+			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET}
+		)
+	fi
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		${G_MAKE} -C ${G_OBJECT}
+		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
+		rm -rf ${G_EXPORT}${G_INSTALLPREFIX}/build-1
+		${G_STRIP} --strip-unneeded ${G_EXP_LIBDIR}/*.so* || true
+		botbrew_fix_interpreter_path ${G_EXPORT}
+		touch ${G_EXPORT}/.d
+	fi
+}
