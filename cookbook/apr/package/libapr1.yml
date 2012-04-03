@@ -1,0 +1,14 @@
+Package: libapr1
+Version: 1.4.6-0
+Architecture: armeabi
+Section: libs
+Priority: optional
+Source: http://apr.apache.org/
+Description: |
+ The Apache Portable Runtime Library
+ APR is Apache's Portable Runtime Library, designed to be a support library that provides a predictable and consistent interface to underlying platform-specific implementations.
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/lib
+    cp ${EXPORT}${PREFIX}/lib/*.so* ${PACKAGE}${PREFIX}/lib/

@@ -1,0 +1,16 @@
+Package: libapr1-dev
+Version: 1.4.6-0
+Architecture: armeabi
+Section: libdevel
+Priority: optional
+Source: http://apr.apache.org/
+Description: |
+ The Apache Portable Runtime Library - Development Headers
+ APR is Apache's Portable Runtime Library, designed to be a support library that provides a predictable and consistent interface to underlying platform-specific implementations. This package contains development headers for APR.
+Depends: libapr1
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/lib
+    cp -r ${EXPORT}${PREFIX}/bin ${EXPORT}${PREFIX}/include ${PACKAGE}${PREFIX}/
+    cp -r ${EXPORT}${PREFIX}/lib/*.a ${EXPORT}${PREFIX}/lib/*.la ${EXPORT}${PREFIX}/lib/pkgconfig ${PACKAGE}${PREFIX}/lib/
