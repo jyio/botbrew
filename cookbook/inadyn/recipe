@@ -1,0 +1,33 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=1.96.2
+PACKAGE_DEPEND=()
+
+FULLNAME=${PACKAGE_NAME}.v${PACKAGE_VERSION}
+ARCHIVE=${FULLNAME}.zip
+
+botbrew_do_build() {
+	botbrew_download http://www.inatech.eu/${PACKAGE_NAME}/${ARCHIVE} ${ARCHIVE}
+	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
+	botbrew_copytree ${FULLNAME}/${PACKAGE_NAME} ${G_SOURCE} || true
+	if ! [ -e ${G_OBJECT}/makefile ]; then
+		(
+			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
+			cp -rlf ../${G_SOURCE}/* ./
+			rm -rf bin
+			sed -e "s/gcc/${G_TRIPLET}-gcc/" makefile > temp
+			mv temp makefile
+		)
+	fi
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		${G_MAKE} -C ${G_OBJECT} CPPFLAGS="${G_CPPFLAGS}" CFLAGS="${G_ALL_CFLAGS}"
+		mkdir -p ${G_EXP_BINDIR} ${G_EXP_SYSDIR}/share/man/man5 ${G_EXP_SYSDIR}/share/man/man8
+		cp ${G_OBJECT}/bin/linux/* ${G_EXP_BINDIR}/
+		cp ${G_OBJECT}/man/*.5 ${G_EXP_SYSDIR}/share/man/man5/
+		cp ${G_OBJECT}/man/*.8 ${G_EXP_SYSDIR}/share/man/man8/
+		${G_STRIP} --strip-unneeded ${G_EXP_BINDIR}/* || true
+		touch ${G_EXPORT}/.d
+	fi
+}
