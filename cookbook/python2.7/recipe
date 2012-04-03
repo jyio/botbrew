@@ -23,7 +23,7 @@ botbrew_do_build() {
 	mv temp ${G_SOURCE}/Modules/_ctypes/libffi/src/dlmalloc.c
 	botbrew_fix_config ${G_SOURCE}/Modules/_ctypes/libffi
 	botbrew_import
-	botbrew_fix_crosslibconfig ${G_IMPORT}${G_INSTALLPREFIX}/bin/ncursesw5-config
+	botbrew_fix_crosslibconfig ${G_SYSDIR}/bin/ncursesw5-config
 	if ! [ -e ${G_OBJECT}-host/Makefile ]; then
 		(mkdir -p ${G_OBJECT}-host; cd ${G_OBJECT}-host; ../${G_SOURCE}/configure)
 	fi

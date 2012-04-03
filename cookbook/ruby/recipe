@@ -15,7 +15,7 @@ botbrew_do_build() {
 	botbrew_fix_config ${G_SOURCE}/tool
 	botbrew_patchtree -p0 ${G_SOURCE} patch/ruby-1.9.3-android.patch
 	botbrew_import
-	botbrew_fix_crosslibconfig ${G_IMPORT}${G_INSTALLPREFIX}/bin/ncurses5-config
+	botbrew_fix_crosslibconfig ${G_SYSDIR}/bin/ncurses5-config
 	if ! [ -e ${G_OBJECT}/Makefile ]; then
 		(
 			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}

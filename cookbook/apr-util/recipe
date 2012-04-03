@@ -13,7 +13,7 @@ botbrew_do_build() {
 	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
 	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
 	botbrew_import
-	botbrew_fix_crosslibconfig ${G_IMPORT}${G_INSTALLPREFIX}/bin/apr-1-config
+	botbrew_fix_crosslibconfig ${G_SYSDIR}/bin/apr-1-config
 	sed -e '/^#!/ d' -e '1 i#!/bin/sh' ${G_SYSDIR}/build-1/mkdir.sh > temp
 	cat temp > ${G_SYSDIR}/build-1/mkdir.sh
 	sed ${G_SYSDIR}/build-1/apr_rules.mk \

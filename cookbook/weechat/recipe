@@ -15,17 +15,16 @@ botbrew_do_build() {
 	botbrew_fix_config ${G_SOURCE}
 	botbrew_patchtree -p0 ${G_SOURCE} patch/weechat-0.3.7-android.patch
 	botbrew_import
-	rm -f ${G_IMPORT}${G_INSTALLPREFIX}/lib/*.la
-	botbrew_fix_crosslibconfig ${G_IMPORT}${G_INSTALLPREFIX}/bin/pth-config
-	botbrew_fix_crosslibconfig ${G_IMPORT}${G_INSTALLPREFIX}/bin/curl-config
-	botbrew_fix_crosslibconfig ${G_IMPORT}${G_INSTALLPREFIX}/bin/ncursesw5-config
+	rm -f ${G_SYSDIR}/lib/*.la
+	botbrew_fix_crosslibconfig ${G_SYSDIR}/bin/pth-config
+	botbrew_fix_crosslibconfig ${G_SYSDIR}/bin/curl-config
+	botbrew_fix_crosslibconfig ${G_SYSDIR}/bin/ncursesw5-config
 	if ! [ -e ${G_OBJECT}/Makefile ]; then
 		(
-			CWD=$(pwd)
 			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
 			ac_cv_lib_iconv_iconv_open=yes \
 			ac_cv_lib_iconv_libiconv_open=yes \
-			ac_cv_path_CURL_CONFIG=${CWD}/${G_IMPORT}${G_INSTALLPREFIX}/bin/curl-config \
+			ac_cv_path_CURL_CONFIG=${G_SYSDIR}/bin/curl-config \
 			CPPFLAGS="${G_CPPFLAGS} -I${G_INCDIR} -I${G_INCDIR}/musl" CFLAGS="${G_ALL_CFLAGS}" \
 			LDFLAGS="-L${G_LIBDIR} -Wl,-rpath-link,${G_LIBDIR} -lgnutls -lgcrypt -lmusl" \
 			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \

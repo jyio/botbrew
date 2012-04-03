@@ -14,7 +14,7 @@ botbrew_do_build() {
 	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
 	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
 	botbrew_import
-	botbrew_fix_crosslibconfig ${G_IMPORT}${G_INSTALLPREFIX}/bin/ncursesw5-config
+	botbrew_fix_crosslibconfig ${G_SYSDIR}/bin/ncursesw5-config
 	if ! [ -e ${G_OBJECT}/.d ]; then
 		(
 			set -x

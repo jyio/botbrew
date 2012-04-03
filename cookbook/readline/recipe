@@ -22,7 +22,7 @@ botbrew_do_build() {
 	fi
 	botbrew_patchtree -p0 ${G_SOURCE} patch/readline-6.2-android.patch
 	botbrew_import
-	botbrew_fix_crosslibconfig ${G_IMPORT}${G_INSTALLPREFIX}/bin/ncursesw5-config
+	botbrew_fix_crosslibconfig ${G_SYSDIR}/bin/ncursesw5-config
 	if ! [ -e ${G_OBJECT}/Makefile ]; then
 		(
 			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
