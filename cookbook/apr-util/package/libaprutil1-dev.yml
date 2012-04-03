@@ -1,0 +1,16 @@
+Package: libaprutil1-dev
+Version: 1.4.1-0
+Architecture: armeabi
+Section: libdevel
+Priority: optional
+Source: http://apr.apache.org/
+Description: |
+ The Apache Portable Runtime Utility Library - Development Headers
+ APR is Apache's Portable Runtime Library, designed to be a support library that provides a predictable and consistent interface to underlying platform-specific implementations. APR Util is a utilities library implemented on top of apr, providing database access, xml parsing, and other useful functionality. This package contains development headers for APR util.
+Depends: libaprutil1, libapr1-dev
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/lib
+    cp -r ${EXPORT}${PREFIX}/bin ${EXPORT}${PREFIX}/include ${PACKAGE}${PREFIX}/
+    cp -r ${EXPORT}${PREFIX}/lib/*.a ${EXPORT}${PREFIX}/lib/*.la ${EXPORT}${PREFIX}/lib/pkgconfig ${PACKAGE}${PREFIX}/lib/

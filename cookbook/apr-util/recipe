@@ -1,0 +1,43 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=1.4.1
+PACKAGE_DEPEND=( apr )
+
+FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
+ARCHIVE=${FULLNAME}.tar.bz2
+
+botbrew_do_build() {
+	botbrew_download http://www.apache.org/dist/apr/${ARCHIVE} ${ARCHIVE}
+	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
+	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
+	botbrew_import
+	botbrew_fix_crosslibconfig ${G_IMPORT}${G_INSTALLPREFIX}/bin/apr-1-config
+	sed -e '/^#!/ d' -e '1 i#!/bin/sh' ${G_SYSDIR}/build-1/mkdir.sh > temp
+	cat temp > ${G_SYSDIR}/build-1/mkdir.sh
+	sed ${G_SYSDIR}/build-1/apr_rules.mk \
+		-e '/^apr_builddir=/ d' \
+		-e '/^apr_builders=/ d' \
+		-e '/^top_builddir=/ d' \
+		> temp
+	echo "apr_builddir=${G_SYSDIR}/build-1" >> temp
+	echo "apr_builders=${G_SYSDIR}/build-1" >> temp
+	echo "top_builddir=${G_SYSDIR}/build-1" >> temp
+	mv temp ${G_SYSDIR}/build-1/apr_rules.mk
+	if ! [ -e ${G_OBJECT}/Makefile ]; then
+		(
+			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
+			CPPFLAGS="${G_CPPFLAGS}" CFLAGS="${G_ALL_CFLAGS}" \
+			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
+				--with-apr=${G_SYSDIR}
+		)
+	fi
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		${G_MAKE} -C ${G_OBJECT}
+		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
+		${G_STRIP} --strip-unneeded ${G_EXP_LIBDIR}/*.so* || true
+		botbrew_fix_interpreter_path ${G_EXPORT}
+		touch ${G_EXPORT}/.d
+	fi
+}
