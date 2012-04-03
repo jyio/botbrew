@@ -11,5 +11,5 @@ Depends: libsqlite3, readline, libncursesw
 Data:
  /CONTROL/init: |
     #!/bin/sh
-    mkdir -p ${PACKAGE}${PREFIX}/lib
+    mkdir -p ${PACKAGE}${PREFIX}
     cp -r ${EXPORT}${PREFIX}/bin ${PACKAGE}${PREFIX}/
