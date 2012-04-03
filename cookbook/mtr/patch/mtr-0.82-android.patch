@@ -1,0 +1,13 @@
+--- dns.c
++++ dns.c
+@@ -45,6 +45,10 @@
+ #include <errno.h>
+ #include <time.h>
+ 
++#ifdef __ANDROID__
++#include <resolv_private.h>
++#endif
++
+ #include "mtr.h"
+ #include "dns.h"
+ #include "net.h"
