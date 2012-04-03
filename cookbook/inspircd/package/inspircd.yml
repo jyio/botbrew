@@ -1,0 +1,136 @@
+Package: inspircd
+Version: 2.0.5-0
+Architecture: armeabi
+Section: net
+Priority: optional
+Source: http://inspircd.github.com/
+Description: |
+ Modular IRCd written in C++
+ InspIRCd is a modular C++ IRC Daemon for several operating systems created to provide a stable, modern, lightweight irc server from scratch and provide a vast number of features in a modularised form using an advanced module API. By keeping the functionality of the main core to a minimum, the server is very stable, fast and customizable.
+Depends: libpcre, libsqlite3, libssl, libmusl
+Data:
+ '%(PREFIX)s/var/log/inspircd/.opkg-new': ''
+ '%(PREFIX)s/etc/inspircd/inspircd.conf.opkg-new': |
+    #<include file="%(PREFIX)s/etc/inspircd/inspircd.conf.example">
+    <config format="xml">
+    <pid file="%(PREFIX)s/var/run/inspircd.pid">
+    <define name="bindip" value="127.0.0.1">
+    <define name="localips" value="&bindip;/24">
+    <server name="penguin.omega.org.za" description="Waddle World" network="Omega">
+    <admin name="Johnny English" nick="MI5" email="MI5@the.best.secret.agent">
+    <bind address="127.0.0.1" port="6660-6669" type="clients">
+    <power diepass="hackme" restartpass="hackme">
+    <connect
+    	name="main"
+    	allow="*"
+    	maxchans="30"
+    	timeout="10"
+    	pingfreq="120"
+    	hardsendq="1048576"
+    	softsendq="8192"
+    	recvq="8192"
+    	threshold="10"
+    	commandrate="1000"
+    	fakelag="on"
+    	localmax="3"
+    	globalmax="3"
+    	useident="no"
+    	limit="5000"
+    	modes="+x">
+    <cidr ipv4clone="32" ipv6clone="128">
+    <files
+    	motd="%(PREFIX)s/etc/inspircd/inspircd.motd.example"
+    	rules="%(PREFIX)s/etc/inspircd/inspircd.rules.example">
+    <channels users="20" opers="60">
+    <dns server="8.8.8.8" timeout="5">
+    <options
+    	prefixquit="Quit: "
+    	suffixquit=""
+    	prefixpart="&quot;"
+    	suffixpart="&quot;"
+    	syntaxhints="no"
+    	cyclehosts="yes"
+    	cyclehostsfromuser="no"
+    	ircumsgprefix="no"
+    	announcets="yes"
+    	allowmismatched="no"
+    	defaultbind="auto"
+    	hostintopic="yes"
+    	pingwarning="15"
+    	serverpingfreq="60"
+    	defaultmodes="nt"
+    	moronbanner="You're banned! Email haha@abuse.com with the ERROR line below for help."
+    	exemptchanops="nonick:v flood:o"
+    	invitebypassmodes="yes">
+    <performance
+    	netbuffersize="10240"
+    	maxwho="4096"
+    	somaxconn="128"
+    	softlimit="1024"
+    	quietbursts="yes"
+    	nouserdns="no">
+    <security
+    	announceinvites="dynamic"
+    	hidemodes="eI"
+    	hideulines="no"
+    	flatlinks="no"
+    	hidewhois=""
+    	hidebans="no"
+    	hidekills=""
+    	hidesplits="no"
+    	maxtargets="20"
+    	customversion=""
+    	operspywhois="no"
+    	restrictbannedusers="yes"
+    	genericoper="no"
+    	userstats="Pu">
+    <limits
+    	maxnick="31"
+    	maxchan="64"
+    	maxmodes="20"
+    	maxident="11"
+    	maxquit="255"
+    	maxtopic="307"
+    	maxkick="255"
+    	maxgecos="128"
+    	maxaway="200">
+    <whowas groupsize="10" maxgroups="100000" maxkeep="3d">
+    <badnick nick="*Serv" reason="Reserved For Services">
+    <insane hostmasks="no" ipmasks="no" nickmasks="no" trigger="95.5">
+    #<include file="%(PREFIX)s/etc/inspircd/opers.conf.example">
+    <class name="NetTest" commands="*" usermodes="*" chanmodes="*" privs="*">
+    <type name="TestOp" classes="NetTest" vhost="ircop.omega.org.za">
+    <oper
+    	name="Brain"
+    	hash="sha256"
+    	password="hackme"
+    	host="*@localhost *@127.0.0.1/32"
+    	type="TestOp">
+    #<include file="%(PREFIX)s/etc/inspircd/links.conf.example">
+    #<include file="%(PREFIX)s/etc/inspircd/modules.conf.example">
+ '%(PREFIX)s/service/inspircd/run': |
+    #!/system/bin/sh
+    exec 2>&1
+    exec inspircd --nofork --runasroot --config %(PREFIX)s/etc/inspircd/inspircd.conf --logfile %(PREFIX)s/var/log/inspircd/startup.log
+ /CONTROL/postinst: |
+    #!/system/bin/sh
+    rm ${PKG_ROOT}%(PREFIX)s/var/log/inspircd/.opkg-new
+    if [ -e "${PKG_ROOT}%(PREFIX)s/etc/inspircd/inspircd.conf" ]; then
+    	rm "${PKG_ROOT}%(PREFIX)s/etc/inspircd/inspircd.conf.opkg-new"
+    else
+    	mv "${PKG_ROOT}%(PREFIX)s/etc/inspircd/inspircd.conf.opkg-new" "${PKG_ROOT}%(PREFIX)s/etc/inspircd/inspircd.conf"
+    fi
+    #if ! [ -e ${PKG_ROOT}%(PREFIX)s/service/enabled/inspircd ]; then
+    #	ln -s ${PKG_ROOT}%(PREFIX)s/service/inspircd ${PKG_ROOT}%(PREFIX)s/service/enabled/inspircd
+    #fi
+ /CONTROL/prerm: |
+    #!/system/bin/sh
+    busybox rm -rf ${PKG_ROOT}%(PREFIX)s/service/enabled/inspircd
+ /CONTROL/postrm: |
+    #!/system/bin/sh
+    busybox rm -rf ${PKG_ROOT}%(PREFIX)s/service/inspircd
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}
+    cp -r ${EXPORT}${PREFIX}/bin ${EXPORT}${PREFIX}/etc ${EXPORT}${PREFIX}/lib ${PACKAGE}${PREFIX}/
+    chmod +x ${PACKAGE}${PREFIX}/service/inspircd/run

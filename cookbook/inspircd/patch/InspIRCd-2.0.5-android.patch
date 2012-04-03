@@ -1,0 +1,39 @@
+--- configure
++++ configure
+@@ -365,7 +365,7 @@
+ print "no\n" if $has_kqueue == 0;
+ 
+ printf "Checking for epoll support... ";
+-$has_epoll = test_compile('epoll');
++$has_epoll = 1;
+ print $has_epoll ? "yes\n" : "no\n";
+ 
+ printf "Checking for eventfd support... ";
+--- src/commands/cmd_user.cpp
++++ src/commands/cmd_user.cpp
+@@ -55,7 +55,11 @@
+ 			 * IDENTMAX here.
+ 			 */
+ 			user->ChangeIdent(parameters[0].c_str());
++#ifdef __ANDROID__
++			user->ChangeName(parameters[3].empty() ? "No info" : parameters[3].c_str());
++#else
+ 			user->fullname.assign(parameters[3].empty() ? std::string("No info") : parameters[3], 0, ServerInstance->Config->Limits.MaxGecos);
++#endif
+ 			user->registered = (user->registered | REG_USER);
+ 		}
+ 	}
+--- src/socketengines/socketengine_epoll.cpp
++++ src/socketengines/socketengine_epoll.cpp
+@@ -18,7 +18,11 @@
+ #include "exitcodes.h"
+ #include "socketengine.h"
+ #include <sys/epoll.h>
++#ifdef __ANDROID__
++extern "C" long ulimit (int, ...);
++#else
+ #include <ulimit.h>
++#endif
+ #define EP_DELAY 5
+ 
+ /** A specialisation of the SocketEngine class, designed to use linux 2.6 epoll().

@@ -1,0 +1,42 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=2.0.5
+PACKAGE_DEPEND=( pcre sqlite openssl musl )
+
+FULLNAME=InspIRCd-${PACKAGE_VERSION}
+ARCHIVE=${FULLNAME}.tar.bz2
+
+botbrew_do_build() {
+	botbrew_download https://github.com/downloads/${PACKAGE_NAME}/${PACKAGE_NAME}/${ARCHIVE} ${ARCHIVE}
+	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
+	botbrew_copytree ${FULLNAME}/${PACKAGE_NAME} ${G_SOURCE} || true
+	botbrew_patchtree -p0 ${G_SOURCE} patch/InspIRCd-2.0.5-android.patch
+	botbrew_import
+	botbrew_fix_crosslibconfig ${G_BINDIR}/pcre-config
+	if ! [ -e ${G_OBJECT}/GNUmakefile ]; then
+		(
+			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
+			cp -rlf ../${G_SOURCE}/* ./
+			PATH=${G_SYSDIR}/bin:${PATH} \
+			PKG_CONFIG_LIBDIR="${G_LIBDIR}/pkgconfig" PKG_CONFIG_SYSROOT_DIR="${G_LIBDIR}/.." \
+			./configure \
+				--with-cc=${G_TRIPLET}-g++ \
+				--prefix=${G_INSTALLPREFIX} \
+				--config-dir=${G_INSTALLPREFIX}/etc/inspircd \
+				--module-dir=${G_INSTALLPREFIX}/lib/inspircd \
+				--enable-openssl \
+				--disable-ipv6
+			sed -e 's/-pthread//g' -e 's/-lrt//g' GNUmakefile > temp
+			mv temp GNUmakefile
+		)
+	fi
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		${G_MAKE} -C ${G_OBJECT} V=1 install DESTDIR=$(pwd)/${G_EXPORT} \
+			CXXFLAGS="${G_CPPFLAGS} ${G_ALL_CXXFLAGS} -I${G_INCDIR} -I$(pwd)/${G_OBJECT}/include -pipe -fPIC -DPIC" \
+			LD="${G_TRIPLET}-gcc" LDFLAGS="-L${G_LIBDIR}" LDLIBS="-lmusl -lstdc++"
+		${G_STRIP} --strip-unneeded ${G_EXP_BINDIR}/* $(find ${G_EXP_LIBDIR} -name '*.so*') || true
+		touch ${G_EXPORT}/.d
+	fi
+}
