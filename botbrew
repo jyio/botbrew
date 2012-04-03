@@ -83,7 +83,7 @@ botbrew_unpack() {
 		local DST=${G_ROOT}/${G_ARCHIVE}/$2
 		case "$1" in
 			*.zip|*.jar)
-				mkdir -p "${DST}" && unzip -d "${DST}" "${SRC}"
+				mkdir -p "${DST}" && unzip -qd "${DST}" "${SRC}"
 				;;
 			*.tgz|*.tar.gz)
 				mkdir -p "${DST}" && tar -C "${DST}" -zxf "${SRC}"
