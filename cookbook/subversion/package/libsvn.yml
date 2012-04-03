@@ -1,0 +1,15 @@
+Package: libsvn
+Version: 1.7.4-0
+Architecture: armeabi
+Section: libs
+Priority: optional
+Source: http://subversion.tigris.org/
+Description: |
+ Shared libraries used by Subversion
+ This package includes shared libraries to manipulate Subversion (svn) repositories and working copies. See the 'subversion' package for more information.
+Depends: libapr1, libaprutil1, libsqlite3, libserf1
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/lib
+    cp ${EXPORT}${PREFIX}/lib/*.so* ${PACKAGE}${PREFIX}/lib/

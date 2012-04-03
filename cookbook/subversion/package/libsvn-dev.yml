@@ -1,0 +1,16 @@
+Package: libsvn-dev
+Version: 1.7.4-0
+Architecture: armeabi
+Section: libdevel
+Priority: optional
+Source: http://subversion.tigris.org/
+Description: |
+ Development files for Subversion libraries
+ This package contains the symlinks, headers, and object files needed to compile and link programs which use libsvn1, the Subversion libraries. This package is needed only in order to compile software that uses libsvn1.
+Depends: libsvn, libapr1-dev, libaprutil1-dev, libsqlite3-dev, libserf1-dev
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/lib
+    cp -r ${EXPORT}${PREFIX}/include ${PACKAGE}${PREFIX}/
+    cp ${EXPORT}${PREFIX}/lib/*.a ${EXPORT}${PREFIX}/lib/*.la ${PACKAGE}${PREFIX}/lib/

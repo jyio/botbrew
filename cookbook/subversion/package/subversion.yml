@@ -1,0 +1,15 @@
+Package: subversion
+Version: 1.7.4-0
+Architecture: armeabi
+Section: vcs
+Priority: optional
+Source: http://subversion.tigris.org/
+Description: |
+ Advanced version control system
+ Subversion, also known as svn, is a version control system much like the Concurrent Versions System (CVS). Version control systems allow many individuals (who may be distributed geographically) to collaborate on a set of files (typically source code). Subversion has all the major features of CVS, plus certain new features that CVS users often wish they had. This package includes the Subversion client (svn), tools to create a Subversion repository (svnadmin) and to make a repository available over a network (svnserve).
+Depends: libsvn
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}
+    cp -r ${EXPORT}${PREFIX}/bin ${PACKAGE}${PREFIX}/
