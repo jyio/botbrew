@@ -1,0 +1,14 @@
+Package: libserf1
+Version: 1.0.3-0
+Architecture: armeabi
+Section: libs
+Priority: optional
+Source: http://code.google.com/p/serf/
+Description: |
+ high-performance asynchronous HTTP client library
+ serf library is a C-based HTTP client library built upon the Apache Portable Runtime (APR) library. It multiplexes connections, running the read/write communication asynchronously. Memory copies and transformations are kept to a minimum to provide high performance operation.
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/lib
+    cp ${EXPORT}${PREFIX}/lib/*.so* ${PACKAGE}${PREFIX}/lib/

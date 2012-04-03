@@ -1,0 +1,36 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=1.0.3
+PACKAGE_DEPEND=( apr apr-util openssl )
+
+FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
+ARCHIVE=${FULLNAME}.tar.bz2
+
+botbrew_do_build() {
+	botbrew_download http://${PACKAGE_NAME}.googlecode.com/files/${ARCHIVE} ${ARCHIVE}
+	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
+	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
+#	botbrew_fix_config ${G_SOURCE}
+	botbrew_import
+	botbrew_fix_crosslibconfig ${G_SYSDIR}/bin/apr-1-config
+	botbrew_fix_crosslibconfig ${G_SYSDIR}/bin/apu-1-config
+	rm -f ${G_LIBDIR}/*.la
+	if ! [ -e ${G_OBJECT}/Makefile ]; then
+		(
+			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
+			CPPFLAGS="${G_CPPFLAGS} -DAPR_IOVEC_DEFINED" CFLAGS="${G_ALL_CFLAGS}" \
+			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
+				--with-apr=${G_SYSDIR} \
+				--with-apr-util=${G_SYSDIR} \
+				--with-openssl=${G_SYSDIR}
+		)
+	fi
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		${G_MAKE} -C ${G_OBJECT}
+		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
+		${G_STRIP} --strip-unneeded ${G_EXP_LIBDIR}/*.so* || true
+		touch ${G_EXPORT}/.d
+	fi
+}
