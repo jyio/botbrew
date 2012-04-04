@@ -1,0 +1,16 @@
+Package: w3m
+Version: 0.5.3-0
+Architecture: armeabi
+Section: web
+Priority: optional
+Source: http://w3m.sourceforge.net/
+Description: |
+ WWW browsable pager with excellent tables/frames support
+ w3m is a text-based World Wide Web browser with IPv6 support. It features excellent support for tables and frames. It can be used as a standalone file pager, too.
+Depends: ncurses-common, libncursesw, libssl, libmusl
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/share
+    cp -r ${EXPORT}${PREFIX}/bin ${EXPORT}${PREFIX}/libexec ${PACKAGE}${PREFIX}/
+    cp -r ${EXPORT}${PREFIX}/share/w3m ${PACKAGE}${PREFIX}/share/

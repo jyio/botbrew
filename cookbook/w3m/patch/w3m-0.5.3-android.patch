@@ -1,0 +1,183 @@
+--- fm.h
++++ fm.h
+@@ -37,7 +37,9 @@
+ 
+ #include "ctrlcode.h"
+ #include "html.h"
++#ifndef DUMMY
+ #include <gc.h>
++#endif
+ #include "Str.h"
+ #ifdef USE_M17N
+ #include "wc.h"
+@@ -74,7 +76,9 @@
+ #include "func.h"
+ #include "menu.h"
+ #include "textlist.h"
++#ifndef DUMMY
+ #include "funcname1.h"
++#endif
+ #include "terms.h"
+ 
+ #ifndef HAVE_BCOPY
+--- hash.c
++++ hash.c
+@@ -1,7 +1,11 @@
+ /* $Id: hash.c,v 1.5 2003/04/07 16:27:10 ukai Exp $ */
+ #include <string.h>
+ #include "hash.h"
++#ifdef DUMMY
++#define GC_malloc malloc
++#else
+ #include <gc.h>
++#endif
+ 
+ static unsigned int
+ hashfunc(char *s)
+--- html.h
++++ html.h
+@@ -1,6 +1,9 @@
+ /* $Id: html.h,v 1.31 2010/08/14 01:29:40 htrb Exp $ */
+ #ifndef _HTML_H
+ #define _HTML_H
++#if defined(DUMMY)&&defined(USE_SSL)
++#undef USE_SSL
++#endif
+ #ifdef USE_SSL
+ #include <openssl/bio.h>
+ #include <openssl/x509.h>
+--- indep.c
++++ indep.c
+@@ -9,7 +9,9 @@
+ #include <stdlib.h>
+ #include "indep.h"
+ #include "Str.h"
++#ifndef DUMMY
+ #include <gc.h>
++#endif
+ #include "myctype.h"
+ #include "entity.h"
+ 
+--- indep.h
++++ indep.h
+@@ -1,7 +1,9 @@
+ /* $Id: indep.h,v 1.16 2003/09/22 21:02:19 ukai Exp $ */
+ #ifndef INDEP_H
+ #define INDEP_H
++#ifndef DUMMY
+ #include <gc.h>
++#endif
+ #include "Str.h"
+ #include "config.h"
+ 
+--- main.c
++++ main.c
+@@ -833,7 +833,12 @@
+     mySignal(SIGPIPE, SigPipe);
+ #endif
+ 
++#ifdef __ANDROID__
++    orig_GC_warn_proc = GC_get_warn_proc();
++    GC_set_warn_proc(wrap_GC_warn_proc);
++#else
+     orig_GC_warn_proc = GC_set_warn_proc(wrap_GC_warn_proc);
++#endif
+     err_msg = Strnew();
+     if (load_argc == 0) {
+ 	/* no URL specified */
+--- Makefile.in
++++ Makefile.in
+@@ -99,6 +99,8 @@
+ LLOBJS=version.o
+ ALIBOBJS=Str.o indep.o regex.o textlist.o parsetag.o myctype.o hash.o
+ ALIB=libindep.a
++ALIBX86OBJS=Str_x86.o indep_x86.o regex_x86.o textlist_x86.o parsetag_x86.o myctype_x86.o hash_x86.o
++ALIBX86=libindep_x86.a
+ ALLOBJS=$(OBJS) $(LOBJS) $(LLOBJS)
+ 
+ EXT=@EXEEXT@
+@@ -176,8 +178,27 @@
+ 	./mktable$(EXT) 100 functable.tab > $@
+ 	-rm -f functable.tab
+ 
+-mktable$(EXT): mktable.o dummy.o Str.o hash.o myctype.o
+-	$(CC) $(CFLAGS) -o mktable mktable.o dummy.o Str.o hash.o myctype.o $(LDFLAGS) $(LIBS) $(GC_LIBS)
++mktable$(EXT): mktable.o dummy.o $(ALIBX86)
++	$(HOST_CC) $(CFLAGS) -c -o dummy_x86.o $(srcdir)/entity.c
++	$(HOST_CC) $(CFLAGS) -c $(srcdir)/mktable.c
++	$(HOST_CC) $(CFLAGS) -o mktable mktable.o dummy_x86.o -L. -lindep_x86
++Str_x86.o: Str.c
++	$(HOST_CC) $(CFLAGS) -o $@ -c $?
++indep_x86.o: indep.c
++	$(HOST_CC) $(CFLAGS) -o $@ -c $?
++regex_x86.o: regex.c
++	$(HOST_CC) $(CFLAGS) -o $@ -c $?
++textlist_x86.o: textlist.c
++	$(HOST_CC) $(CFLAGS) -o $@ -c $?
++parsetag_x86.o: parsetag.c
++	$(HOST_CC) $(CFLAGS) -o $@ -c $?
++myctype_x86.o: myctype.c
++	$(HOST_CC) $(CFLAGS) -o $@ -c $?
++hash_x86.o: hash.c
++	$(HOST_CC) $(CFLAGS) -o $@ -c $?
++$(ALIBX86): $(ALIBX86OBJS)
++	$(HOST_AR) rv $(ALIBX86) $(ALIBX86OBJS)
++	$(HOST_RANLIB) $(ALIBX86)
+ 
+ $(BOOKMARKER): w3mbookmark.o dummy.o $(ALIB)
+ 	$(CC) $(CFLAGS) -o $(BOOKMARKER) w3mbookmark.o dummy.o $(LDFLAGS) $(LIBS) $(EXT_LIBS)
+--- mktable.c
++++ mktable.c
+@@ -6,7 +6,12 @@
+ #include "hash.h"
+ #include "myctype.h"
+ #include "Str.h"
++#ifdef DUMMY
++#define GC_INIT()
++#define GC_malloc malloc
++#else
+ #include <gc.h>
++#endif
+ 
+ /* *INDENT-OFF* */
+ defhash(HashItem_ss *, int, hss_i)
+--- regex.c
++++ regex.c
+@@ -13,7 +13,9 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
++#ifndef DUMMY
+ #include <gc.h>
++#endif
+ #include "config.h"
+ #ifdef USE_M17N
+ #include "wc.h"
+--- Str.c
++++ Str.c
+@@ -15,7 +15,13 @@
+  */
+ #include <stdio.h>
+ #include <stdlib.h>
++#ifdef DUMMY
++#define GC_MALLOC malloc
++#define GC_MALLOC_ATOMIC malloc
++#define GC_free free
++#else
+ #include <gc.h>
++#endif
+ #include <stdarg.h>
+ #include <string.h>
+ #ifdef __EMX__			/* or include "fm.h" for HAVE_BCOPY? */
+--- textlist.c
++++ textlist.c
+@@ -2,7 +2,9 @@
+ #include "textlist.h"
+ #include "indep.h"
+ #include "Str.h"
++#ifndef DUMMY
+ #include <gc.h>
++#endif
+ 
+ /* General doubly linked list */
+ 

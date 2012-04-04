@@ -1,0 +1,14 @@
+Package: w3m-doc
+Version: 0.5.3-0
+Architecture: all
+Section: doc
+Priority: optional
+Source: http://w3m.sourceforge.net/
+Description: |
+ WWW browsable pager with excellent tables/frames support
+ w3m is a text-based World Wide Web browser with IPv6 support. It features excellent support for tables and frames. It can be used as a standalone file pager, too.
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/share
+    cp -r ${EXPORT}${PREFIX}/share/man ${PACKAGE}${PREFIX}/share/

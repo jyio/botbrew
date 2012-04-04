@@ -1,0 +1,43 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=0.5.3
+PACKAGE_DEPEND=( libiconv openssl gc ncursesw musl )
+
+FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
+ARCHIVE=${FULLNAME}.tar.gz
+
+botbrew_do_build() {
+	botbrew_download http://downloads.sourceforge.net/project/${PACKAGE_NAME}/${PACKAGE_NAME}/${FULLNAME}/${ARCHIVE} ${ARCHIVE}
+	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
+	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
+	botbrew_fix_config ${G_SOURCE}
+	# hints from http://androidzaurus.seesaa.net/article/78908606.html
+	botbrew_patchtree -p0 ${G_SOURCE} patch/w3m-0.5.3-android.patch
+	botbrew_import
+	if ! [ -e ${G_OBJECT}/Makefile ]; then
+		(
+			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
+			ac_cv_func_setpgrp_void=yes \
+			CPPFLAGS="${G_CPPFLAGS} -I${G_INCDIR} -I${G_INCDIR}/musl" CFLAGS="${G_ALL_CFLAGS}" LDFLAGS="-L${G_LIBDIR}" \
+			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
+				--disable-m17n \
+				--with-libiconv-prefix=${G_SYSDIR} \
+				--with-ssl=${G_SYSDIR} \
+				--with-gc=${G_SYSDIR} \
+				--with-editor=/botbrew/bin/nano \
+				--with-termlib=ncursesw
+		)
+	fi
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		${G_MAKE} -C ${G_OBJECT} mktable \
+			HOST_CC=gcc HOST_AR=ar HOST_RANLIB=ranlib CPPFLAGS= \
+			CFLAGS='-I. -DDUMMY -DAUXBIN_DIR=\"\" -DCGIBIN_DIR=\"\" -DETC_DIR=\"\" -DCONF_DIR=\"\" -DHELP_DIR=\"\"'
+		${G_MAKE} -C ${G_OBJECT} LIBS="-lmusl"
+		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
+		${G_STRIP} --strip-unneeded ${G_EXP_BINDIR}/* ${G_EXP_SYSDIR}/libexec/* || true
+		botbrew_fix_interpreter_path ${G_EXPORT}
+		touch ${G_EXPORT}/.d
+	fi
+}
