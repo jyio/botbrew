@@ -1,0 +1,28 @@
+--- lib/fseeko.c
++++ lib/fseeko.c
+@@ -63,7 +63,11 @@
+       && fp_->_w == ((fp_->_flags & (__SLBF | __SNBF | __SRD)) == 0 /* fully buffered and not currently reading? */
+                      ? fp_->_bf._size
+                      : 0)
++#ifdef __ANDROID__
++      )
++#else
+       && fp_ub._base == NULL)
++#endif
+ #elif defined __EMX__               /* emx+gcc */
+   if (fp->_ptr == fp->_buffer
+       && fp->_rcount == 0
+--- lib/stdio-impl.h
++++ lib/stdio-impl.h
+@@ -68,7 +68,11 @@
+ #  define fp_ub fp_->_ub
+ # endif
+ 
++#ifdef __ANDROID__
++# define HASUB(fp) NULL
++#else
+ # define HASUB(fp) (fp_ub._base != NULL)
++#endif
+ 
+ #endif
+ 

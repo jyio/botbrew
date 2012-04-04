@@ -1,0 +1,14 @@
+Package: m4
+Version: 1.4.16-2
+Architecture: armeabi
+Section: interpreters
+Priority: optional
+Source: http://www.gnu.org/software/m4/
+Description: |
+ a macro processing language
+ GNU `m4' is an implementation of the traditional UNIX macro processor. It is mostly SVR4 compatible, although it has some extensions (for example, handling more than 9 positional parameters to macros). `m4' also has builtin functions for including files, running shell commands, doing arithmetic, etc. Autoconf needs GNU `m4' for generating `configure' scripts, but not for running them.
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}
+    cp -r ${EXPORT}${PREFIX}/bin ${PACKAGE}${PREFIX}/
