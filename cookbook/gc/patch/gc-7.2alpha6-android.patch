@@ -1,0 +1,12 @@
+--- configure
++++ configure
+@@ -5222,7 +5222,8 @@
+         THREADDLLIBS="-lpthread -lrt"
+         ;;
+       *)
+-        as_fn_error $? "\"Pthreads not supported by the GC on this platform.\"" "$LINENO" 5
++        $as_echo "#define GC_LINUX_THREADS 1" >>confdefs.h
++        $as_echo "#define _REENTRANT 1" >>confdefs.h
+         ;;
+     esac
+     case "$host" in
