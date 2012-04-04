@@ -11,4 +11,4 @@ Data:
  /CONTROL/init: |
     #!/bin/sh
     mkdir -p ${PACKAGE}${PREFIX}
-    cp -r ${EXPORT}${PREFIX}/bin ${PACKAGE}${PREFIX}
+    cp -r ${EXPORT}${PREFIX}/bin ${PACKAGE}${PREFIX}/
