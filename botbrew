@@ -507,7 +507,7 @@ botbrew_fix_interpreter_path() {
 		botbrew_fix_interpreter_path "$target" '/usr/bin/python' 's/\/usr\/bin\/python/\/botbrew\/bin\/python/g'
 		botbrew_fix_interpreter_path "$target" '/usr/local/bin/python' 's/\/usr\/local\/bin\/python/\/botbrew\/bin\/python/g'
 		botbrew_fix_interpreter_path "$target" '/usr/bin/perl' 's/\/usr\/bin\/perl/\/botbrew\/bin\/perl/g'
-		botbrew_fix_interpreter_path "$target" '/usr/bin/man' 's/\/usr\/bin\/perl/\/botbrew\/bin\/man/g'
+		botbrew_fix_interpreter_path "$target" '/usr/bin/man' 's/\/usr\/bin\/man/\/botbrew\/bin\/man/g'
 	elif [ "$operation" = "" ]; then
 		echo 1>&2 "No operation specified."
 		return 1
