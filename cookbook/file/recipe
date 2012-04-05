@@ -18,6 +18,9 @@ botbrew_do_build() {
 			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
 			CPPFLAGS="${G_CPPFLAGS}" CFLAGS="${G_ALL_CFLAGS}" \
 			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET}
+			# bionic's wchar functions cause segfaults!
+			sed -e 's/^#define HAVE_WCHAR_H.*//g' config.h > temp
+			mv temp config.h
 		)
 	fi
 	if ! [ -e ${G_EXPORT}/.d ]; then
