@@ -1,0 +1,15 @@
+Package: u-boot-tools
+Version: 2011.12-0
+Architecture: armeabi
+Section: admin
+Priority: optional
+Source: http://www.denx.de/wiki/U-Boot
+Description: |
+ companion tools for Das U-Boot bootloader
+ This package includes the mkimage program, which allows generation of U-Boot images in various formats, and the fw_printenv and fw_setenv programs to read and modify U-Boot's environment.
+Depends: libmusl
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}
+    cp -r ${EXPORT}${PREFIX}/bin ${PACKAGE}${PREFIX}/

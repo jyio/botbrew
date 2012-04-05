@@ -1,0 +1,35 @@
+--- config.mk
++++ config.mk
+@@ -59,7 +59,7 @@
+ #########################################################################
+ 
+ HOSTCFLAGS	= -Wall -Wstrict-prototypes -O2 -fomit-frame-pointer \
+-		  $(HOSTCPPFLAGS)
++		  $(HOSTCFLAGS_EXT) $(HOSTCPPFLAGS) $(HOSTCPPFLAGS_EXT)
+ HOSTSTRIP	= strip
+ 
+ #
+--- include/compiler.h
++++ include/compiler.h
+@@ -123,8 +123,10 @@
+ #define __WORDSIZE	32
+ #endif
+ 
++#ifndef __ANDROID__
+ /* Type for `void *' pointers. */
+ typedef unsigned long int uintptr_t;
++#endif
+ 
+ #endif /* USE_HOSTCC */
+ 
+--- tools/Makefile
++++ tools/Makefile
+@@ -209,7 +209,7 @@
+ 			$(obj)sha1.o \
+ 			$(obj)ublimage.o \
+ 			$(LIBFDT_OBJS)
+-	$(HOSTCC) $(HOSTCFLAGS) $(HOSTLDFLAGS) -o $@ $^
++	$(HOSTCC) $(HOSTCFLAGS) $(HOSTLDFLAGS) -o $@ $^ $(HOSTLIBS_EXT)
+ 	$(HOSTSTRIP) $@
+ 
+ $(obj)mpc86x_clk$(SFX):	$(obj)mpc86x_clk.o

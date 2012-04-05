@@ -1,0 +1,34 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=2011.12
+PACKAGE_DEPEND=( musl )
+
+FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
+ARCHIVE=${FULLNAME}.tar.bz2
+
+botbrew_do_build() {
+	botbrew_download http://ftp.denx.de/pub/${PACKAGE_NAME}/${ARCHIVE} ${ARCHIVE}
+	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
+	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
+	botbrew_patchtree -p0 ${G_SOURCE} patch/u-boot-2011.12-android.patch
+	botbrew_import
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		mkdir -p ${G_OBJECT}
+		cp ${G_SOURCE}/include/sha1.h ${G_SOURCE}/tools/
+		local BUILD_DIR=$(pwd)/${G_OBJECT}
+		BUILD_DIR="${BUILD_DIR}" \
+		${G_MAKE} -C ${G_SOURCE} tools HOSTCC="${G_TRIPLET}-gcc" HOSTSTRIP="${G_STRIP}" \
+			HOSTCPPFLAGS_EXT="${G_CPPFLAGS} -I${G_INCDIR}/musl" HOSTCFLAGS_EXT="${G_ALL_CFLAGS}" \
+			HOSTLDFLAGS="-L${G_LIBDIR}" HOSTLIBS_EXT="-lmusl"
+		BUILD_DIR="${BUILD_DIR}" \
+		${G_MAKE} -C ${G_SOURCE} env HOSTCC="${G_TRIPLET}-gcc" \
+			HOSTCPPFLAGS_EXT="${G_CPPFLAGS} -I${G_INCDIR}/musl" HOSTCFLAGS_EXT="${G_ALL_CFLAGS}"
+		mkdir -p ${G_EXP_BINDIR}
+		cp ${G_OBJECT}/tools/mkimage ${G_OBJECT}/tools/mkenvimage ${G_OBJECT}/tools/env/fw_printenv ${G_EXP_BINDIR}/
+		ln -s fw_printenv ${G_EXP_BINDIR}/fw_setenv
+		${G_STRIP} --strip-unneeded ${G_EXP_BINDIR}/* || true
+		touch ${G_EXPORT}/.d
+	fi
+}
