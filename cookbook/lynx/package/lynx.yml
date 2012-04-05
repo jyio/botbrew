@@ -1,0 +1,29 @@
+Package: lynx
+Version: 2.8.8.12-0
+Architecture: armeabi
+Section: web
+Priority: optional
+Source: http://lynx.isc.org/
+Description: |
+ Text-mode WWW Browser with NLS support (development version)
+ Lynx is a fully-featured World Wide Web (WWW) client for users running cursor-addressable, character-cell display devices. It is very fast and easy to use. It will display HTML documents containing links to files residing on the local system, as well as files residing on remote systems running Gopher, HTTP, FTP, WAIS, and NNTP servers.
+Depends: ncurses-common, libncursesw, libbz2, libiconv, libssl, libmusl
+Data:
+ /CONTROL/postinst: |
+    #!/system/bin/sh
+    if [ -f ${PKG_ROOT}%(PREFIX)s/etc/lynx.cfg ]; then
+    	rm ${PKG_ROOT}%(PREFIX)s/etc/lynx.cfg.opkg-new
+    else
+    	mv ${PKG_ROOT}%(PREFIX)s/etc/lynx.cfg.opkg-new ${PKG_ROOT}%(PREFIX)s/etc/lynx.cfg
+    fi
+    if [ -f ${PKG_ROOT}%(PREFIX)s/etc/lynx.lss ]; then
+    	rm ${PKG_ROOT}%(PREFIX)s/etc/lynx.lss.opkg-new
+    else
+    	mv ${PKG_ROOT}%(PREFIX)s/etc/lynx.lss.opkg-new ${PKG_ROOT}%(PREFIX)s/etc/lynx.lss
+    fi
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}
+    cp -r ${EXPORT}${PREFIX}/bin ${EXPORT}${PREFIX}/etc ${PACKAGE}${PREFIX}/
+    mv ${PACKAGE}${PREFIX}/etc/lynx.cfg ${PACKAGE}${PREFIX}/etc/lynx.cfg.opkg-new
+    mv ${PACKAGE}${PREFIX}/etc/lynx.lss ${PACKAGE}${PREFIX}/etc/lynx.lss.opkg-new

@@ -1,0 +1,15 @@
+Package: lynx-doc
+Version: 2.8.8.12-0
+Architecture: all
+Section: doc
+Priority: optional
+Source: http://lynx.isc.org/
+Description: |
+ Text-mode WWW Browser with NLS support (development version)
+ Lynx is a fully-featured World Wide Web (WWW) client for users running cursor-addressable, character-cell display devices. It is very fast and easy to use. It will display HTML documents containing links to files residing on the local system, as well as files residing on remote systems running Gopher, HTTP, FTP, WAIS, and NNTP servers.
+Depends: ncurses-common, libncursesw, bzip2, libiconv, libssl
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}
+    cp -r ${EXPORT}${PREFIX}/share ${PACKAGE}${PREFIX}/

@@ -1,0 +1,41 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=2.8.8.dev12
+PACKAGE_DEPEND=( ncursesw bzip2 libiconv openssl musl )
+
+FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
+ARCHIVE=${FULLNAME}.tar.gz
+
+botbrew_do_build() {
+	botbrew_download http://lynx.isc.org/gnumatic/${ARCHIVE} ${ARCHIVE}
+	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
+	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
+	botbrew_patchtree -p0 ${G_SOURCE} patch/lynx-2.8.8.dev12-android.patch
+	botbrew_import
+	botbrew_fix_crosslibconfig ${G_SYSDIR}/bin/ncursesw5-config
+	if ! [ -e ${G_OBJECT}/makefile ]; then
+		(
+			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
+			cp -lf ${G_LIBDIR}/libncursesw.so ${G_LIBDIR}/libtinfo.so
+			CPPFLAGS="${G_CPPFLAGS} -I${G_INCDIR}/musl" CFLAGS="${G_ALL_CFLAGS}" LDFLAGS="-L${G_LIBDIR}" LIBS="-lmusl" \
+			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
+				--enable-underlines \
+				--with-bzlib=${G_SYSDIR} \
+				--with-curses-dir=${G_SYSDIR} \
+				--with-libiconv-prefix=${G_SYSDIR} \
+				--with-ssl=${G_SYSDIR} \
+				--with-screen=ncursesw \
+				--with-zlib \
+				--disable-full-paths
+		)
+	fi
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		${G_MAKE} -C ${G_OBJECT}
+		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
+		rm -f ${G_EXP_BINDIR}/lynx.*
+		${G_STRIP} --strip-unneeded ${G_EXP_BINDIR}/* || true
+		touch ${G_EXPORT}/.d
+	fi
+}

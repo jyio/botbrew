@@ -1,0 +1,52 @@
+--- src/LYUtils.c
++++ src/LYUtils.c
+@@ -5196,7 +5196,11 @@
+ 		/*
+ 		 * Use /tmp; it should be writable.
+ 		 */
++#ifdef __ANDROID__
++		StrAllocCopy(HomeDir, "/botbrew/tmp");
++#else
+ 		StrAllocCopy(HomeDir, "/tmp");
++#endif
+ 	    }
+ #endif
+ #endif /* VMS */
+--- userdefs.h
++++ userdefs.h
+@@ -360,7 +360,11 @@
+  * the "TMPDIR" (unix), or "TEMP" or "TMP" (Windows,DOS,OS/2)
+  * variable.
+  */
++#ifdef __ANDROID__
++#define TEMP_SPACE "/botbrew/tmp/"
++#else
+ #define TEMP_SPACE "/tmp/"
++#endif
+ 
+ /********************************
+  * Comment this line out to disable code that implements command logging
+--- WWW/Library/Implementation/HTFile.c
++++ WWW/Library/Implementation/HTFile.c
+@@ -144,6 +144,8 @@
+ #ifdef VMS
+ static const char *HTCacheRoot = "/WWW$SCRATCH";	/* Where to cache things */
+ 
++#elif defined(__ANDROID__)
++static const char *HTCacheRoot = "/botbrew/tmp/W3_Cache_";
+ #else
+ static const char *HTCacheRoot = "/tmp/W3_Cache_";	/* Where to cache things */
+ #endif /* VMS */
+@@ -715,8 +717,12 @@
+ #else
+ 	home = LYGetEnv("HOME");
+ #endif
++#ifdef __ANDROID__
++	if (home == NULL) home = "/botbrew/tmp";
++#else
+ 	if (home == NULL)
+ 	    home = "/tmp";
++#endif
+ #endif /* VMS */
+ 	HTSprintf0(&result, "%s/WWW/%s/%s%s", home, acc_method, host, path);
+     } else {
