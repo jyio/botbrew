@@ -1,0 +1,37 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=0.0.1
+PACKAGE_DEPEND=()
+
+botbrew_do_build() {
+	if ! [ -e ${G_OBJECT} ]; then
+		mkdir -p ${G_OBJECT}/bin ${G_OBJECT}/lib
+		cp -rlf ${G_SOURCE}/* ${G_OBJECT}/
+	fi
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		(
+			set -x
+			cd ${G_OBJECT}
+			rm -f *.o *.a
+			cd cpio
+			${G_TRIPLET}-gcc -o ../bin/mkbootfs mkbootfs.c -I../include ${G_CPPFLAGS} ${G_ALL_CFLAGS}
+			cd ../libmincrypt
+			${G_TRIPLET}-gcc -c *.c -I../include ${G_CPPFLAGS} ${G_ALL_CFLAGS}
+			${G_TRIPLET}-ar rcs ../lib/libmincrypt.a  *.o
+			cd ../mkbootimg
+			for item in mkbootimg unpackbootimg; do
+				${G_TRIPLET}-gcc -o ../bin/${item} ${item}.c -I../include ${G_CPPFLAGS} ${G_ALL_CFLAGS} ../lib/libmincrypt.a
+			done
+		)
+		mkdir -p ${G_EXP_BINDIR}
+		cp ${G_OBJECT}/bin/* ${G_EXP_BINDIR}/
+		${G_STRIP} --strip-unneeded ${G_EXP_BINDIR}/* || true
+		touch ${G_EXPORT}/.d
+	fi
+}
+
+botbrew_do_clobber() {
+	rm -rf ${G_OBJECT} ${G_IMPORT} ${G_EXPORT}
+}

@@ -1,0 +1,14 @@
+Package: android-mkbootfs
+Version: 0.0.1-0
+Architecture: armeabi
+Section: utils
+Priority: optional
+Source: http://www.android.com/
+Description: |
+ mkbootfs and friends
+ This package include mkbootfs, mkbootimg, and unpackbootimg for Android development.
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}
+    cp -r ${EXPORT}${PREFIX}/bin ${PACKAGE}${PREFIX}/
