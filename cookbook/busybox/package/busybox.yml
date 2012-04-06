@@ -3,6 +3,7 @@ Version: 1.19.4-3
 Architecture: armeabi
 Section: utils
 Priority: required
+Essential: 'yes'
 Source: http://busybox.net/
 Description: |
  Tiny utilities for small and embedded systems

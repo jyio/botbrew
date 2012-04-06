@@ -3,6 +3,7 @@ Version: 0.1.8-8
 Architecture: armeabi
 Section: admin
 Priority: required
+Essential: 'yes'
 Source: http://code.google.com/p/opkg/
 Description: |
  Open PacKaGe Management System

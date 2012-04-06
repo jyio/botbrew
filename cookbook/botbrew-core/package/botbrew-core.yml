@@ -3,6 +3,7 @@ Version: 0.0.1-3
 Architecture: all
 Section: admin
 Priority: required
+Essential: 'yes'
 Source: http://inportb.com/
 Description: |
  Core packages for BotBrew

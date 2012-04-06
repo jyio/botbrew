@@ -3,6 +3,7 @@ Version: 0.0.1-4
 Architecture: all
 Section: admin
 Priority: required
+Essential: 'yes'
 Source: http://inportb.com/
 Description: |
  GNU/Linux-like foundation
@@ -102,9 +103,9 @@ Data:
     export LD_LIBRARY_PATH=/data%(PREFIX)s/lib:${LD_LIBRARY_PATH}
     busybox umount -fl %(PREFIX)s/run || true
     busybox umount -fl %(PREFIX)s || true
-    busybox mount -o rw,remount rootfs /
+    busybox mount -o remount,rw rootfs /
     busybox rmdir %(PREFIX)s || true
-    busybox mount -o ro,remount rootfs /
+    busybox mount -o remount,ro rootfs /
  '%(PREFIX)s/restore.sh': |
     #!/system/bin/sh
     /data%(PREFIX)s/init.sh
@@ -113,6 +114,46 @@ Data:
     ln -s /data%(PREFIX)s/bin/botbrew /system/bin/botbrew || echo 2>&1 "not linking \`/system/bin/botbrew'"
     ln -s /data%(PREFIX)s/bin/ldimport /system/bin/ldimport || echo 2>&1 "not linking \`/system/bin/ldimport'"
     true
+ '%(PREFIX)s/unbootstrap.sh': |
+    #!/system/bin/sh
+    export PATH=/data%(PREFIX)s/bin:${PATH}
+    export LD_LIBRARY_PATH=/data%(PREFIX)s/lib:${LD_LIBRARY_PATH}
+    echo "removing mounts..."
+    /data%(PREFIX)s/fini.sh || true
+    echo "removing links..."
+    busybox mount -o remount,rw /system
+    for item in /system/lib/*; do
+    	LINK=`busybox readlink -f "${item}"`
+    	case "${LINK}" in
+    		""|"%(PREFIX)s/lib/"*)
+    			rm "${item}" && echo "unlinked \`${item}'" || true
+    			;;
+    		*);;
+    	esac
+    done
+    busybox mount -o remount,ro /system
+    echo "removing data..."
+    for item in /data%(PREFIX)s/*; do
+    	case "${item}" in
+    		"/data%(PREFIX)s/root")
+    			rmdir "${item}" || true
+    			;;
+    		"/data%(PREFIX)s/home")
+    			rmdir "${item}/"* || true
+    			rmdir "${item}" || true
+    			;;
+    		"/data%(PREFIX)s/bin"|"/data%(PREFIX)s/lib");;
+    		*)
+    			busybox rm -rf "${item}"
+    			;;
+    	esac
+    done
+    busybox rm -rf "/data%(PREFIX)s/bin" "/data%(PREFIX)s/lib" || true
+    rmdir /data%(PREFIX)s || true
+    if [ -e "/data%(PREFIX)s/root" ] || [ -e "/data%(PREFIX)s/home" ]; then
+    	echo 2>&1 "home directories not removed"
+    fi
+    echo "done."
  '%(PREFIX)s/bin/bbsh': |
     #!/system/bin/sh
     ls %(PREFIX)s/ > /dev/null 2>&1 || /data%(PREFIX)s/init.sh
@@ -230,6 +271,8 @@ Data:
     fi
  /CONTROL/init: |
     #!/bin/sh
-    chmod +x ${PACKAGE}${PREFIX}/bin/* ${PACKAGE}${PREFIX}/init.sh ${PACKAGE}${PREFIX}/fini.sh ${PACKAGE}${PREFIX}/restore.sh
+    chmod +x \
+    	${PACKAGE}${PREFIX}/bin/* \
+    	${PACKAGE}${PREFIX}/init.sh ${PACKAGE}${PREFIX}/fini.sh ${PACKAGE}${PREFIX}/restore.sh ${PACKAGE}${PREFIX}/unbootstrap.sh
     mkdir -p ${PACKAGE}/system/bin
     ln -s /data${PREFIX}/bin/bbsh /data${PREFIX}/bin/botbrew /data${PREFIX}/bin/ldimport ${PACKAGE}/system/bin/
