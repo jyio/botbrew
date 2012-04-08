@@ -7,7 +7,7 @@ Source: https://github.com/karelzak/util-linux
 Description: |
  Miscellaneous system utilities
  This package contains a number of important utilities, most of which are oriented towards maintenance of your system. Some of the more important utilities included in this package allow you to partition your hard disk, view kernel messages, and create new filesystems.
-Depends: libuuid, libblkid, libmusl
+Depends: ncurses-common, libuuid, libblkid, libncursesw, libiconv, libmusl
 Data:
  /CONTROL/init: |
     #!/bin/sh
