@@ -1,0 +1,313 @@
+--- configure
++++ configure
+@@ -16225,7 +16225,6 @@
+ 
+ else
+ 
+-  LIBS="$LIBS -lcrypt"
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+ 
+--- fdisk/fdisksunlabel.c
++++ fdisk/fdisksunlabel.c
+@@ -47,12 +47,14 @@
+ 	{ 0, NULL }
+ };
+ 
++#ifndef __ANDROID__
+ static inline unsigned short __swap16(unsigned short x) {
+         return (((uint16_t)(x) & 0xFF) << 8) | (((uint16_t)(x) & 0xFF00) >> 8);
+ }
+ static inline uint32_t __swap32(uint32_t x) {
+         return (((uint32_t)(x) & 0xFF) << 24) | (((uint32_t)(x) & 0xFF00) << 8) | (((uint32_t)(x) & 0xFF0000) >> 8) | (((uint32_t)(x) & 0xFF000000) >> 24);
+ }
++#endif
+ 
+ #define SSWAP16(x) (other_endian ? __swap16(x) \
+ 				 : (uint16_t)(x))
+--- include/pathnames.h
++++ include/pathnames.h
+@@ -18,6 +18,13 @@
+ #define PATH_DELETED_SUFFIX	"\\040(deleted)"
+ #define PATH_DELETED_SUFFIX_SZ	(sizeof(PATH_DELETED_SUFFIX) - 1)
+ 
++#ifdef __ANDROID__
++#include <pwd.h>
++#include <grp.h>
++#include <shadow.h>
++#define _PATH_REBOOT	"/system/bin/reboot"
++#define _PATH_SHUTDOWN	_PATH_REBOOT
++#else
+ /* DEFPATHs from <paths.h> don't include /usr/local */
+ #undef _PATH_DEFPATH
+ #define	_PATH_DEFPATH	        "/usr/local/bin:/bin:/usr/bin"
+@@ -68,20 +75,36 @@
+ #define _PATH_SHADOW_GROUP      "/etc/gshadow"
+ #define _PATH_SHADOW_GTMP       "/etc/sgtmp"
+ #define _PATH_SHADOW_GTMPTMP    "/etc/sgtmptmp"
++#endif
+ 
+ /* used in term-utils/agetty.c */
++#ifdef __ANDROID__
++#define _PATH_ISSUE		"/botbrew/etc/issue"
++#define _PATH_LOGINDEFS		"/botbrew/etc/login.defs"
++#else
+ #define _PATH_ISSUE		"/etc/issue"
+ 
+ #define _PATH_LOGINDEFS		"/etc/login.defs"
++#endif
+ 
+ /* used in misc-utils/look.c */
++#ifdef __ANDROID__
++#define _PATH_WORDS		"/botbrew/share/dict/words"
++#define _PATH_WORDS_ALT		"/botbrew/share/dict/web2"
++#else
+ #define _PATH_WORDS             "/usr/share/dict/words"
+ #define _PATH_WORDS_ALT         "/usr/share/dict/web2"
++#endif
+ 
+ /* mount paths */
++#ifdef __ANDROID__
++#define _PATH_UMOUNT		"/botbrew/bin/umount"
++#define _PATH_FILESYSTEMS	"/botbrew/etc/filesystems"
++#else
+ #define _PATH_UMOUNT		"/bin/umount"
+ 
+ #define _PATH_FILESYSTEMS	"/etc/filesystems"
++#endif
+ #define _PATH_PROC_SWAPS	"/proc/swaps"
+ #define _PATH_PROC_FILESYSTEMS	"/proc/filesystems"
+ #define _PATH_PROC_MOUNTS	"/proc/mounts"
+@@ -132,8 +155,13 @@
+ #define _PATH_DEV_BYPATH	"/dev/disk/by-path"
+ 
+ /* hwclock paths */
++#ifdef __ANDROID__
++#define _PATH_ADJPATH		"/botbrew/etc/adjtime"
++#define _PATH_LASTDATE		"/botbrew/var/lib/lastdate"
++#else
+ #define _PATH_ADJPATH		"/etc/adjtime"
+ #define _PATH_LASTDATE		"/var/lib/lastdate"
++#endif
+ #ifdef __ia64__
+ # define _PATH_RTC_DEV		"/dev/efirtc"
+ #else
+@@ -141,8 +169,12 @@
+ #endif
+ 
+ #ifndef _PATH_BTMP
++#ifdef __ANDROID__
++#define _PATH_BTMP		"/botbrew/var/log/btmp"
++#else
+ #define _PATH_BTMP		"/var/log/btmp"
+ #endif
++#endif
+ 
+ #endif /* PATHNAMES_H */
+ 
+--- lib/sysfs.c
++++ lib/sysfs.c
+@@ -290,7 +290,15 @@
+ 	/* Cannot use /partition file, not supported on old sysfs */
+ 	snprintf(path, sizeof(path), "%s/start", d->d_name);
+ 
++#ifdef __ANDROID__
++	int cwdfd = open(".",O_RDONLY);
++	fchdir(dirfd(dir));
++	int result = access(path,R_OK);
++	fchdir(cwdfd);
++	close(cwdfd);
++#else
+ 	return faccessat(dirfd(dir), path, R_OK, 0) == 0;
++#endif
+ }
+ 
+ int sysfs_scanf(struct sysfs_cxt *cxt,  const char *attr, const char *fmt, ...)
+--- Makefile.am
++++ Makefile.am
+@@ -29,8 +29,7 @@
+ 	po \
+ 	sys-utils \
+ 	term-utils \
+-	text-utils \
+-	tests
++	text-utils
+ 
+ 
+ RCS_FIND_IGNORE = \( -name SCCS -o -name BitKeeper -o -name .svn -o \
+--- Makefile.in
++++ Makefile.in
+@@ -94,7 +94,7 @@
+ CTAGS = ctags
+ DIST_SUBDIRS = include disk-utils fdisk getopt lib libuuid libblkid \
+ 	libmount man/ru login-utils misc-utils po sys-utils term-utils \
+-	text-utils tests hwclock partx mount fsck schedutils
++	text-utils hwclock partx mount fsck schedutils
+ DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
+ distdir = $(PACKAGE)-$(VERSION)
+ top_distdir = $(distdir)
+@@ -319,8 +319,8 @@
+ MAN_DIRS = man/ru
+ SUBDIRS = include disk-utils fdisk getopt lib $(SHLIBS_DIRS) \
+ 	$(MAN_DIRS) login-utils misc-utils po sys-utils term-utils \
+-	text-utils tests $(am__append_4) $(am__append_5) \
+-	$(am__append_6) $(am__append_7) $(am__append_8)
++	text-utils $(am__append_4) $(am__append_5) $(am__append_6) \
++	$(am__append_7) $(am__append_8)
+ RCS_FIND_IGNORE = \( -name SCCS -o -name BitKeeper -o -name .svn -o \
+ 		-name CVS -o -name .pc -o -name .hg -o -name .git \) -prune -o
+ 
+--- misc-utils/logger.c
++++ misc-utils/logger.c
+@@ -58,8 +58,10 @@
+ #define	SYSLOG_NAMES
+ #include <syslog.h>
+ 
++#ifndef __ANDROID__
+ int	decode __P((char *, CODE *));
+ int	pencode __P((char *));
++#endif
+ 
+ static int optd = 0;
+ static int udpport = 514;
+@@ -174,7 +176,9 @@
+ 		{ "id",		no_argument,	    0, 'i' },
+ 		{ "stderr",	no_argument,	    0, 's' },
+ 		{ "file",	required_argument,  0, 'f' },
++#ifndef __ANDROID__
+ 		{ "priority",	required_argument,  0, 'p' },
++#endif
+ 		{ "tag",	required_argument,  0, 't' },
+ 		{ "socket",	required_argument,  0, 'u' },
+ 		{ "udp",	no_argument,	    0, 'd' },
+@@ -192,7 +196,11 @@
+ 	tag = NULL;
+ 	pri = LOG_NOTICE;
+ 	logflags = 0;
++#ifdef __ANDROID__
++	while ((ch = getopt_long(argc, argv, "f:ist:u:dn:P:Vh",
++#else
+ 	while ((ch = getopt_long(argc, argv, "f:ip:st:u:dn:P:Vh",
++#endif
+ 					    longopts, NULL)) != -1) {
+ 		switch((char)ch) {
+ 		case 'f':		/* file to log */
+@@ -203,9 +211,11 @@
+ 		case 'i':		/* log process id also */
+ 			logflags |= LOG_PID;
+ 			break;
++#ifndef __ANDROID__
+ 		case 'p':		/* priority */
+ 			pri = pencode(optarg);
+ 			break;
++#endif
+ 		case 's':		/* log to standard error */
+ 			logflags |= LOG_PERROR;
+ 			break;
+@@ -309,6 +319,7 @@
+ 	return EXIT_SUCCESS;
+ }
+ 
++#ifndef __ANDROID__
+ /*
+  *  Decode a symbolic name to a numeric value
+  */
+@@ -352,3 +363,4 @@
+ 
+ 	return (-1);
+ }
++#endif
+--- misc-utils/uuidd.c
++++ misc-utils/uuidd.c
+@@ -31,6 +31,11 @@
+ extern int optind;
+ #endif
+ 
++#ifdef __ANDROID__
++extern char *__progname;
++#define program_invocation_short_name __progname
++#endif
++
+ #include "uuid.h"
+ #include "uuidd.h"
+ #include "writeall.h"
+--- sys-utils/ldattach.c
++++ sys-utils/ldattach.c
+@@ -24,6 +24,10 @@
+ #include <termios.h>
+ #include <unistd.h>
+ 
++#ifdef __ANDROID__
++#define cfsetspeed cfsetospeed
++#endif
++
+ #include "c.h"
+ #include "nls.h"
+ #include "strutils.h"
+--- term-utils/setterm.c
++++ term-utils/setterm.c
+@@ -123,7 +123,7 @@
+ #include "nls.h"
+ 
+ #if __GNU_LIBRARY__ < 5
+-#ifndef __alpha__
++#if !defined(__alpha__)&&!defined(__ANDROID__)
+ # include <linux/unistd.h>
+ #define __NR_klogctl __NR_syslog
+ _syscall3(int, klogctl, int, type, char*, buf, int, len);
+--- text-utils/column.c
++++ text-utils/column.c
+@@ -56,6 +56,10 @@
+ #include "xalloc.h"
+ #include "strutils.h"
+ 
++#ifdef __ANDROID__
++#include <asm/termios.h>
++#endif
++
+ #ifdef HAVE_WIDECHAR
+ #define wcs_width(s) wcswidth(s,wcslen(s))
+ static wchar_t *mbs_to_wcs(const char *);
+--- text-utils/hexsyntax.c
++++ text-utils/hexsyntax.c
+@@ -46,6 +46,11 @@
+ #include "nls.h"
+ #include "strutils.h"
+ 
++#ifdef __ANDROID__
++extern char *__progname;
++#define program_invocation_short_name __progname
++#endif
++
+ off_t skip;				/* bytes to skip */
+ 
+ 
+--- text-utils/Makefile.in
++++ text-utils/Makefile.in
+@@ -43,11 +43,8 @@
+ 	$(am__EXEEXT_1) $(am__EXEEXT_2)
+ @BUILD_LINE_TRUE@am__append_1 = line
+ @BUILD_LINE_TRUE@am__append_2 = line.1
+-@HAVE_NCURSES_FALSE@@HAVE_TERMCAP_TRUE@bin_PROGRAMS = more$(EXEEXT)
+-@HAVE_NCURSES_TRUE@bin_PROGRAMS = more$(EXEEXT)
+ @HAVE_NCURSES_TRUE@am__append_3 = ul pg
+-@HAVE_NCURSES_TRUE@am__append_4 = ul.1 more.1 pg.1
+-@HAVE_NCURSES_FALSE@@HAVE_TERMCAP_TRUE@am__append_5 = more.1
++@HAVE_NCURSES_TRUE@am__append_4 = ul.1 pg.1
+ subdir = text-utils
+ ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
+ am__aclocal_m4_deps = $(top_srcdir)/m4/gettext.m4 \
+--- text-utils/pg.c
++++ text-utils/pg.c
+@@ -37,7 +37,11 @@
+ #ifndef	TIOCGWINSZ
+ #include <sys/ioctl.h>
+ #endif
++#ifdef __ANDROID__
++#include <asm/termios.h>
++#else
+ #include <sys/termios.h>
++#endif
+ #include <fcntl.h>
+ #include <regex.h>
+ #include <stdio.h>

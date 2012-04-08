@@ -1,0 +1,42 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=2.21.1
+PACKAGE_DEPEND=( libiconv ncursesw musl )
+
+FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
+ARCHIVE=${FULLNAME}.tar.xz
+
+botbrew_do_build() {
+	botbrew_download ftp://ftp.kernel.org/pub/linux/utils/${PACKAGE_NAME}/v${PACKAGE_VERSION%.*}/${ARCHIVE} ${ARCHIVE}
+	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
+	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
+	botbrew_fix_config ${G_SOURCE}/config
+	botbrew_patchtree -p0 ${G_SOURCE} patch/util-linux-2.21.1-android.patch
+	botbrew_import
+	botbrew_fix_crosslibconfig ${G_SYSDIR}/bin/ncursesw5-config
+	sed -e 's/-lcrypt//g' ${G_SOURCE}/configure > temp
+	cat temp > ${G_SOURCE}/configure
+	rm temp
+	if ! [ -e ${G_OBJECT}/Makefile ]; then
+		(
+			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
+			CPPFLAGS="${G_CPPFLAGS} -I${G_INCDIR} -I${G_INCDIR}/ncursesw -I${G_INCDIR}/musl -D_NL_TIME_WEEK_1STDAY=0 -D_NL_TIME_FIRST_WEEKDAY=1" \
+			CFLAGS="${G_ALL_CFLAGS}" LDFLAGS="-L${G_LIBDIR}" LIBS="-lmusl" \
+			../${G_SOURCE}/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
+				--with-libiconv-prefix=${G_SYSDIR} \
+				--disable-agetty \
+				--disable-schedutils \
+				--disable-wall
+		)
+	fi
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		${G_MAKE} -C ${G_OBJECT} LIBS="-lmusl"
+		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
+		mv ${G_EXP_SYSDIR}/sbin/* ${G_EXP_BINDIR}/
+		rm -rf ${G_EXP_SYSDIR}/sbin
+		${G_STRIP} --strip-unneeded ${G_EXP_BINDIR}/* ${G_EXP_LIBDIR}/*.so* || true
+		touch ${G_EXPORT}/.d
+	fi
+}

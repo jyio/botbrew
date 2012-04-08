@@ -1,0 +1,14 @@
+Package: util-linux-doc
+Version: 2.21.1-0
+Architecture: all
+Section: doc
+Priority: optional
+Source: https://github.com/karelzak/util-linux
+Description: |
+ Miscellaneous system utilities
+ This package contains documentation for the utilities provided by util-linux.
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/share
+    cp -r ${EXPORT}${PREFIX}/share/man ${PACKAGE}${PREFIX}/share/

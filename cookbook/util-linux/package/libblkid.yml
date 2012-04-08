@@ -1,0 +1,15 @@
+Package: libblkid
+Version: 2.21.1-0
+Architecture: armeabi
+Section: libs
+Priority: optional
+Source: https://github.com/karelzak/util-linux
+Description: |
+ block device id library
+ The blkid library which allows system programs like fsck and mount to quickly and easily find block devices by filesystem UUID and LABEL. This allows system administrators to avoid specifying filesystems by hard-coded device names, but via a logical naming system instead.
+Depends: libuuid, libmusl
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/lib
+    cp ${EXPORT}${PREFIX}/lib/libblkid.so* ${PACKAGE}${PREFIX}/lib/

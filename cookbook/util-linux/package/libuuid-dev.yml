@@ -1,0 +1,17 @@
+Package: libuuid-dev
+Version: 2.21.1-0
+Architecture: armeabi
+Section: libdevel
+Priority: optional
+Source: https://github.com/karelzak/util-linux
+Description: |
+ universally unique id library - headers and static libraries
+ libuuid generates and parses 128-bit universally unique ids (UUIDs). See RFC 4122 for more information. This package contains the development environment for the uuid library.
+Depends: libuuid, libmusl-dev
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/include ${PACKAGE}${PREFIX}/lib/pkgconfig
+    cp -r ${EXPORT}${PREFIX}/include/uuid ${PACKAGE}${PREFIX}/include/
+    cp ${EXPORT}${PREFIX}/lib/libuuid.a ${EXPORT}${PREFIX}/lib/libuuid.la ${PACKAGE}${PREFIX}/lib/
+    cp ${EXPORT}${PREFIX}/lib/pkgconfig/uuid.pc ${PACKAGE}${PREFIX}/lib/pkgconfig/

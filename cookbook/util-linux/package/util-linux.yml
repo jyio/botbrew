@@ -1,0 +1,16 @@
+Package: util-linux
+Version: 2.21.1-0
+Architecture: armeabi
+Section: utils
+Priority: optional
+Source: https://github.com/karelzak/util-linux
+Description: |
+ Miscellaneous system utilities
+ This package contains a number of important utilities, most of which are oriented towards maintenance of your system. Some of the more important utilities included in this package allow you to partition your hard disk, view kernel messages, and create new filesystems.
+Depends: libuuid, libblkid, libmusl
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/share
+    cp -r ${EXPORT}${PREFIX}/bin ${PACKAGE}${PREFIX}/
+    cp -r ${EXPORT}${PREFIX}/share/getopt ${PACKAGE}${PREFIX}/share/

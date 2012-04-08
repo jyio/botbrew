@@ -1,0 +1,15 @@
+Package: libuuid
+Version: 2.21.1-0
+Architecture: armeabi
+Section: libs
+Priority: optional
+Source: https://github.com/karelzak/util-linux
+Description: |
+ Universally Unique ID library
+ The libuuid library generates and parses 128-bit universally unique ids (UUIDs). A UUID is an identifier that is unique across both space and time, with respect to the space of all UUIDs. A UUID can be used for multiple purposes, from tagging objects with an extremely short lifetime, to reliably identifying very persistent objects across a network. See RFC 4122 for more information.
+Depends: libmusl
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/lib
+    cp ${EXPORT}${PREFIX}/lib/libuuid.so* ${PACKAGE}${PREFIX}/lib/
