@@ -1,0 +1,16 @@
+Package: libdb-bin
+Version: 5.3.15-0
+Architecture: armeabi
+Section: database
+Priority: optional
+Source: http://www.oracle.com/us/products/database/berkeley-db/
+Description: |
+ Berkeley v5.3 Database Libraries [binary]
+ These command line tools provide access to the Berkeley DB interface.
+Depends: libdb
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}
+    cp -r ${EXPORT}${PREFIX}/bin ${PACKAGE}${PREFIX}/
+    rm ${PACKAGE}${PREFIX}/bin/dbsql ${PACKAGE}${PREFIX}/bin/sqlite3

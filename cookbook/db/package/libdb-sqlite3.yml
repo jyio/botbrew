@@ -1,0 +1,15 @@
+Package: libdb-sqlite3
+Version: 5.3.15-0
+Architecture: armeabi
+Section: libs
+Priority: optional
+Source: http://www.oracle.com/us/products/database/berkeley-db/
+Description: |
+ Berkeley v5.3 Database Libraries [SQLite replacement runtime]
+ This is the runtime package for programs that use the Berkeley v5.3 database library.
+Depends: libdb
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/lib
+    cp ${EXPORT}${PREFIX}/lib/libsqlite3.so* ${PACKAGE}${PREFIX}/lib/

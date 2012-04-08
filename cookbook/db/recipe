@@ -1,0 +1,49 @@
+#!/bin/bash
+if [ "${G_BOTBREW}" = "" ]; then kill -SIGINT $$; fi
+
+PACKAGE_NAME=$(basename $(pwd))
+PACKAGE_VERSION=5.3.15
+PACKAGE_DEPEND=()
+
+FULLNAME=${PACKAGE_NAME}-${PACKAGE_VERSION}
+ARCHIVE=${FULLNAME}.tar.gz
+
+botbrew_do_build() {
+	botbrew_download http://download.oracle.com/berkeley-db/${ARCHIVE} ${ARCHIVE}
+	botbrew_unpack ${ARCHIVE} ${FULLNAME} || true
+	botbrew_copytree ${FULLNAME}/${FULLNAME} ${G_SOURCE} || true
+	botbrew_fix_config ${G_SOURCE}/lang/sql/sqlite
+	botbrew_patchtree -p0 ${G_SOURCE} patch/db-5.3.15-android.patch
+	if ! [ -e ${G_OBJECT}/Makefile ]; then
+		(
+			mkdir -p ${G_OBJECT}; cd ${G_OBJECT}
+			CPPFLAGS="${G_CPPFLAGS} -Dfdatasync=fsync" CFLAGS="${G_ALL_CFLAGS}" CXXFLAGS="${G_ALL_CXXFLAGS}" LIBS="-lstdc++" \
+			../${G_SOURCE}/dist/configure ${G_SYSTEMPREFIX[@]} --host=${G_TRIPLET} \
+				--enable-compat185 \
+				--enable-cxx \
+				--enable-java \
+				--enable-o_direct \
+				--enable-sql \
+				--enable-sql_compat \
+				--enable-sql_codegen \
+				--enable-stl \
+				--enable-dbm
+		)
+	fi
+	if ! [ -e ${G_EXPORT}/.d ]; then
+		${G_MAKE} -C ${G_OBJECT}
+		${G_MAKE} -C ${G_OBJECT} install DESTDIR=$(pwd)/${G_EXPORT}
+		mkdir -p ${G_EXP_SYSDIR}/share
+		mv ${G_EXP_SYSDIR}/docs ${G_EXP_SYSDIR}/share/
+		chmod 0755 ${G_EXP_BINDIR}/*
+		(
+			cd ${G_EXP_LIBDIR}
+			for item in libdb libdb_cxx libdb_sql libdb_stl; do
+				rm "${G_EXP_LIBDIR}/${item}.a"
+				ln -s "${item}-"*.a "${item}.a"
+			done
+		)
+		${G_STRIP} --strip-unneeded ${G_EXP_BINDIR}/* ${G_EXP_LIBDIR}/*.so* || true
+		touch ${G_EXPORT}/.d
+	fi
+}

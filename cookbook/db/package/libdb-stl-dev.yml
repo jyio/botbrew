@@ -1,0 +1,16 @@
+Package: libdb-stl-dev
+Version: 5.3.15-0
+Architecture: armeabi
+Section: libdevel
+Priority: optional
+Source: http://www.oracle.com/us/products/database/berkeley-db/
+Description: |
+ Berkeley v5.3 Database Libraries [STL development]
+ This is the development package which contains headers and static libraries for the Berkeley v5.3 database library.
+Depends: libdb-stl, libdb-dev
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/include ${PACKAGE}${PREFIX}/lib
+    cp ${EXPORT}${PREFIX}/include/dbstl*.h ${PACKAGE}${PREFIX}/include/
+    cp ${EXPORT}${PREFIX}/lib/libdb_stl*.a ${EXPORT}${PREFIX}/lib/libdb_stl*.la ${PACKAGE}${PREFIX}/lib/

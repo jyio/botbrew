@@ -1,0 +1,15 @@
+Package: libdb-sql-bin
+Version: 5.3.15-0
+Architecture: armeabi
+Section: database
+Priority: optional
+Source: http://www.oracle.com/us/products/database/berkeley-db/
+Description: |
+ Berkeley v5.3 Database Libraries [SQL binary]
+ This is a command line tool that provides access to the Berkeley DB SQL interface.
+Depends: libdb-sql
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/bin
+    cp ${EXPORT}${PREFIX}/bin/dbsql ${PACKAGE}${PREFIX}/bin/

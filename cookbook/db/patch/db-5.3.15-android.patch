@@ -1,0 +1,23 @@
+--- src/dbinc/mutex_int.h
++++ src/dbinc/mutex_int.h
+@@ -31,6 +31,20 @@
+  * POSIX.1 pthreads interface.
+  *********************************************************************/
+ #if defined(HAVE_MUTEX_PTHREADS)
++#ifdef __ANDROID__
++#define pthread_rwlock_t pthread_mutex_t
++#define pthread_rwlockattr_t pthread_mutexattr_t
++#define pthread_rwlock_init pthread_mutex_init
++#define pthread_rwlock_destroy pthread_mutex_destroy
++#define pthread_rwlock_rdlock pthread_mutex_lock
++#define pthread_rwlock_tryrdlock pthread_mutex_trylock
++#define pthread_rwlock_wrlock pthread_mutex_lock
++#define pthread_rwlock_trywrlock pthread_mutex_trylock
++#define pthread_rwlock_unlock pthread_mutex_unlock
++#define pthread_rwlockattr_init pthread_mutexattr_init
++#define pthread_rwlockattr_destroy pthread_mutexattr_destroy
++#define pthread_rwlockattr_setpshared pthread_mutexattr_setpshared
++#endif
+ /*
+  * Pthreads-based mutexes (exclusive-only) and latches (possibly shared)
+  * have the same MUTEX_FIELDS union. Different parts of the union are used
