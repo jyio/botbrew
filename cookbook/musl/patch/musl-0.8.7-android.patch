@@ -4298,7 +4298,7 @@
  #undef NULL
  #ifdef __cplusplus
  #define NULL 0
-@@ -23,108 +14,12 @@
+@@ -23,108 +14,13 @@
  #define NULL ((void*)0)
  #endif
  
@@ -4336,7 +4336,8 @@
 -int symlink(const char *, const char *);
 -int symlinkat(const char *, int, const char *);
 -ssize_t readlink(const char *, char *, size_t);
--ssize_t readlinkat(int, const char *, char *, size_t);
++int fdatasync(int);
+ ssize_t readlinkat(int, const char *, char *, size_t);
 -int unlink(const char *);
 -int unlinkat(int, const char *, int);
 -int rmdir(const char *);
@@ -4365,7 +4366,6 @@
 -int execl(const char *, const char *, ...);
 -int execvp(const char *, char *const []);
 -int execlp(const char *, const char *, ...);
-+int fdatasync(int);
  int fexecve(int, char *const [], char *const []);
 -void _exit(int);
 -
@@ -4409,7 +4409,7 @@
  size_t confstr(int, char *, size_t);
  
  #define F_ULOCK 0
-@@ -134,33 +29,26 @@
+@@ -134,33 +30,26 @@
  
  #if defined(_XOPEN_SOURCE) || defined(_GNU_SOURCE)
  int lockf(int, int, off_t);
@@ -4452,7 +4452,7 @@
  #define _XOPEN_VERSION          700
  #define _XOPEN_UNIX             1
  #define _XOPEN_ENH_I18N         1
-@@ -203,230 +91,8 @@
+@@ -203,230 +92,8 @@
  
  
  
@@ -4929,7 +4929,9 @@
  #ifdef __cplusplus
 --- Makefile
 +++ Makefile
-@@ -1,3 +1,11 @@
+@@ -1,3 +1,13 @@
++LIBNAME := c
++LIBNAME := c
 +LIBNAME := c
 +LIBNAME := c
 +LIBNAME := c
@@ -4941,7 +4943,7 @@
  #
  # Makefile for musl (requires GNU make)
  #
-@@ -34,8 +42,8 @@
+@@ -34,8 +44,8 @@
  EMPTY_LIB_NAMES = m rt pthread crypt util xnet resolv dl
  EMPTY_LIBS = $(EMPTY_LIB_NAMES:%=lib/lib%.a)
  CRT_LIBS = lib/crt1.o lib/crti.o lib/crtn.o
@@ -4952,7 +4954,7 @@
  ALL_LIBS = $(CRT_LIBS) $(STATIC_LIBS) $(SHARED_LIBS)
  ALL_TOOLS = tools/musl-gcc
  
-@@ -77,11 +85,11 @@
+@@ -77,11 +87,11 @@
  %.lo: %.c $(GENH)
  	$(CC) $(CFLAGS) $(INC) $(PIC) -c -o $@ $<
  
@@ -4967,7 +4969,7 @@
  	rm -f $@
  	$(AR) rc $@ $(OBJS)
  	$(RANLIB) $@
-@@ -109,9 +117,9 @@
+@@ -109,9 +119,9 @@
  $(DESTDIR)$(includedir)/%: include/%
  	install -D -m 644 $< $@
  
@@ -5561,4 +5563,35 @@
  	if (f) fclose(f);
 -	pthread_setcancelstate(cs, 0);
  	return ret;
+ }
+--- src/unistd/readlinkat.c
++++ src/unistd/readlinkat.c
+@@ -1,7 +1,28 @@
+ #include <unistd.h>
+ #include "syscall.h"
++#include <fcntl.h>
++#include <errno.h>
++#include <malloc.h>
++#include <stdio.h>
+ 
+ ssize_t readlinkat(int fd, const char *path, char *buf, size_t bufsize)
+ {
++#ifdef SYS_readlinkat
+ 	return syscall(SYS_readlinkat, fd, path, buf, bufsize);
++#else
++	if((fd != AT_FDCWD)&&(path[0] != '/')) {
++		size_t pathlen = strlen(path);
++		if(pathlen == 0) {
++			errno = ENOENT;
++			return -1;
++		}
++		static const char procfd[] = "/proc/self/fd/%d/%s";
++		size_t buflen = sizeof(procfd)+sizeof(int)*3+pathlen;
++		char *pathbuf = malloc(buflen);
++		snprintf(pathbuf,buflen,procfd,fd,path);
++		ssize_t result = readlink(pathbuf,buf,bufsize);
++		free(pathbuf);
++		return result;
++	} else return readlink(path,buf,bufsize);
++#endif
  }

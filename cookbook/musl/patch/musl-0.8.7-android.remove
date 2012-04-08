@@ -646,7 +646,6 @@ src/unistd/pipe.c
 src/unistd/pread.c
 src/unistd/pwrite.c
 src/unistd/read.c
-src/unistd/readlinkat.c
 src/unistd/readlink.c
 src/unistd/readv.c
 src/unistd/renameat.c

@@ -1,5 +1,5 @@
 Package: libmusl-dev
-Version: 0.8.7-0
+Version: 0.8.7-1
 Architecture: armeabi
 Section: libdevel
 Priority: optional
