@@ -4,9 +4,9 @@ This project compiles various *nix tools and makes Opkg packages suitable for in
 
 ## Prebuilt
 
-If you just want to use prebuilt binaries, get a shell on your rooted Android device and run:
+If you just want to use prebuilt binaries, try the [BotBrew GUI](http://botbrew.com/); or get a shell on your rooted Android device and run:
 
-    wget http://repo.botbrew.com/anise/install.sh -O- | su
+    wget http://repo.botbrew.com/anise/bootstrap/install.sh -O- | su
 
 Otherwise, keep reading to roll your own.
 
