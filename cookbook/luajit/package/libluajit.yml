@@ -1,0 +1,16 @@
+Package: libluajit
+Version: 2.0.0-beta10
+Architecture: armeabi
+Section: lua
+Priority: optional
+Source: http://www.lua.org/
+Description: |
+ LuaJIT Libraries [runtime]
+ This is the runtime package for programs that use the LuaJIT library.
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}/lib
+    mkdir -p ${PACKAGE}${PREFIX}/share
+    cp -r ${EXPORT}${PREFIX}/lib/lua ${EXPORT}${PREFIX}/lib/*.so* ${PACKAGE}${PREFIX}/lib/
+    cp -r ${EXPORT}${PREFIX}/share/lua* ${PACKAGE}${PREFIX}/share/

@@ -1,0 +1,15 @@
+Package: luajit
+Version: 2.0.0-beta10
+Architecture: armeabi
+Section: lua
+Priority: optional
+Source: http://www.lua.org/
+Description: |
+ Lua is a lightweight multi-paradigm programming language designed as a scripting language with "extensible semantics" as a primary goal. Lua is cross-platform since it is written in ISO C.[1] Lua has a relatively simple C API compared to other scripting languages.
+Depends: libluajit
+Data:
+ /CONTROL/init: |
+    #!/bin/sh
+    mkdir -p ${PACKAGE}${PREFIX}
+    cp -r ${EXPORT}${PREFIX}/bin ${PACKAGE}${PREFIX}/
+    cp -r ${EXPORT}${PREFIX}/share/man ${PACKAGE}${PREFIX}/share/
